@@ -13,6 +13,7 @@ export default function CartDrawer() {
   const { isAuthenticated, accessToken } = useAuth()
   const router = useRouter()
   const [selectedCartItemIds, setSelectedCartItemIds] = useState<string[]>([])
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   // Prevent hydration mismatch by only reading auth state after mount

@@ -6,6 +6,28 @@ import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthContext'
 import AnimatedPage from '@/components/AnimatedPage'
 
+// Razorpay is loaded dynamically from CDN
+interface RazorpayConstructor {
+  new (options: {
+    key: string
+    amount: number
+    currency: string
+    name: string
+    description: string
+    order_id: string
+    handler: (response: {
+      razorpay_order_id: string
+      razorpay_payment_id: string
+      razorpay_signature: string
+    }) => void | Promise<void>
+    prefill?: { name?: string; email?: string }
+    theme?: { color?: string }
+    modal?: { ondismiss?: () => void | Promise<void> }
+  }): {
+    open: () => void
+  }
+}
+
 interface OrderItem {
   productId: string
   productName: string
@@ -172,7 +194,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
 
     try {
       // Load Razorpay script if not already loaded
-      if (!(window as any).Razorpay) {
+      if (!(window as Window & { Razorpay?: RazorpayConstructor }).Razorpay) {
         const script = document.createElement('script')
         script.src = 'https://checkout.razorpay.com/v1/checkout.js'
         script.async = true
@@ -286,7 +308,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
         },
       }
 
-      const razorpay = (window as any).Razorpay
+      const razorpay = (window as Window & { Razorpay?: RazorpayConstructor }).Razorpay
       if (razorpay) {
         const razorpayInstance = new razorpay(options)
         razorpayInstance.open()

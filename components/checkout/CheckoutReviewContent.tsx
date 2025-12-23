@@ -253,7 +253,7 @@ export default function CheckoutReviewContent() {
         },
       }
 
-      const razorpay = (window as any).Razorpay
+      const razorpay = (window as Window & { Razorpay?: RazorpayConstructor }).Razorpay
       if (razorpay) {
         const razorpayInstance = new razorpay(options)
         razorpayInstance.open()
