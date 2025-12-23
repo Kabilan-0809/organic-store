@@ -158,12 +158,12 @@ export async function POST(
         refundAmount,
         refundNotes
       )
-    } catch (razorpayError: any) {
+    } catch (razorpayError: unknown) {
       console.error('[Refund] Razorpay refund failed:', razorpayError)
-      return createErrorResponse(
-        razorpayError.message || 'Failed to process refund with payment gateway',
-        500
-      )
+      const errorMessage = razorpayError instanceof Error 
+        ? razorpayError.message 
+        : 'Failed to process refund with payment gateway'
+      return createErrorResponse(errorMessage, 500)
     }
 
     // SECURITY: Update order status and restore stock atomically
@@ -225,11 +225,11 @@ export async function POST(
         currency: updatedOrder.currency,
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Refund] Error:', error)
     
     // Handle transaction errors
-    if (error.message && error.message.includes('status changed')) {
+    if (error instanceof Error && error.message.includes('status changed')) {
       return createErrorResponse(error.message, 409) // Conflict
     }
     

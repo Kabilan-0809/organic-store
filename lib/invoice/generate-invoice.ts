@@ -16,7 +16,7 @@ interface InvoiceData {
  * @returns PDF buffer
  */
 export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
-  const { order, isAdmin } = invoiceData
+  const { order } = invoiceData
 
   return new Promise((resolve, reject) => {
     try {

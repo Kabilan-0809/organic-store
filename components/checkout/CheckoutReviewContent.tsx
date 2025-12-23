@@ -170,7 +170,11 @@ export default function CheckoutReviewContent() {
         name: 'Millets N Joy',
         description: `Order #${orderId}`,
         order_id: razorpayOrderId, // Use razorpayOrderId from order creation
-        handler: async function (response: any) {
+        handler: async function (response: {
+          razorpay_order_id: string
+          razorpay_payment_id: string
+          razorpay_signature: string
+        }) {
           // Verify payment
           try {
             const verifyResponse = await fetch('/api/payments/verify', {

@@ -218,12 +218,15 @@ export async function createRazorpayRefund(
       status: refund.status,
       payment_id: refund.payment_id,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[RAZORPAY] Failed to create refund:', error)
     
     // Provide more specific error messages
-    if (error.error?.description) {
-      throw new Error(`Refund failed: ${error.error.description}`)
+    if (error && typeof error === 'object' && 'error' in error) {
+      const razorpayError = error as { error?: { description?: string } }
+      if (razorpayError.error?.description) {
+        throw new Error(`Refund failed: ${razorpayError.error.description}`)
+      }
     }
     
     throw new Error('Failed to create Razorpay refund')

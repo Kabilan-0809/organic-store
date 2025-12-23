@@ -9,11 +9,10 @@ import { useRouter } from 'next/navigation'
 import { calculateDiscountedPrice } from '@/lib/pricing'
 
 export default function CartDrawer() {
-  const { items, isOpen, close, setQuantity, removeItem, subtotal, reload } = useCart()
+  const { items, isOpen, close, setQuantity, removeItem, subtotal } = useCart()
   const { isAuthenticated, accessToken } = useAuth()
   const router = useRouter()
   const [selectedCartItemIds, setSelectedCartItemIds] = useState<string[]>([])
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   // Prevent hydration mismatch by only reading auth state after mount

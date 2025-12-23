@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAuth, createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { generateInvoicePDF } from '@/lib/invoice/generate-invoice'
+import { Order, OrderItem, User } from '@prisma/client'
 
 /**
  * GET /api/orders/[orderId]/invoice
@@ -68,8 +69,12 @@ export async function GET(
     }
 
     // Generate PDF
+    // Type assertion needed because Prisma select returns partial User type
     const pdfBuffer = await generateInvoicePDF({
-      order: order as any, // Type assertion needed due to Prisma select
+      order: order as Order & {
+        items: OrderItem[]
+        user: User
+      },
       isAdmin: false,
     })
 
