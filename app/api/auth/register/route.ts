@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { hashPassword, createAccessToken, createRefreshToken } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { validateEmail, validateString } from '@/lib/auth/validate-input'
 import {
   checkRateLimit,
@@ -50,59 +49,59 @@ export async function POST(req: Request) {
       )
     }
 
-    // Check if user exists
-    const { data: existingUsers, error: checkError } = await supabase
-      .from('User')
-      .select('id')
-      .eq('email', email)
-      .limit(1)
+    const supabase = createClient()
 
-    if (checkError) {
-      console.error('[Register] Supabase check error:', checkError)
+    // Sign up with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (authError) {
+      console.error('[Register] Supabase auth error:', authError)
+      
+      // Handle specific Supabase errors
+      if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+        return createErrorResponse('User already exists', 409)
+      }
+      
       return createErrorResponse('Registration failed', 500)
     }
 
-    if (existingUsers && existingUsers.length > 0) {
-      return createErrorResponse('User already exists', 409)
+    if (!authData.user) {
+      return createErrorResponse('Registration failed', 500)
     }
 
-    const passwordHash = await hashPassword(password)
-
-    // Create user
-    const { data: newUser, error: createError } = await supabase
+    // Create user profile in User table
+    const { error: profileError } = await supabase
       .from('User')
       .insert({
-        email,
-        passwordHash,
+        id: authData.user.id,
+        email: authData.user.email || email,
         role: 'USER',
       })
-      .select('id, email, role')
-      .single()
 
-    if (createError || !newUser) {
-      console.error('[Register] Supabase create error:', createError)
-      return createErrorResponse('Registration failed', 500)
+    if (profileError) {
+      console.error('[Register] Failed to create user profile:', profileError)
+      // User was created in auth but not in User table
+      // This is not ideal but we'll continue
     }
 
-    // Automatically log in the user after registration
-    const accessToken = createAccessToken({
-      userId: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    })
-    const refreshToken = createRefreshToken({
-      userId: newUser.id,
-      role: newUser.role,
-    })
-
+    // Return in format expected by frontend AuthContext
+    // Use Supabase session tokens as accessToken/refreshToken for compatibility
     return NextResponse.json(
       {
         success: true,
-        accessToken,
-        refreshToken,
-        userId: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
+        accessToken: authData.session?.access_token || '',
+        refreshToken: authData.session?.refresh_token || '',
+        userId: authData.user.id,
+        email: authData.user.email || email,
+        role: 'USER',
+        user: {
+          id: authData.user.id,
+          email: authData.user.email || email,
+          role: 'USER',
+        },
       },
       { status: 201 }
     )

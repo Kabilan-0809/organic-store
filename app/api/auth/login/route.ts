@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { verifyPassword, createAccessToken, createRefreshToken } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { validateEmail } from '@/lib/auth/validate-input'
 import {
   checkRateLimit,
@@ -47,60 +46,64 @@ export async function POST(req: Request) {
       return createErrorResponse('Invalid email or password', 401)
     }
 
-    // Fetch user from Supabase
-    const { data: users, error: userError } = await supabase
+    const supabase = createClient()
+
+    // Sign in with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (authError || !authData.user) {
+      recordLoginFailure(clientId)
+      // SECURITY: Generic message prevents user enumeration
+      return createErrorResponse('Invalid email or password', 401)
+    }
+
+    // Fetch user role from User table
+    const { data: userProfile, error: profileError } = await supabase
       .from('User')
-      .select('*')
-      .eq('email', email)
-      .limit(1)
+      .select('role')
+      .eq('id', authData.user.id)
+      .single()
 
-    if (userError) {
-      console.error('[Login] Supabase error:', userError)
-      recordLoginFailure(clientId)
-      return createErrorResponse('Invalid email or password', 401)
+    // If user doesn't exist in User table, create it
+    if (profileError && profileError.code === 'PGRST116') {
+      // User not found in User table - create it
+      const { error: createError } = await supabase
+        .from('User')
+        .insert({
+          id: authData.user.id,
+          email: authData.user.email || email,
+          role: 'USER',
+        })
+
+      if (createError) {
+        console.error('[Login] Failed to create user profile:', createError)
+      }
     }
 
-    if (!users || users.length === 0) {
-      recordLoginFailure(clientId)
-      // SECURITY: Generic message prevents user enumeration
-      return createErrorResponse('Invalid email or password', 401)
-    }
-
-    const user = users[0]
-
-    // SECURITY: Verify password
-    const isValidPassword = await verifyPassword(password, user.passwordHash)
-    if (!isValidPassword) {
-      recordLoginFailure(clientId)
-      // SECURITY: Generic message prevents user enumeration
-      return createErrorResponse('Invalid email or password', 401)
-    }
+    const role = userProfile?.role || 'USER'
 
     // SECURITY: Clear login failures on successful login
     clearLoginFailures(clientId)
 
-    // SECURITY: Generate tokens
-    const accessToken = createAccessToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    })
-    const refreshToken = createRefreshToken({
-      userId: user.id,
-      role: user.role,
-    })
-
     const responseTime = Date.now() - startTime
-    console.log(`[Login] User ${user.email} logged in successfully (${responseTime}ms)`)
+    console.log(`[Login] User ${email} logged in successfully (${responseTime}ms)`)
 
+    // Return in format expected by frontend AuthContext
+    // Use Supabase session tokens as accessToken/refreshToken for compatibility
     return NextResponse.json({
       success: true,
-      accessToken,
-      refreshToken,
+      accessToken: authData.session?.access_token || '',
+      refreshToken: authData.session?.refresh_token || '',
+      userId: authData.user.id,
+      email: authData.user.email || email,
+      role,
       user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
+        id: authData.user.id,
+        email: authData.user.email || email,
+        role,
       },
     })
   } catch (error) {
