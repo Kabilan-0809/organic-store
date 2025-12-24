@@ -216,12 +216,21 @@
     }
   }
 
-  /* Product image utility - ensures images are never cropped */
+  /* Product image utility - ensures images are never cropped and properly centered */
   .product-image {
     object-fit: contain;
     width: 100%;
     height: auto;
     max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    z-index: 1;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 
   /* Product detail page image - fully visible without scrolling */

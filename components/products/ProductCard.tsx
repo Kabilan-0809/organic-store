@@ -28,9 +28,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         href={`/shop/${slugOrId}`}
         aria-label={`View details for ${product.name}`}
         className="flex flex-1 flex-col"
+        draggable="false"
       >
         {/* Product Image */}
-        <div className="relative flex min-h-[200px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50/30 via-neutral-50 to-primary-100/20 sm:min-h-[240px]">
+        <div className="relative flex min-h-[200px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50/30 via-neutral-50 to-primary-100/20 sm:min-h-[240px] select-none">
           {!imageError && product.image ? (
             <Image
               src={product.image}
@@ -60,7 +61,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           {/* Discount badge on image (only if not out of stock) */}
-          {!isOutOfStock && product.discountPercent && product.discountPercent > 0 && (
+          {!isOutOfStock && product.discountPercent != null && product.discountPercent > 0 && (
             <div className="absolute top-3 right-3 z-10">
               <span className="inline-flex items-center rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-emerald-500/30 sm:px-3.5 sm:py-2 sm:text-sm">
                 {product.discountPercent}% OFF
@@ -104,7 +105,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Price */}
           <div className={`mt-auto ${isOutOfStock ? 'text-neutral-400' : ''}`}>
-            {product.discountPercent && product.discountPercent > 0 ? (
+            {product.discountPercent != null && product.discountPercent > 0 ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-baseline gap-2">
                   <span className={`text-2xl font-bold ${isOutOfStock ? 'text-neutral-400' : 'text-neutral-900'}`}>
