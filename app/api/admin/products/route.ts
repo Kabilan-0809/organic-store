@@ -11,7 +11,7 @@ import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth
  */
 export async function POST(_req: NextRequest) {
   try {
-    const admin = requireAdmin(_req)
+    const admin = await requireAdmin(_req)
     if (!admin) {
       return forbiddenResponse()
     }
@@ -33,7 +33,7 @@ export async function POST(_req: NextRequest) {
  */
 export async function GET(_req: NextRequest) {
   try {
-    const admin = requireAdmin(_req)
+    const admin = await requireAdmin(_req)
     if (!admin) {
       return forbiddenResponse()
     }

@@ -13,7 +13,7 @@ export async function POST(
   { params: _params }: { params: { orderId: string } }
 ) {
   try {
-    const admin = requireAdmin(_req)
+    const admin = await requireAdmin(_req)
     if (!admin) {
       return forbiddenResponse()
     }

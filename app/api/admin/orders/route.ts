@@ -9,7 +9,7 @@ import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth
  */
 export async function GET(_req: NextRequest) {
   try {
-    const admin = requireAdmin(_req)
+    const admin = await requireAdmin(_req)
     if (!admin) {
       return forbiddenResponse()
     }

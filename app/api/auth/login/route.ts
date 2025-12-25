@@ -46,7 +46,8 @@ export async function POST(req: Request) {
       return createErrorResponse('Invalid email or password', 401)
     }
 
-    // Sign in with Supabase Auth using admin client
+    // Sign in with Supabase Auth ONLY
+    // Do NOT query any database tables - Supabase Auth handles authentication
     const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
       email,
       password,
@@ -59,6 +60,18 @@ export async function POST(req: Request) {
         console.error('[Login] Configuration error - check environment variables')
         return createErrorResponse('Server configuration error', 500)
       }
+
+      // Handle email confirmation errors (in dev mode, this may be disabled)
+      if (authError.message.includes('email_not_confirmed') || authError.message.includes('Email not confirmed')) {
+        // In development, allow login even if email not confirmed
+        // In production, you may want to return a specific error
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Login] Email not confirmed, but allowing in dev mode')
+          // Continue with login attempt - Supabase may still allow it if confirmation is disabled
+        } else {
+          return createErrorResponse('Please confirm your email before logging in', 401)
+        }
+      }
       
       recordLoginFailure(clientId)
       // SECURITY: Generic message prevents user enumeration
@@ -70,36 +83,15 @@ export async function POST(req: Request) {
       return createErrorResponse('Invalid email or password', 401)
     }
 
-    // Fetch user role from User table
-    const { data: userProfile, error: profileError } = await supabaseAdmin
-      .from('User')
-      .select('role')
-      .eq('id', authData.user.id)
-      .single()
-
-    // If user doesn't exist in User table, create it
-    if (profileError && profileError.code === 'PGRST116') {
-      // User not found in User table - create it
-      const { error: createError } = await supabaseAdmin
-        .from('User')
-        .insert({
-          id: authData.user.id,
-          email: authData.user.email || email,
-          role: 'USER',
-        })
-
-      if (createError) {
-        console.error('[Login] Failed to create user profile:', createError)
-      }
-    }
-
-    const role = userProfile?.role || 'USER'
+    // Get role from app_metadata (defaults to 'USER' if not set)
+    // This is the ONLY source of truth for user roles
+    const role = (authData.user.app_metadata?.role as string) || 'USER'
 
     // SECURITY: Clear login failures on successful login
     clearLoginFailures(clientId)
 
     const responseTime = Date.now() - startTime
-    console.log(`[Login] User ${email} logged in successfully (${responseTime}ms)`)
+    console.log(`[Login] User ${email} logged in successfully (${responseTime}ms) [Role: ${role}]`)
 
     // Return in format expected by frontend AuthContext
     // Use Supabase session tokens as accessToken/refreshToken for compatibility

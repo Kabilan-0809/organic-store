@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { verifyAccessToken } from './tokens'
+import { requireSupabaseAdmin } from './supabase-auth'
 
 /**
  * Extract and verify user from request Authorization header
@@ -62,24 +63,24 @@ export function requireAuth(req: Request): { userId: string; email?: string; rol
  * Require admin role middleware for API routes
  * 
  * SECURITY: Rejects non-admin users with 403 Forbidden.
- * Must be called after requireAuth() to ensure user is authenticated.
+ * Checks role from Supabase Auth app_metadata (source of truth).
  * 
  * @param req - Request object
  * @returns User info if admin, or null if not admin
  */
-export function requireAdmin(req: Request): { userId: string; email?: string; role?: string } | null {
-  const user = requireAuth(req)
+export async function requireAdmin(req: Request): Promise<{ userId: string; email?: string; role?: string } | null> {
+  // Use Supabase Auth to check admin role from app_metadata
+  const admin = await requireSupabaseAdmin(req)
   
-  if (!user) {
+  if (!admin) {
     return null
   }
 
-  // SECURITY: Reject non-admin users
-  if (user.role !== 'ADMIN') {
-    return null
+  return {
+    userId: admin.id,
+    email: admin.email,
+    role: admin.role,
   }
-
-  return user
 }
 
 /**
@@ -119,4 +120,3 @@ export function unauthorizedResponse(): NextResponse {
 export function forbiddenResponse(): NextResponse {
   return createErrorResponse('Forbidden', 403)
 }
-
