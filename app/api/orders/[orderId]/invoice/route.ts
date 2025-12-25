@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { requireAuth, createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
+import { getSupabaseUser } from '@/lib/auth/supabase-auth'
+import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { generateInvoicePDF } from '@/lib/invoice/generate-invoice'
 
+/**
+ * GET /api/orders/[orderId]/invoice
+ * 
+ * Generate invoice PDF for an order.
+ * 
+ * Uses Supabase Auth cookies as the ONLY authentication method.
+ */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const user = requireAuth(req)
+    const user = await getSupabaseUser()
     if (!user) {
       return unauthorizedResponse()
     }
@@ -30,7 +38,7 @@ export async function GET(
       .from('Order')
       .select('*')
       .eq('id', orderId)
-      .eq('userId', user.userId)
+      .eq('userId', user.id)
       .limit(1)
 
     if (orderError || !orders || orders.length === 0) {

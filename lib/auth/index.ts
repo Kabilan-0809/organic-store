@@ -1,23 +1,30 @@
 /**
  * Authentication utilities
- *
- * Central export point for all authentication-related utilities.
- * This module provides password hashing/verification and JWT token management.
- *
- * Usage:
+ * 
+ * This module provides Supabase Auth integration.
+ * 
+ * NOTE: Legacy JWT token functions have been removed.
+ * All authentication now uses Supabase Auth cookies.
+ * 
+ * @example
  * ```ts
- * import { hashPassword, verifyPassword, createAccessToken, verifyAccessToken } from '@/lib/auth'
+ * import { getSupabaseUser, requireSupabaseAdmin } from '@/lib/auth/supabase-auth'
+ * 
+ * const user = await getSupabaseUser()
+ * if (!user) {
+ *   // User not authenticated
+ * }
  * ```
  */
 
-export { hashPassword, verifyPassword } from './password'
-export {
-  createAccessToken,
-  createRefreshToken,
-  verifyAccessToken,
-  verifyRefreshToken,
-  decodeToken,
-  type TokenPayload,
-  type TokenVerificationResult,
-} from './tokens'
+// Re-export Supabase Auth helpers
+export { getSupabaseUser, requireSupabaseAuth, requireSupabaseAdmin } from './supabase-auth'
 
+// Re-export API auth helpers
+export { requireUser, requireAdmin, createErrorResponse, unauthorizedResponse, forbiddenResponse } from './api-auth'
+
+// Re-export password utilities (still used for legacy compatibility if needed)
+export { hashPassword, verifyPassword } from './password'
+
+// NOTE: JWT token functions (createAccessToken, verifyAccessToken) have been removed.
+// Use Supabase Auth instead.

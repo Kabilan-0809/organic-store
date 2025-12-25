@@ -1,53 +1,40 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
-/**
- * Security headers middleware
- * 
- * Adds security headers to all responses to protect against:
- * - XSS attacks
- * - Clickjacking
- * - MIME type sniffing
- * - Information leakage
- */
-export function middleware(_request: NextRequest) {
-  const response = NextResponse.next()
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
 
-  // SECURITY: Content Security Policy
-  // Adjust based on your app's needs
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self';"
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name) => req.cookies.get(name)?.value,
+        set: (name, value, options) => {
+          res.cookies.set({ name, value, ...options })
+        },
+        remove: (name, options) => {
+          res.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
   )
 
-  // SECURITY: Prevent clickjacking
-  response.headers.set('X-Frame-Options', 'DENY')
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // SECURITY: Prevent MIME type sniffing
-  response.headers.set('X-Content-Type-Options', 'nosniff')
+  const protectedPaths = ['/cart', '/checkout']
+  const isProtected = protectedPaths.some(p =>
+    req.nextUrl.pathname.startsWith(p)
+  )
 
-  // SECURITY: Control referrer information
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  if (!user && isProtected) {
+    return NextResponse.redirect(new URL('/auth/login', req.url))
+  }
 
-  // SECURITY: XSS Protection (legacy, but still useful)
-  response.headers.set('X-XSS-Protection', '1; mode=block')
-
-  // SECURITY: Disable powered-by header (Next.js handles this, but ensure it)
-  response.headers.delete('X-Powered-By')
-
-  return response
+  return res
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!_next|favicon.ico|api/public).*)'],
 }
-

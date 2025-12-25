@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const admin = await requireAdmin(_req)
+    const admin = await requireAdmin()
     if (!admin) {
       return forbiddenResponse()
     }

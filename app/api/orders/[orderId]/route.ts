@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { requireAuth, createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
+import { getSupabaseUser } from '@/lib/auth/supabase-auth'
+import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 
 /**
@@ -9,11 +10,11 @@ import { validateString } from '@/lib/auth/validate-input'
  * Fetch a single order by ID for the authenticated user.
  */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const user = requireAuth(req)
+    const user = await getSupabaseUser()
     if (!user) {
       return unauthorizedResponse()
     }
@@ -34,7 +35,7 @@ export async function GET(
       .from('Order')
       .select('*')
       .eq('id', orderId)
-      .eq('userId', user.userId)
+      .eq('userId', user.id)
       .limit(1)
 
     if (orderError) {

@@ -3,6 +3,7 @@
 import { useState, FormEvent, Suspense, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 import AnimatedPage from '@/components/AnimatedPage'
 import { useAuth } from '@/components/auth/AuthContext'
 
@@ -90,37 +91,34 @@ function LoginFormContent() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setErrors({ general: data.message || 'Login failed. Please try again.' })
+      if (error || !data.session || !data.user) {
+        setErrors({
+          general: error?.message || 'Login failed. Please try again.',
+        })
         setIsSubmitting(false)
         return
       }
 
       // Update auth context directly
       // NOTE: Cart merge is handled inside AuthContext.login() to prevent double merging
-      if (mounted && authContext.login) {
+      if (mounted && authContext?.login) {
         authContext.login({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          userId: data.userId,
-          email: data.email,
-          role: data.role,
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+          userId: data.user.id,
+          email: data.user.email || undefined,
+          role: data.user.app_metadata?.role as string | undefined,
         })
       }
 
       // Redirect based on user role
-      // Admin users go to admin dashboard, regular users go to home
-      if (data.role === 'ADMIN') {
+      const role = (data.user.app_metadata?.role as string | undefined) || null
+      if (role === 'ADMIN') {
         router.push('/admin')
       } else {
         router.push('/')

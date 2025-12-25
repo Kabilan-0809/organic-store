@@ -17,27 +17,22 @@ interface OrderItem {
 }
 
 interface Order {
-  orderId: string
+  id: string
   userId: string
-  userEmail: string
   status: string
   totalAmount: number
   currency: string
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
   paidAt: string | null
-  address: {
-    line1: string
-    line2: string | null
-    city: string
-    state: string
-    postalCode: string
-    country: string
-  }
+  addressLine1: string
+  addressLine2: string | null
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  razorpayPaymentId: string | null
   items: OrderItem[]
-  paymentStatus: string
-  hasPayment: boolean
-  paymentId: string | null
 }
 
 interface AdminOrderDetailContentProps {
@@ -141,7 +136,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
     if (!accessToken || !order) return
 
     // Confirm refund action
-    const confirmMessage = `Are you sure you want to refund this order?\n\nOrder ID: ${order.orderId.substring(0, 8)}\nAmount: ₹${(order.totalAmount / 100).toFixed(2)}\n\nThis action will:\n- Process refund through Razorpay\n- Restore product stock\n- Mark order as REFUNDED\n\nThis action cannot be undone.`
+    const confirmMessage = `Are you sure you want to refund this order?\n\nOrder ID: ${order.id?.substring(0, 8) || 'N/A'}\nAmount: ₹${order.totalAmount.toFixed(2)}\n\nThis action will:\n- Process refund through Razorpay\n- Restore product stock\n- Mark order as REFUNDED\n\nThis action cannot be undone.`
     
     if (!confirm(confirmMessage)) {
       return
@@ -267,7 +262,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
     )
   }
 
-  const totalInRupees = order.totalAmount / 100
+  const totalInRupees = order.totalAmount
   const nextStatusOptions = getNextStatusOptions(order.status)
 
   return (
@@ -281,7 +276,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                 Order Details
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
-                Order #{order.orderId.substring(0, 8)} • Customer: {order.userEmail}
+                Order #{order.id?.substring(0, 8) || 'N/A'} • User ID: {order.userId?.substring(0, 8) || 'N/A'}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -305,7 +300,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                       const url = window.URL.createObjectURL(blob)
                       const a = document.createElement('a')
                       a.href = url
-                      a.download = `invoice-${order.orderId.substring(0, 8)}.pdf`
+                      a.download = `invoice-${order.id?.substring(0, 8) || 'N/A'}.pdf`
                       document.body.appendChild(a)
                       a.click()
                       window.URL.revokeObjectURL(url)
@@ -411,12 +406,8 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                 <h2 className="mb-4 text-lg font-semibold text-neutral-900">Customer</h2>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <span className="text-neutral-600">Email:</span>
-                    <p className="font-medium text-neutral-900">{order.userEmail}</p>
-                  </div>
-                  <div>
                     <span className="text-neutral-600">User ID:</span>
-                    <p className="font-mono text-xs text-neutral-700">{order.userId.substring(0, 8)}...</p>
+                    <p className="font-mono text-xs text-neutral-700">{order.userId?.substring(0, 8) || 'N/A'}...</p>
                   </div>
                 </div>
               </div>
@@ -425,12 +416,12 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
               <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-neutral-900">Delivery Address</h2>
                 <div className="space-y-1 text-sm text-neutral-700">
-                  <p>{order.address.line1}</p>
-                  {order.address.line2 && <p>{order.address.line2}</p>}
+                  <p>{order.addressLine1}</p>
+                  {order.addressLine2 && <p>{order.addressLine2}</p>}
                   <p>
-                    {order.address.city}, {order.address.state} {order.address.postalCode}
+                    {order.city}, {order.state} {order.postalCode}
                   </p>
-                  <p>{order.address.country}</p>
+                  <p>{order.country}</p>
                 </div>
               </div>
 
@@ -439,17 +430,8 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                 <h2 className="mb-4 text-lg font-semibold text-neutral-900">Payment Status</h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-600">Payment Status</span>
-                    <span className={getStatusBadge(order.status)}>
-                      {order.paymentStatus === 'paid' ? 'Paid' 
-                        : order.paymentStatus === 'pending' ? 'Pending'
-                        : order.paymentStatus === 'cancelled' ? 'Cancelled'
-                        : order.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
                     <span className="text-neutral-600">Order Status</span>
-                    <span className="font-medium text-neutral-900">{order.status}</span>
+                    <span className={getStatusBadge(order.status)}>{order.status}</span>
                   </div>
                   {order.paidAt && (
                     <div className="flex items-center justify-between">
@@ -465,10 +447,10 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                       </span>
                     </div>
                   )}
-                  {order.paymentId && (
+                  {order.razorpayPaymentId && (
                     <div className="flex items-center justify-between">
                       <span className="text-neutral-600">Payment ID</span>
-                      <span className="font-mono text-xs text-neutral-900">{order.paymentId}</span>
+                      <span className="font-mono text-xs text-neutral-900">{order.razorpayPaymentId}</span>
                     </div>
                   )}
                 </div>
@@ -490,18 +472,20 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                       })}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-neutral-600">Last Updated</span>
-                    <span className="text-neutral-900">
-                      {new Date(order.updatedAt).toLocaleDateString('en-IN', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
+                  {order.updatedAt && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-neutral-600">Last Updated</span>
+                      <span className="text-neutral-900">
+                        {new Date(order.updatedAt).toLocaleDateString('en-IN', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

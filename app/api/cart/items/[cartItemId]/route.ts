@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getSupabaseUser } from '@/lib/auth/supabase-auth'
-import { requireAuth } from '@/lib/auth/api-auth'
 import {
   createErrorResponse,
   unauthorizedResponse,
@@ -18,20 +17,8 @@ export async function PATCH(
   { params }: { params: { cartItemId: string } }
 ) {
   try {
-    // Try Supabase Auth first (from cookies)
-    let user = await getSupabaseUser(req)
-    
-    // Fallback to Bearer token for backward compatibility
-    if (!user) {
-      const tokenUser = requireAuth(req)
-      if (tokenUser) {
-        user = {
-          id: tokenUser.userId,
-          email: tokenUser.email || '',
-          role: tokenUser.role || 'USER',
-        }
-      }
-    }
+    // Get authenticated user from Supabase Auth cookies
+    const user = await getSupabaseUser()
 
     if (!user) {
       return unauthorizedResponse()
@@ -123,24 +110,12 @@ export async function PATCH(
  * Remove item from cart.
  */
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { cartItemId: string } }
 ) {
   try {
-    // Try Supabase Auth first (from cookies)
-    let user = await getSupabaseUser(req)
-    
-    // Fallback to Bearer token for backward compatibility
-    if (!user) {
-      const tokenUser = requireAuth(req)
-      if (tokenUser) {
-        user = {
-          id: tokenUser.userId,
-          email: tokenUser.email || '',
-          role: tokenUser.role || 'USER',
-        }
-      }
-    }
+    // Get authenticated user from Supabase Auth cookies
+    const user = await getSupabaseUser()
 
     if (!user) {
       return unauthorizedResponse()

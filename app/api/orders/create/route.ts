@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getSupabaseUser } from '@/lib/auth/supabase-auth'
-import { requireAuth } from '@/lib/auth/api-auth'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString, validateArray, validateCartItemId } from '@/lib/auth/validate-input'
 import { checkRateLimit, getClientIdentifier } from '@/lib/auth/rate-limit'
@@ -27,20 +26,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Try Supabase Auth first (from cookies)
-    let user = await getSupabaseUser(req)
-    
-    // Fallback to Bearer token for backward compatibility
-    if (!user) {
-      const tokenUser = requireAuth(req)
-      if (tokenUser) {
-        user = {
-          id: tokenUser.userId,
-          email: tokenUser.email || '',
-          role: tokenUser.role || 'USER',
-        }
-      }
-    }
+    // Get authenticated user from Supabase Auth cookies
+    const user = await getSupabaseUser()
 
     if (!user) {
       return unauthorizedResponse()
@@ -219,17 +206,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Create order with PAYMENT_PENDING status
-    const orderId = `order_${user.id}_${Date.now()}`
     const { data: newOrder, error: orderError } = await supabase
       .from('Order')
       .insert({
-        id: orderId,
         userId: user.id,
         status: 'PAYMENT_PENDING',
         totalAmount,
         currency: 'INR',
         addressLine1,
-        addressLine2,
+        addressLine2: addressLine2 ?? undefined,
         city,
         state,
         postalCode,
@@ -238,10 +223,16 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
-    if (orderError || !newOrder) {
+    if (orderError) {
       console.error('[API Orders Create] Failed to create order:', orderError)
+      return NextResponse.json({ error: orderError.message }, { status: 500 })
+    }
+
+    if (!newOrder) {
       return createErrorResponse('Failed to create order', 500)
     }
+
+    const orderId = newOrder.id
 
     // Create order items
     const orderItemsInsert = orderItemsData.map((item) => ({

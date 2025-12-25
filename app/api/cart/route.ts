@@ -1,38 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { getSupabaseUser } from '@/lib/auth/supabase-auth'
-import { requireAuth } from '@/lib/auth/api-auth'
-import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
+import { createSupabaseServer } from '@/lib/supabase/server'
+import { createErrorResponse } from '@/lib/auth/api-auth'
 
-/**
- * GET /api/cart
- * 
- * Fetch cart and cart items for the authenticated user.
- * Returns empty cart if none exists.
- * 
- * Supports both Supabase Auth (via cookies) and Bearer token (for compatibility)
- */
-export async function GET(req: NextRequest) {
+export const runtime = "nodejs"
+
+export async function GET(_req: NextRequest) {
+  const supabaseAuth = createSupabaseServer()
+
+  const { data: { user } } = await supabaseAuth.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
-    // Try Supabase Auth first (from cookies)
-    let user = await getSupabaseUser(req)
-    
-    // Fallback to Bearer token for backward compatibility
-    if (!user) {
-      const tokenUser = requireAuth(req)
-      if (tokenUser) {
-        user = {
-          id: tokenUser.userId,
-          email: tokenUser.email || '',
-          role: tokenUser.role || 'USER',
-        }
-      }
-    }
-
-    if (!user) {
-      return unauthorizedResponse()
-    }
-
     // Find or create cart for user
     const { data: carts, error: cartError } = await supabase
       .from('Cart')
@@ -98,7 +80,7 @@ export async function GET(req: NextRequest) {
             slug: product.slug,
             name: product.name,
             description: product.description,
-            price: product.price / 100, // Convert to rupees
+            price: product.price / 100,
             discountPercent: product.discountPercent,
             category: product.category,
             image: product.imageUrl,

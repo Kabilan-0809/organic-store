@@ -3,24 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-interface OrderItem {
-  productName: string
-  quantity: number
-  unitPrice: number
-}
-
 interface Order {
-  orderId: string
+  id: string
   userId: string
-  userEmail: string
   status: string
   totalAmount: number
   currency: string
   createdAt: string
-  paidAt: string | null
-  items: OrderItem[]
-  paymentStatus: string
-  hasPayment: boolean
 }
 
 interface AdminOrdersListProps {
@@ -179,14 +168,14 @@ export default function AdminOrdersList({ accessToken }: AdminOrdersListProps) {
                 </tr>
               ) : (
                 orders.map((order) => {
-                  const totalInRupees = order.totalAmount / 100
+                  const totalInRupees = order.totalAmount
                   return (
-                    <tr key={order.orderId}>
+                    <tr key={order.id}>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-neutral-900">
-                        #{order.orderId.substring(0, 8)}
+                        #{order.id?.substring(0, 8) || 'N/A'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
-                        {order.userEmail}
+                        {order.userId?.substring(0, 8) || 'N/A'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
                         {new Date(order.createdAt).toLocaleDateString('en-IN', {
@@ -203,7 +192,7 @@ export default function AdminOrdersList({ accessToken }: AdminOrdersListProps) {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm">
                         <Link
-                          href={`/admin/orders/${order.orderId}`}
+                          href={`/admin/orders/${order.id}`}
                           className="font-medium text-primary-600 hover:text-primary-700"
                         >
                           View Details

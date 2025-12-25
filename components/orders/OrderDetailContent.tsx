@@ -39,21 +39,19 @@ interface OrderItem {
 }
 
 interface Order {
-  orderId: string
+  id: string
   status: string
   totalAmount: number
   currency: string
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
   paidAt: string | null
-  address: {
-    line1: string
-    line2: string | null
-    city: string
-    state: string
-    postalCode: string
-    country: string
-  }
+  addressLine1: string
+  addressLine2: string | null
+  city: string
+  state: string
+  postalCode: string
+  country: string
   items: OrderItem[]
   paymentStatus: string
   hasPayment: boolean
@@ -121,7 +119,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ orderId: order.orderId }),
+        body: JSON.stringify({ orderId: order.id }),
       })
 
       const data = await response.json()
@@ -132,7 +130,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
       }
 
       // Open Razorpay checkout
-      await openRazorpayCheckout(data.razorpayOrderId, order.orderId, data.amount, data.currency)
+      await openRazorpayCheckout(data.razorpayOrderId, order.id, data.amount, data.currency)
     } catch (error) {
       console.error('[Retry Payment]', error)
       alert('Failed to retry payment. Please try again.')
@@ -150,7 +148,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
 
     setIsCancelling(true)
     try {
-      const response = await fetch(`/api/orders/${order.orderId}/cancel`, {
+      const response = await fetch(`/api/orders/${order.id}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +164,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
       }
 
       // Reload order to show updated status
-      const fetchResponse = await fetch(`/api/orders/${order.orderId}`, {
+      const fetchResponse = await fetch(`/api/orders/${order.id}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -398,7 +396,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
                 Order Details
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
-                Order #{order.orderId.substring(0, 8)}
+                Order #{order.id.substring(0, 8)}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -422,7 +420,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
                       const url = window.URL.createObjectURL(blob)
                       const a = document.createElement('a')
                       a.href = url
-                      a.download = `invoice-${order.orderId.substring(0, 8)}.pdf`
+                      a.download = `invoice-${order.id.substring(0, 8)}.pdf`
                       document.body.appendChild(a)
                       a.click()
                       window.URL.revokeObjectURL(url)
@@ -525,12 +523,12 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
               <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-neutral-900">Delivery Address</h2>
                 <div className="space-y-1 text-sm text-neutral-700">
-                  <p>{order.address.line1}</p>
-                  {order.address.line2 && <p>{order.address.line2}</p>}
+                  <p>{order.addressLine1}</p>
+                  {order.addressLine2 && <p>{order.addressLine2}</p>}
                   <p>
-                    {order.address.city}, {order.address.state} {order.address.postalCode}
+                    {order.city}, {order.state} {order.postalCode}
                   </p>
-                  <p>{order.address.country}</p>
+                  <p>{order.country}</p>
                 </div>
               </div>
 

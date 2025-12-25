@@ -1,45 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { getSupabaseUser } from '@/lib/auth/supabase-auth'
-import { requireAuth } from '@/lib/auth/api-auth'
-import {
-  createErrorResponse,
-  unauthorizedResponse,
-} from '@/lib/auth/api-auth'
+import { createSupabaseServer } from '@/lib/supabase/server'
+import { createErrorResponse } from '@/lib/auth/api-auth'
 import { validateString, validateNumber } from '@/lib/auth/validate-input'
 
-/**
- * POST /api/cart/items
- * 
- * Add an item to the authenticated user's cart.
- * 
- * Supports both Supabase Auth (via cookies) and Bearer token (for compatibility)
- */
-export async function POST(req: NextRequest) {
+export const runtime = "nodejs"
+
+export async function POST(_req: NextRequest) {
+  const supabaseAuth = createSupabaseServer()
+
+  const { data: { user } } = await supabaseAuth.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
-    // Try Supabase Auth first (from cookies)
-    let user = await getSupabaseUser(req)
-    
-    // Fallback to Bearer token for backward compatibility
-    if (!user) {
-      const tokenUser = requireAuth(req)
-      if (tokenUser) {
-        user = {
-          id: tokenUser.userId,
-          email: tokenUser.email || '',
-          role: tokenUser.role || 'USER',
-        }
-      }
-    }
-
-    if (!user) {
-      return unauthorizedResponse()
-    }
-
     // Parse and validate request body
     let body: unknown
     try {
-      body = await req.json()
+      body = await _req.json()
     } catch {
       return createErrorResponse('Invalid JSON in request body', 400)
     }
@@ -131,7 +111,6 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (existingError && existingError.code !== 'PGRST116') {
-      // PGRST116 = not found, which is fine
       console.error('[API Cart Items] Error checking existing item:', existingError)
       return createErrorResponse('Failed to check cart', 500)
     }
@@ -184,24 +163,20 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      const { data: newItem, error: createItemError } = await supabase
-        .from('CartItem')
-        .insert({
-          cartId,
-          productId,
-          quantity: Math.min(quantity, products.stock),
-        })
-        .select()
-        .single()
+      const finalQuantity = Math.min(quantity, products.stock)
+      const { error } = await supabase.from('CartItem').insert({
+        cartId,
+        productId,
+        quantity: finalQuantity,
+      })
 
-      if (createItemError || !newItem) {
-        console.error('[API Cart Items] Create error:', createItemError)
-        return createErrorResponse('Failed to add item to cart', 500)
+      if (error) {
+        console.error('[API Cart Items] Create error:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
       return NextResponse.json({
         success: true,
-        cartItemId: newItem.id,
         product: {
           id: products.id,
           name: products.name,
@@ -213,7 +188,7 @@ export async function POST(req: NextRequest) {
           category: products.category,
           stock: products.stock,
         },
-        quantity: newItem.quantity,
+        quantity: finalQuantity,
       })
     }
   } catch (error) {

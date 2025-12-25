@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth/api-auth'
-import { validateString } from '@/lib/auth/validate-input'
+import {
+  requireAdmin,
+  createErrorResponse,
+  forbiddenResponse,
+} from '@/lib/auth/api-auth'
 
 /**
  * GET /api/admin/orders/[orderId]
- * 
+ *
  * Fetch order details (admin only).
  */
 export async function GET(
@@ -13,50 +16,48 @@ export async function GET(
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const admin = await requireAdmin(_req)
+    // 1️⃣ Ensure admin
+    const admin = await requireAdmin()
     if (!admin) {
       return forbiddenResponse()
     }
 
-    const orderId = validateString(params.orderId, {
-      minLength: 1,
-      maxLength: 100,
-      required: true,
-      trim: true,
-    })
+    // 2️⃣ Validate UUID (Order.id is UUID)
+    const orderId = params.orderId
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-    if (!orderId) {
+    if (!orderId || !uuidRegex.test(orderId)) {
       return createErrorResponse('Invalid order ID', 400)
     }
 
-    // Fetch order
-    const { data: orders, error: orderError } = await supabase
+    // 3️⃣ Fetch order (NO invalid joins)
+    const { data: order, error: orderError } = await supabase
       .from('Order')
-      .select('*, user:User(*)')
+      .select('*')
       .eq('id', orderId)
-      .limit(1)
+      .single()
 
-    if (orderError || !orders || orders.length === 0) {
+    if (orderError || !order) {
       return createErrorResponse('Order not found', 404)
     }
 
-    const order = orders[0] as { id: string; userId: string; user?: { email?: string }; status: string; totalAmount: number; currency: string; addressLine1: string; addressLine2: string | null; city: string; state: string; postalCode: string; country: string; razorpayPaymentId: string | null; paidAt: string | null; createdAt: string }
-
-    // Fetch order items
+    // 4️⃣ Fetch order items
     const { data: orderItems, error: itemsError } = await supabase
       .from('OrderItem')
       .select('*')
       .eq('orderId', orderId)
 
     if (itemsError) {
+      console.error('[API Admin Order Detail] Order items error:', itemsError)
       return createErrorResponse('Failed to fetch order items', 500)
     }
 
+    // 5️⃣ Response (safe, normalized)
     return NextResponse.json({
       order: {
         id: order.id,
         userId: order.userId,
-        userEmail: order.user?.email || 'Unknown',
         status: order.status,
         totalAmount: order.totalAmount / 100,
         currency: order.currency,
@@ -69,7 +70,7 @@ export async function GET(
         razorpayPaymentId: order.razorpayPaymentId,
         paidAt: order.paidAt,
         createdAt: order.createdAt,
-        items: (orderItems || []).map((item: { id: string; productId: string; productName: string; quantity: number; unitPrice: number; discountPercent: number | null; finalPrice: number }) => ({
+        items: (orderItems || []).map((item) => ({
           id: item.id,
           productId: item.productId,
           productName: item.productName,
@@ -82,6 +83,6 @@ export async function GET(
     })
   } catch (error) {
     console.error('[API Admin Order Detail] Error:', error)
-    return createErrorResponse('Failed to fetch order', 500, error)
+    return createErrorResponse('Failed to fetch order', 500)
   }
 }

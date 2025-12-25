@@ -9,7 +9,7 @@ import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth
  */
 export async function GET(_req: NextRequest) {
   try {
-    const admin = await requireAdmin(_req)
+    const admin = await requireAdmin()
     if (!admin) {
       return forbiddenResponse()
     }
@@ -19,7 +19,7 @@ export async function GET(_req: NextRequest) {
 
     let query = supabase
       .from('Order')
-      .select('*, user:User(*)')
+      .select('*')
       .order('createdAt', { ascending: false })
 
     if (status) {
@@ -30,14 +30,16 @@ export async function GET(_req: NextRequest) {
 
     if (error) {
       console.error('[API Admin Orders] Supabase error:', error)
-      return createErrorResponse('Failed to fetch orders', 500)
+      return NextResponse.json(
+        { error: 'Failed to fetch orders' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
-      orders: (orders || []).map((order: { id: string; userId: string; user?: { email?: string }; status: string; totalAmount: number; currency: string; createdAt: string }) => ({
+      orders: (orders || []).map((order) => ({
         id: order.id,
         userId: order.userId,
-        userEmail: order.user?.email || 'Unknown',
         status: order.status,
         totalAmount: order.totalAmount / 100,
         currency: order.currency,

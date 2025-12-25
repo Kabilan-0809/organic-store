@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getSupabaseUser } from '@/lib/auth/supabase-auth'
-import { requireAuth } from '@/lib/auth/api-auth'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 
@@ -13,24 +12,12 @@ import { validateString } from '@/lib/auth/validate-input'
  * Supports both Supabase Auth (via cookies) and Bearer token (for compatibility)
  */
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
-    // Try Supabase Auth first (from cookies)
-    let user = await getSupabaseUser(req)
-    
-    // Fallback to Bearer token for backward compatibility
-    if (!user) {
-      const tokenUser = requireAuth(req)
-      if (tokenUser) {
-        user = {
-          id: tokenUser.userId,
-          email: tokenUser.email || '',
-          role: tokenUser.role || 'USER',
-        }
-      }
-    }
+    // Get authenticated user from Supabase Auth cookies
+    const user = await getSupabaseUser()
 
     if (!user) {
       return unauthorizedResponse()

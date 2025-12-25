@@ -10,7 +10,7 @@ import { createErrorResponse, forbiddenResponse, requireAdmin } from '@/lib/auth
  */
 export async function POST(_req: NextRequest) {
   try {
-    const admin = await requireAdmin(_req)
+    const admin = await requireAdmin()
     if (!admin) {
       return forbiddenResponse()
     }

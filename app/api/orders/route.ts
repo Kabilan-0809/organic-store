@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { requireAuth, createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
+import { getSupabaseUser } from '@/lib/auth/supabase-auth'
+import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 
 /**
  * GET /api/orders
  * 
  * Fetch all orders for the authenticated user.
+ * 
+ * Uses Supabase Auth cookies as the ONLY authentication method.
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
-    const user = requireAuth(req)
+    const user = await getSupabaseUser()
     if (!user) {
       return unauthorizedResponse()
     }
@@ -17,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { data: orders, error } = await supabase
       .from('Order')
       .select('*')
-      .eq('userId', user.userId)
+      .eq('userId', user.id)
       .order('createdAt', { ascending: false })
 
     if (error) {
@@ -32,6 +35,7 @@ export async function GET(req: NextRequest) {
       totalAmount: order.totalAmount / 100, // Convert to rupees
       currency: order.currency,
       createdAt: order.createdAt,
+      paidAt: order.paidAt || null,
       paymentStatus: getPaymentStatus(order.status),
     }))
 

@@ -3,6 +3,7 @@
 import { useState, FormEvent, Suspense, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 import AnimatedPage from '@/components/AnimatedPage'
 import { useAuth } from '@/components/auth/AuthContext'
 
@@ -114,46 +115,49 @@ function RegisterFormContent() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      // Perform registration directly with Supabase Auth on the client
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
+      if (authError) {
         setErrors({
-          general: data.message || 'Registration failed. Please try again.',
+          general: authError.message || 'Registration failed. Please try again.',
         })
+        setIsSubmitting(false)
+        return
+      }
+
+      if (!data.user) {
+        setErrors({ general: 'Registration failed: No user data returned.' })
         setIsSubmitting(false)
         return
       }
 
       // Update auth context directly
       // NOTE: Cart merge is handled inside AuthContext.login() to prevent double merging
-      if (mounted && authContext.login) {
+      if (mounted && authContext.login && data.session) {
         authContext.login({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-          userId: data.userId,
-          email: data.email,
-          role: data.role,
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+          userId: data.user.id,
+          email: data.user.email || undefined,
+          role: (data.user.app_metadata?.role as string | undefined) || undefined,
         })
       }
 
       // Redirect based on user role
-      // Admin users go to admin dashboard, regular users go to home
-      if (data.role === 'ADMIN') {
+      const userRole = (data.user.app_metadata?.role as string | undefined)
+      if (userRole === 'ADMIN') {
         router.push('/admin')
       } else {
         router.push('/')
       }
-    } catch {
+    } catch (error) {
+      console.error('[Register Page] Error:', error)
       setErrors({
-        general: 'An error occurred. Please try again.',
+        general: 'An unexpected error occurred. Please try again.',
       })
     } finally {
       setIsSubmitting(false)

@@ -8,7 +8,6 @@ import {
   useCallback,
   useMemo,
 } from 'react'
-import { decodeToken } from '@/lib/auth/tokens'
 
 /**
  * Authentication Context
@@ -202,26 +201,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       refreshToken: string
       userId: string
       email?: string
-      role?: string
+      role?: string | null
     }) => {
-      // Decode token to extract role if not provided
-      let role = tokens.role || null
-      if (!role && tokens.accessToken) {
-        try {
-          const decoded = decodeToken(tokens.accessToken)
-          if (decoded?.role) {
-            role = decoded.role
-          }
-        } catch {
-          // Ignore decode errors
-        }
-      }
-
       const newState: AuthState = {
         isAuthenticated: true,
         userId: tokens.userId,
         email: tokens.email || null,
-        role: role || null,
+        role: tokens.role || null,
         accessToken: tokens.accessToken,
       }
 
@@ -242,8 +228,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
               // Merge guest cart items into user cart
               fetch('/api/cart/merge', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
-                  Authorization: `Bearer ${tokens.accessToken}`,
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ items: guestItems }),

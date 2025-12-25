@@ -154,9 +154,7 @@ export function CartProvider({ children }: CartProviderProps) {
       setIsLoading(true)
       try {
         const response = await fetch('/api/cart', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          credentials: 'include',
         })
 
         if (response.ok) {
@@ -343,9 +341,9 @@ export function CartProvider({ children }: CartProviderProps) {
           try {
             const response = await fetch('/api/cart/items', {
               method: 'POST',
+              credentials: 'include',
               headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`,
               },
               body: JSON.stringify({
                 productId: product.id,

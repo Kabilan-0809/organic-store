@@ -13,7 +13,7 @@ export async function PATCH(
   { params: _params }: { params: { id: string } }
 ) {
   try {
-    const admin = await requireAdmin(_req)
+    const admin = await requireAdmin()
     if (!admin) {
       return forbiddenResponse()
     }
@@ -40,7 +40,7 @@ export async function DELETE(
   { params: _params }: { params: { id: string } }
 ) {
   try {
-    const admin = await requireAdmin(_req)
+    const admin = await requireAdmin()
     if (!admin) {
       return forbiddenResponse()
     }
