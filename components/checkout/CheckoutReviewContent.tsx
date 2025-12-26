@@ -92,13 +92,17 @@ export default function CheckoutReviewContent() {
     setIsLoading(false)
   }, [isAuthenticated, items, router])
 
+  // Use the same calculation logic as cart
+  // item.product.price is in rupees (from cart API which converts product.price / 100)
   const subtotal = checkoutItems.reduce((sum, item) => {
-    const originalPriceInPaise = item.product.price * 100
+    // Calculate discounted price for each item
+    const originalPriceInPaise = item.product.price * 100 // Convert to paise
     const discountedPriceInPaise = calculateDiscountedPrice(
       originalPriceInPaise,
       item.product.discountPercent
     )
-    return sum + (discountedPriceInPaise / 100) * item.quantity
+    const discountedPriceInRupees = discountedPriceInPaise / 100
+    return sum + discountedPriceInRupees * item.quantity
   }, 0)
 
   const handleCreateOrder = async () => {

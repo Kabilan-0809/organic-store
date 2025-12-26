@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthContext'
 import AnimatedPage from '@/components/AnimatedPage'
+import { calculateDiscountedPrice } from '@/lib/pricing'
 
 interface OrderItem {
   productId: string
@@ -262,6 +263,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
     )
   }
 
+  // totalAmount from API is already in rupees (converted from paise)
   const totalInRupees = order.totalAmount
   const nextStatusOptions = getNextStatusOptions(order.status)
 
@@ -329,13 +331,19 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                 <h2 className="mb-4 text-lg font-semibold text-neutral-900">Order Items</h2>
                 <div className="space-y-4">
                   {order.items.map((item, index) => {
-                    const unitPriceInRupees = item.unitPrice / 100
-                    const itemSubtotal = item.finalPrice ? item.finalPrice / 100 : item.subtotal / 100
-                    const hasDiscount = item.discountPercent && item.discountPercent > 0
-                    
-                    const originalUnitPrice = hasDiscount && item.discountPercent
-                      ? unitPriceInRupees / (1 - item.discountPercent / 100)
-                      : unitPriceInRupees
+                    // Use the same calculation logic as cart
+                    // API returns unitPrice and finalPrice in rupees (already divided by 100)
+                    // But we need to convert back to paise to use calculateDiscountedPrice
+                    // then convert back to rupees for display
+                    const originalUnitPriceInRupees = item.unitPrice
+                    const originalUnitPriceInPaise = originalUnitPriceInRupees * 100
+                    const discountedUnitPriceInPaise = calculateDiscountedPrice(
+                      originalUnitPriceInPaise,
+                      item.discountPercent
+                    )
+                    const discountedUnitPriceInRupees = discountedUnitPriceInPaise / 100
+                    const itemSubtotal = item.finalPrice || 0 // Already in rupees from API
+                    const hasDiscount = item.discountPercent != null && item.discountPercent > 0
 
                     return (
                       <div
@@ -347,7 +355,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                             <p className="font-medium text-neutral-900">{item.productName}</p>
                             <div className="mt-1 space-y-1">
                               <p className="text-sm text-neutral-600">
-                                Quantity: {item.quantity} × ₹{unitPriceInRupees.toFixed(2)}
+                                Quantity: {item.quantity} × ₹{discountedUnitPriceInRupees.toFixed(2)}
                               </p>
                               {hasDiscount && (
                                 <div className="flex items-center gap-2">
@@ -355,7 +363,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                                     {item.discountPercent}% OFF
                                   </span>
                                   <span className="text-xs text-neutral-400 line-through">
-                                    ₹{(originalUnitPrice * item.quantity).toFixed(2)}
+                                    ₹{(originalUnitPriceInRupees * item.quantity).toFixed(2)}
                                   </span>
                                 </div>
                               )}
@@ -367,7 +375,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                             </p>
                             {hasDiscount && (
                               <p className="text-xs text-neutral-500">
-                                ₹{unitPriceInRupees.toFixed(2)} per unit
+                                ₹{discountedUnitPriceInRupees.toFixed(2)} per unit
                               </p>
                             )}
                           </div>

@@ -43,7 +43,7 @@ interface CartContextValue {
   items: CartItem[]
   addItem: (product: Product, quantity?: number) => Promise<void>
   removeItem: (productId: string) => Promise<void>
-  setQuantity: (productId: string, quantity: number) => void
+  setQuantity: (productId: string, quantity: number) => Promise<void>
   clear: () => void
   reload: () => Promise<void>
   subtotal: number
@@ -186,7 +186,7 @@ export function CartProvider({ children }: CartProviderProps) {
       // User is NOT authenticated - load guest cart from localStorage
       // Clear any previous cartId from authenticated session
       setCartId(null)
-      
+
       const id = getOrCreateCartId()
       setCartId(id || null)
 
@@ -225,7 +225,7 @@ export function CartProvider({ children }: CartProviderProps) {
    */
   useEffect(() => {
     if (!hasMounted) return
-    
+
     // When auth state changes, reload cart from appropriate source
     loadCart()
   }, [hasMounted, isAuthenticated, accessToken, loadCart])
@@ -243,7 +243,7 @@ export function CartProvider({ children }: CartProviderProps) {
       // Clear guest cart from localStorage so guest cart starts fresh
       dispatch({ type: 'CLEAR' })
       setCartId(null)
-      
+
       // Clear guest cart from localStorage
       if (typeof window !== 'undefined') {
         try {
@@ -295,6 +295,18 @@ export function CartProvider({ children }: CartProviderProps) {
     // Guest cart: Persist to localStorage ONLY when NOT authenticated
     if (!cartId) return
 
+    // Ensure we have items before saving
+    if (state.items.length === 0 && cartId) {
+      // Cart is empty, clear localStorage
+      try {
+        window.localStorage.removeItem('millet-n-joy/cart')
+        lastSnapshotRef.current = null
+      } catch {
+        // Ignore errors
+      }
+      return
+    }
+
     const serializedItems = serializeCartItems(state.items)
     const snapshot = { cartId, items: serializedItems }
     const json = JSON.stringify(snapshot)
@@ -303,8 +315,12 @@ export function CartProvider({ children }: CartProviderProps) {
       return
     }
 
-    saveCartSnapshot(snapshot)
-    lastSnapshotRef.current = json
+    try {
+      saveCartSnapshot(snapshot)
+      lastSnapshotRef.current = json
+    } catch (error) {
+      console.error('[Cart] Error saving guest cart to localStorage:', error)
+    }
   }, [state.items, cartId, hasMounted, isAuthenticated])
 
   const value: CartContextValue = useMemo(
@@ -408,38 +424,152 @@ export function CartProvider({ children }: CartProviderProps) {
                 `/api/cart/items/${itemToRemove.cartItemId}`,
                 {
                   method: 'DELETE',
+                  credentials: 'include',
                   headers: {
-                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
                   },
                 }
               )
 
               if (response.ok) {
-                // Remove from in-memory state
+                // Remove from in-memory state first for immediate UI update
                 dispatch({ type: 'REMOVE_ITEM', productId })
-                // Reload cart to ensure sync with database
+                // Reload cart from server to ensure sync with database
                 await loadCart()
               } else {
-                console.error('[Cart] Failed to remove item from server')
-                // Still remove from in-memory state for better UX
-                dispatch({ type: 'REMOVE_ITEM', productId })
+                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }))
+                console.error('[Cart] Failed to remove item from server:', errorData)
+                // On error, reload cart to ensure UI matches server state
+                await loadCart()
               }
             } catch (error) {
               console.error('[Cart] Error removing item:', error)
-              // Still remove from in-memory state for better UX
-              dispatch({ type: 'REMOVE_ITEM', productId })
+              // On error, reload cart to ensure UI matches server state
+              await loadCart()
             }
           } else {
             // No cartItemId, just remove from in-memory state
             dispatch({ type: 'REMOVE_ITEM', productId })
           }
         } else {
-          // Guest user - just remove from in-memory state
+          // Guest user - remove from in-memory state
+          // Calculate updated items (state.items will update after dispatch)
+          const updatedItems = state.items.filter((item) => item.product.id !== productId)
+
+          // Update state
           dispatch({ type: 'REMOVE_ITEM', productId })
+
+          // Force immediate save to localStorage for guest cart
+          if (typeof window !== 'undefined' && cartId) {
+            try {
+              const serializedItems = serializeCartItems(updatedItems)
+              const snapshot = { cartId, items: serializedItems }
+              const json = JSON.stringify(snapshot)
+              saveCartSnapshot(snapshot)
+              // Update ref to prevent duplicate saves in useEffect
+              lastSnapshotRef.current = json
+            } catch (error) {
+              console.error('[Cart] Error saving guest cart:', error)
+            }
+          }
         }
       },
-      setQuantity: (productId, quantity) =>
-        dispatch({ type: 'SET_QUANTITY', productId, quantity }),
+      setQuantity: async (productId, quantity) => {
+        if (quantity <= 0) {
+          // If quantity is 0 or less, remove the item instead
+          // Find the cart item to get cartItemId for removal
+          const itemToRemove = state.items.find(
+            (item) => item.product.id === productId && item.cartItemId
+          )
+          
+          if (isAuthenticated && accessToken && itemToRemove?.cartItemId) {
+            try {
+              const response = await fetch(
+                `/api/cart/items/${itemToRemove.cartItemId}`,
+                {
+                  method: 'DELETE',
+                  credentials: 'include',
+                }
+              )
+
+              if (response.ok) {
+                dispatch({ type: 'REMOVE_ITEM', productId })
+                await loadCart()
+              } else {
+                await loadCart()
+              }
+            } catch (error) {
+              console.error('[Cart] Error removing item:', error)
+              await loadCart()
+            }
+          } else {
+            dispatch({ type: 'REMOVE_ITEM', productId })
+          }
+          return
+        }
+
+        // Find the cart item to get cartItemId
+        const itemToUpdate = state.items.find(
+          (item) => item.product.id === productId
+        )
+
+        if (!itemToUpdate) {
+          console.error('[Cart] Item not found for quantity update:', productId)
+          return
+        }
+
+        // Check stock availability
+        const availableStock = itemToUpdate.product.stock ?? 0
+        if (quantity > availableStock && availableStock > 0) {
+          if (hasMounted) {
+            setToast(`Only ${availableStock} available in stock`)
+            window.setTimeout(() => setToast(null), 3000)
+          }
+          quantity = availableStock
+        }
+
+        // For authenticated users, update in database
+        if (isAuthenticated && accessToken && itemToUpdate.cartItemId) {
+          try {
+            const response = await fetch(`/api/cart/items/${itemToUpdate.cartItemId}`, {
+              method: 'PATCH',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ quantity }),
+            })
+
+            if (response.ok) {
+              // Update local state optimistically
+              dispatch({ type: 'SET_QUANTITY', productId, quantity })
+              // Reload cart to ensure sync with server
+              await loadCart()
+            } else {
+              const errorData = await response.json().catch(() => ({}))
+              const errorMessage = errorData.message || 'Failed to update quantity'
+              console.error('[Cart] Failed to update quantity:', errorMessage)
+              if (hasMounted) {
+                setToast(errorMessage)
+                window.setTimeout(() => setToast(null), 3000)
+              }
+              // Reload cart to get correct state from server
+              await loadCart()
+            }
+          } catch (error) {
+            console.error('[Cart] Error updating quantity:', error)
+            if (hasMounted) {
+              setToast('Failed to update quantity. Please try again.')
+              window.setTimeout(() => setToast(null), 3000)
+            }
+            // Reload cart to get correct state from server
+            await loadCart()
+          }
+        } else {
+          // Guest user - update in-memory state only
+          dispatch({ type: 'SET_QUANTITY', productId, quantity })
+        }
+      },
       clear: () => dispatch({ type: 'CLEAR' }),
       reload: loadCart,
       subtotal: state.items.reduce((sum, item) => {

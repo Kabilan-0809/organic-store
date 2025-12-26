@@ -30,7 +30,7 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
   const [showAddForm, setShowAddForm] = useState(false)
   const [isActivating, setIsActivating] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
-  const [editing, setEditing] = useState<{ productId: string; field: 'price' | 'stock' | 'discount' } | null>(null)
+  const [editing, setEditing] = useState<{ productId: string; field: 'name' | 'price' | 'stock' | 'discount' } | null>(null)
 
   useEffect(() => {
     if (!accessToken) return
@@ -118,7 +118,7 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
 
   const handleUpdateProduct = async (
     productId: string,
-    updates: { price?: number; stock?: number; discountPercent?: number | null }
+    updates: { name?: string; price?: number; stock?: number; discountPercent?: number | null }
   ) => {
     if (!accessToken) {
       console.error('[Admin Products] No access token available')
@@ -128,6 +128,9 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
 
     try {
       const updateData: Record<string, unknown> = {}
+      if (updates.name !== undefined) {
+        updateData.name = updates.name.trim()
+      }
       if (updates.price !== undefined) {
         updateData.price = updates.price
       }
@@ -426,8 +429,55 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
             {products.map((product) => (
               <tr key={product.id}>
                 <td className="whitespace-nowrap px-6 py-4">
-                  <div className="text-sm font-medium text-neutral-900">{product.name}</div>
-                  <div className="text-xs text-neutral-500">{product.slug}</div>
+                  {editing?.productId === product.id && editing.field === 'name' ? (
+                    <input
+                      type="text"
+                      defaultValue={product.name}
+                      onBlur={async (e) => {
+                        const inputValue = e.target.value.trim()
+                        if (inputValue === '') {
+                          setEditing(null)
+                          return
+                        }
+                        if (inputValue !== product.name) {
+                          await handleUpdateProduct(product.id, { name: inputValue })
+                        } else {
+                          setEditing(null)
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          e.currentTarget.blur()
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault()
+                          setEditing(null)
+                        }
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.select()
+                      }}
+                      className="w-full rounded border border-neutral-300 px-2 py-1 text-sm font-medium focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      autoFocus
+                    />
+                  ) : (
+                    <>
+                      <div className="text-sm font-medium text-neutral-900">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setEditing({ productId: product.id, field: 'name' })
+                          }}
+                          className="hover:text-primary-600 transition-colors cursor-pointer text-left"
+                        >
+                          {product.name}
+                        </button>
+                      </div>
+                      <div className="text-xs text-neutral-500">{product.slug}</div>
+                    </>
+                  )}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-500">
                   {product.category}

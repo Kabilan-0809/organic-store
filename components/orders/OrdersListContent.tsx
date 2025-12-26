@@ -146,7 +146,8 @@ export default function OrdersListContent({
               (sum, item) => sum + item.quantity,
               0
             )
-            const totalInRupees = order.totalAmount / 100
+            // totalAmount from API is already in rupees (converted from paise)
+            const totalInRupees = order.totalAmount
             const orderDate = new Date(order.createdAt).toLocaleDateString(
               'en-IN',
               { year: 'numeric', month: 'short', day: 'numeric' }

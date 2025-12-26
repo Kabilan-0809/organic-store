@@ -27,7 +27,10 @@ export default function FeaturedProductsSection() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products?includeOutOfStock=true')
+        // Add cache-busting timestamp to ensure fresh data
+        const response = await fetch(`/api/products?includeOutOfStock=true&t=${Date.now()}`, {
+          cache: 'no-store',
+        })
         if (!response.ok) {
           throw new Error('Failed to load products')
         }
@@ -64,6 +67,19 @@ export default function FeaturedProductsSection() {
     }
 
     fetchProducts()
+
+    // Refetch when page becomes visible (user switches back to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProducts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   // Duplicate products for seamless infinite loop (3 sets)

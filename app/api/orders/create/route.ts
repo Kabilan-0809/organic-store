@@ -184,21 +184,27 @@ export async function POST(req: NextRequest) {
         )
       }
 
-      const unitPrice = product.price
-      const discountPercent = product.discountPercent || 0
-      const discountedPrice = calculateDiscountedPrice(unitPrice, discountPercent)
-      const finalPrice = discountedPrice * cartItem.quantity
+      // Use the same calculation logic as cart
+      // product.price is already in paise from database
+      // Apply discount using the same logic as cart
+      const unitPriceInPaise = product.price
+      const discountedPriceInPaise = calculateDiscountedPrice(
+        unitPriceInPaise,
+        product.discountPercent
+      )
+      // Calculate final price for the quantity (in paise)
+      const finalPriceInPaise = discountedPriceInPaise * cartItem.quantity
 
       orderItemsData.push({
         productId: product.id,
         productName: product.name,
-        unitPrice,
-        discountPercent,
-        finalPrice,
+        unitPrice: unitPriceInPaise,
+        discountPercent: product.discountPercent,
+        finalPrice: finalPriceInPaise,
         quantity: cartItem.quantity,
       })
 
-      totalAmount += finalPrice
+      totalAmount += finalPriceInPaise
     }
 
     if (totalAmount <= 0) {

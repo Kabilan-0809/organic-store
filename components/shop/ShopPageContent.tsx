@@ -17,7 +17,10 @@ export default function ShopPageContent() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products')
+        // Add cache-busting timestamp to ensure fresh data
+        const response = await fetch(`/api/products?t=${Date.now()}`, {
+          cache: 'no-store',
+        })
         if (!response.ok) {
           throw new Error('Failed to load products')
         }
@@ -56,6 +59,19 @@ export default function ShopPageContent() {
     }
 
     fetchProducts()
+
+    // Refetch when page becomes visible (user switches back to tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchProducts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   const categories = useMemo(
