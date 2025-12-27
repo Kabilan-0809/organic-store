@@ -114,7 +114,7 @@ export default function CartDrawer() {
             type="button"
             onClick={close}
             aria-label="Close cart"
-            className="rounded-full p-2 text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="rounded-full p-2 text-neutral-500 hover:bg-neutral-100 focus:outline-none focus:outline-none"
           >
             ✕
           </button>
@@ -161,7 +161,7 @@ export default function CartDrawer() {
                             }
                           }}
                           disabled={!canCheckout}
-                          className="h-5 w-5 rounded border-neutral-300 text-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="h-5 w-5 rounded border-neutral-300 text-primary-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label={`Select ${item.product.name} for checkout`}
                         />
                       </div>
@@ -169,7 +169,7 @@ export default function CartDrawer() {
                     <Link
                       href={`/shop/${slugOrId}`}
                       onClick={close}
-                      className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-100 via-neutral-50 to-neutral-200 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-100 via-neutral-50 to-neutral-200 transition-transform hover:scale-105 focus:outline-none focus:outline-none"
                       aria-label={`View ${item.product.name} details`}
                     >
                       {item.product.image ? (
@@ -228,7 +228,7 @@ export default function CartDrawer() {
                           }
                           disabled={isUnavailable}
                           aria-label="Decrease quantity"
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           −
                         </button>
@@ -243,7 +243,7 @@ export default function CartDrawer() {
                           }}
                           disabled={isUnavailable || (availableStock > 0 && item.quantity >= availableStock)}
                           aria-label="Increase quantity"
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           +
                         </button>
@@ -312,7 +312,7 @@ export default function CartDrawer() {
           <button
             type="button"
             onClick={handleCheckout}
-            className="flex w-full items-center justify-center rounded-full bg-primary-700 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex w-full items-center justify-center rounded-full bg-primary-700 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-800 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!hasItems || isCheckingOut || (isAuthenticated && selectedCartItemIds.length === 0)}
           >
             {isCheckingOut

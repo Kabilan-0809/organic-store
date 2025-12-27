@@ -28,7 +28,7 @@ export default function FloatingShopButton() {
       <Link
         href="/shop"
         aria-label="Shop organic food"
-        className="group pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-primary-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/25 transition-all duration-300 ease-smooth hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/35 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white sm:px-7 sm:py-4"
+        className="group pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-primary-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/25 transition-all duration-300 ease-smooth hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/35 hover:-translate-y-0.5 focus:outline-none focus:outline-none sm:px-7 sm:py-4"
       >
         <svg
           className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"

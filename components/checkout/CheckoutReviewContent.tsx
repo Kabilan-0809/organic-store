@@ -475,13 +475,13 @@ export default function CheckoutReviewContent() {
                 <button
                   onClick={handleCreateOrder}
                   disabled={isCreatingOrder || isProcessingPayment}
-                  className="mt-6 w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mt-6 w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreatingOrder ? 'Creating Order...' : isProcessingPayment ? 'Processing Payment...' : 'Place Order'}
                 </button>
                 <button
                   onClick={() => router.back()}
-                  className="mt-3 w-full rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="mt-3 w-full rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 focus:outline-none focus:outline-none"
                 >
                   Cancel
                 </button>

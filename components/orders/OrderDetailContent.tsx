@@ -606,14 +606,14 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
                     <button
                       onClick={handleRetryPayment}
                       disabled={isRetryingPayment || isCancelling}
-                      className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isRetryingPayment ? 'Processing...' : 'Retry Payment'}
                     </button>
                     <button
                       onClick={handleCancelOrder}
                       disabled={isRetryingPayment || isCancelling}
-                      className="w-full rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isCancelling ? 'Cancelling...' : 'Cancel Order'}
                     </button>

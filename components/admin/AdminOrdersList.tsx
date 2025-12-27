@@ -115,7 +115,7 @@ export default function AdminOrdersList({ accessToken }: AdminOrdersListProps) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 focus:border-primary-500 focus:outline-none"
           >
             <option value="">All Statuses</option>
             <option value="ORDER_CREATED">Order Created</option>

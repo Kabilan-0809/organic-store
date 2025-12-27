@@ -536,7 +536,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                           }
                         }}
                         disabled={isUpdating}
-                        className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
                           status === 'CANCELLED'
                             ? 'border border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
                             : 'bg-primary-600 text-white hover:bg-primary-700'

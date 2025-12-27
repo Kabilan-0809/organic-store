@@ -58,7 +58,7 @@ export default function ShopFilters({
             key={category}
             type="button"
             onClick={() => onToggleCategory(category)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white ${
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:outline-none ${
               isSelected(category)
                 ? 'border-primary-500 bg-primary-50 text-primary-700'
                 : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'

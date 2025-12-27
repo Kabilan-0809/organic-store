@@ -133,10 +133,9 @@
     box-shadow: 0 0 0 2px var(--color-organic-hover-glow), 0 6px 20px var(--color-organic-shadow);
   }
 
-  /* Focus styles for accessibility */
+  /* Focus styles for accessibility - removed green ring */
   :focus-visible {
-    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
-    --tw-ring-offset-color: var(--color-organic-bg);
+    @apply outline-none;
   }
 }
 

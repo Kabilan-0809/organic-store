@@ -1,16 +1,22 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 
 export default function HeroSection() {
   const shouldReduceMotion = useReducedMotion()
+  const { scrollY } = useScroll()
+  
+  // Fade in as user scrolls down (starts at 100px, fully visible at 300px)
+  const opacity = useTransform(scrollY, [100, 300], [0, 1])
+  const y = useTransform(scrollY, [100, 300], [30, 0])
 
   return (
     <section className="relative py-16 sm:py-20 lg:py-28" style={{ border: 'none', boxShadow: 'none', outline: 'none' }}>
       <div className="relative mx-auto max-w-6xl px-6 sm:px-8 lg:px-12">
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={shouldReduceMotion ? { opacity: 1, y: 0 } : undefined}
+          style={shouldReduceMotion ? {} : { opacity, y }}
           transition={{
             duration: shouldReduceMotion ? 0 : 0.7,
             ease: [0.4, 0, 0.2, 1],

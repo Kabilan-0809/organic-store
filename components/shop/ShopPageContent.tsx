@@ -113,7 +113,7 @@ export default function ShopPageContent() {
           <button
             type="button"
             onClick={() => setIsMobileFiltersOpen((open) => !open)}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-800 shadow-sm focus:outline-none focus:outline-none"
           >
             <span>Filters</span>
             <span className="text-xs text-neutral-500">

@@ -138,7 +138,7 @@ export default function ProductDetailPageContent({
                   onClick={decrement}
                   disabled={quantity <= 1}
                   aria-label="Decrease quantity"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   −
                 </button>
@@ -150,7 +150,7 @@ export default function ProductDetailPageContent({
                   onClick={increment}
                   disabled={quantity >= maxQuantity}
                   aria-label="Increase quantity"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   +
                 </button>
@@ -169,7 +169,7 @@ export default function ProductDetailPageContent({
                     }
                   }}
                   disabled={quantity > availableStock || availableStock === 0}
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-800 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed sm:flex-none"
+                  className="inline-flex flex-1 items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-800 active:scale-95 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed sm:flex-none"
                 >
                   Add to Cart
                 </button>

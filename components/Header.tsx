@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthContext'
 import { useCart } from '@/components/cart/CartContext'
@@ -98,25 +99,35 @@ export default function Header() {
         }}
         role="banner"
       >
-        <nav
-          className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 sm:px-8 lg:px-10"
-          aria-label="Main navigation"
-        >
+        <div className="flex items-center w-full">
+          {/* Brand/Logo - Absolute left */}
           <div className="flex items-center">
             <Link
               href="/"
-              className="text-2xl font-bold tracking-tight text-neutral-900 transition-colors hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+              className="relative transition-opacity hover:opacity-80 focus:outline-none focus:outline-none overflow-hidden"
               aria-label="Millets N Joy home"
+              style={{ height: '64px', width: '600px' }}
             >
-              Millets N Joy
+              <Image
+                src="/Logo.jpeg"
+                alt="Millets N Joy"
+                fill
+                className="object-contain"
+                priority
+              />
             </Link>
           </div>
+          
+          <nav
+            className="flex-1 flex items-center justify-end gap-6 pr-6 py-5 sm:pr-8 lg:pr-10"
+            aria-label="Main navigation"
+          >
           <div className="hidden items-center gap-6 md:flex">
             {/* Shop link - safe to show during SSR */}
             <Link
               href="/shop"
               aria-label="Browse organic products"
-              className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+              className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none focus:outline-none rounded"
             >
               Shop
             </Link>
@@ -130,7 +141,7 @@ export default function Header() {
           {/* Mobile menu button - safe to show during SSR */}
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 md:hidden"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:outline-none md:hidden"
             aria-label="Open menu"
             disabled
           >
@@ -150,6 +161,7 @@ export default function Header() {
             </svg>
           </button>
         </nav>
+        </div>
       </header>
     )
   }
@@ -164,20 +176,29 @@ export default function Header() {
       }}
       role="banner"
     >
-      <nav
-        className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 sm:px-8 lg:px-10"
-        aria-label="Main navigation"
-      >
-        {/* Brand/Logo */}
+      <div className="flex items-center w-full">
+        {/* Brand/Logo - Absolute left */}
         <div className="flex items-center">
           <Link
             href="/"
-            className="text-2xl font-bold tracking-tight text-neutral-900 transition-colors hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+            className="relative transition-opacity hover:opacity-80 focus:outline-none focus:outline-none overflow-hidden"
             aria-label="Millets N Joy home"
+            style={{ height: '64px', width: '600px' }}
           >
-            Millets N Joy
+            <Image
+              src="/Logo.jpeg"
+              alt="Millets N Joy"
+              fill
+              className="object-contain"
+              priority
+            />
           </Link>
         </div>
+        
+        <nav
+          className="flex-1 flex items-center justify-end gap-6 pr-6 py-5 sm:pr-8 lg:pr-10"
+          aria-label="Main navigation"
+        >
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-6 md:flex">
@@ -187,7 +208,7 @@ export default function Header() {
             <Link
               href="/shop"
               aria-label="Browse organic products"
-              className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded ${
+              className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
                 isActive('/shop')
                   ? 'text-primary-600'
                   : 'text-neutral-700 hover:text-primary-600'
@@ -200,7 +221,7 @@ export default function Header() {
                 <Link
                   href="/orders"
                   aria-label="View my orders"
-                  className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded ${
+                  className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
                     isActive('/orders')
                       ? 'text-primary-600'
                       : 'text-neutral-700 hover:text-primary-600'
@@ -250,7 +271,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+                    className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none focus:outline-none rounded"
                     aria-label="Sign out"
                   >
                     Logout
@@ -262,7 +283,7 @@ export default function Header() {
                   <Link
                     href="/auth/login"
                     aria-label="Sign in to your account"
-                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded ${
+                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
                       isActive('/auth/login')
                         ? 'text-primary-600'
                         : 'text-neutral-700 hover:text-primary-600'
@@ -274,7 +295,7 @@ export default function Header() {
                   <Link
                     href="/auth/register"
                     aria-label="Create a new account"
-                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded ${
+                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
                       isActive('/auth/register')
                         ? 'text-primary-600'
                         : 'text-neutral-700 hover:text-primary-600'
@@ -292,7 +313,7 @@ export default function Header() {
                 type="button"
                 onClick={cartToggle}
                 aria-label={`Shopping cart with ${cartCount} items`}
-                className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none focus:outline-none"
               >
               {/* Shopping Cart SVG Icon */}
               <svg
@@ -329,7 +350,7 @@ export default function Header() {
               type="button"
               onClick={cartToggle}
               aria-label={`Shopping cart with ${cartCount} items`}
-              className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none focus:outline-none"
             >
             {/* Shopping Cart SVG Icon */}
             <svg
@@ -360,7 +381,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:outline-none"
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -400,6 +421,7 @@ export default function Header() {
           </button>
         </div>
       </nav>
+      </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -421,7 +443,7 @@ export default function Header() {
               <Link
                 href="/shop"
                 aria-label="Browse organic products"
-                className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
                   isActive('/shop')
                     ? 'bg-primary-50 text-primary-600'
                     : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
@@ -435,7 +457,7 @@ export default function Header() {
                   <Link
                     href="/orders"
                     aria-label="View my orders"
-                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
                       isActive('/orders')
                         ? 'bg-primary-50 text-primary-600'
                         : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
@@ -483,7 +505,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50 hover:text-primary-600 focus:outline-none focus:outline-none"
                   aria-label="Sign out"
                 >
                   Logout
@@ -495,7 +517,7 @@ export default function Header() {
                 <Link
                   href="/auth/login"
                   aria-label="Sign in to your account"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
                     isActive('/auth/login')
                       ? 'bg-primary-50 text-primary-600'
                       : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
@@ -508,7 +530,7 @@ export default function Header() {
                 <Link
                   href="/auth/register"
                   aria-label="Create a new account"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
                     isActive('/auth/register')
                       ? 'bg-primary-50 text-primary-600'
                       : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'

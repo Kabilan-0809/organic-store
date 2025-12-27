@@ -297,7 +297,7 @@ export default function FeaturedProductsSection() {
         <div className="mb-8 flex justify-center relative z-20">
           <Link
             href="/shop"
-            className="group relative inline-flex items-center justify-center rounded-full bg-primary-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-primary-600/20 transition-all duration-300 hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 sm:px-10 sm:py-4.5"
+            className="group relative inline-flex items-center justify-center rounded-full bg-primary-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-primary-600/20 transition-all duration-300 hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 focus:outline-none focus:outline-none sm:px-10 sm:py-4.5"
           >
             Shop Organic Foods
             <svg
