@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getSupabaseUser } from '@/lib/auth/supabase-auth'
+import { createSupabaseServer } from '@/lib/supabase/server'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { createRazorpayOrder } from '@/lib/payments/razorpay'
 
+export const runtime = 'nodejs'
+
 /**
  * POST /api/payments/create
  * 
- * Create a Razorpay order for payment (retry payment).
+ * Create a Razorpay order for payment (retry payment for existing orders).
  * 
- * Supports both Supabase Auth (via cookies) and Bearer token (for compatibility)
+ * This endpoint is used when a user wants to retry payment for an existing order
+ * that is in PAYMENT_PENDING or PAYMENT_FAILED status.
  */
 export async function POST(_req: NextRequest) {
   try {
-    // Get authenticated user from Supabase Auth cookies
-    const user = await getSupabaseUser()
+    const supabase = createSupabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (authError || !user) {
       return unauthorizedResponse()
     }
 

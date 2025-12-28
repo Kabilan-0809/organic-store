@@ -1,34 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase/server'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
-import { validateString, validateArray, validateCartItemId } from '@/lib/auth/validate-input'
-import { checkRateLimit, getClientIdentifier } from '@/lib/auth/rate-limit'
+import { validateArray, validateString, validateCartItemId } from '@/lib/auth/validate-input'
+import { createRazorpayOrder } from '@/lib/payments/razorpay'
 import { calculateDiscountedPrice } from '@/lib/pricing'
 
 export const runtime = 'nodejs'
 
 /**
- * POST /api/orders/create
+ * POST /api/payments/create-order
  * 
- * Create a new order from selected cart items (without payment).
+ * Create a Razorpay order from cart items.
+ * This endpoint:
+ * 1. Validates cart items
+ * 2. Calculates final payable amount (applies discounts)
+ * 3. Creates internal Order record with PAYMENT_PENDING status
+ * 4. Creates Razorpay Order
+ * 5. Stores razorpayOrderId in Order
+ * 6. Returns Razorpay order details for frontend
  * 
- * NOTE: For checkout flow, use /api/payments/create-order instead,
- * which creates the order AND Razorpay order in one call.
- * 
- * This endpoint is kept for backward compatibility or special use cases.
+ * SECURITY: Only authenticated users can create orders.
  */
 export async function POST(req: NextRequest) {
   try {
-    // SECURITY: Rate limit order creation (10 orders per minute per IP)
-    const clientId = getClientIdentifier(req)
-    const rateLimit = checkRateLimit(`order:${clientId}`, 10, 60 * 1000)
-    if (!rateLimit.allowed) {
-      return createErrorResponse(
-        'Too many requests. Please try again later.',
-        429
-      )
-    }
-
     const supabase = createSupabaseServer()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -233,7 +227,7 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (orderError) {
-      console.error('[API Orders Create] Failed to create order:', orderError)
+      console.error('[API Payments Create Order] Failed to create order:', orderError)
       return NextResponse.json({ error: orderError.message }, { status: 500 })
     }
 
@@ -259,16 +253,76 @@ export async function POST(req: NextRequest) {
       .insert(orderItemsInsert)
 
     if (orderItemsError) {
-      console.error('[API Orders Create] Failed to create order items:', orderItemsError)
-      // Order was created but items failed - this is a problem
-      // In production, you might want to delete the order or handle this differently
+      console.error('[API Payments Create Order] Failed to create order items:', orderItemsError)
+      // Order was created but items failed - mark as failed
+      await supabase
+        .from('Order')
+        .update({ status: 'PAYMENT_FAILED' })
+        .eq('id', orderId)
       return createErrorResponse('Failed to create order items', 500)
     }
 
-    // Return order details (Razorpay order creation is handled by /api/payments/create-order)
+    // Create Razorpay order
+    let razorpayOrderId: string | null = null
+    let razorpayAmount: number | null = null
+    let razorpayCurrency: string | null = null
+
+    try {
+      const razorpayOrder = await createRazorpayOrder(
+        totalAmount,
+        'INR',
+        orderId
+      )
+      razorpayOrderId = razorpayOrder.id
+      razorpayAmount = razorpayOrder.amount
+      razorpayCurrency = razorpayOrder.currency
+
+      // Update order with Razorpay order ID
+      const { error: updateError } = await supabase
+        .from('Order')
+        .update({ razorpayOrderId })
+        .eq('id', orderId)
+
+      if (updateError) {
+        console.error('[API Payments Create Order] Failed to update order with Razorpay ID:', updateError)
+        // Don't fail the request, but log the error
+      }
+    } catch (razorpayError) {
+      console.error('[RAZORPAY] Failed to create Razorpay order:', razorpayError)
+      
+      // Check if it's a missing environment variable error
+      const errorMessage = razorpayError instanceof Error ? razorpayError.message : String(razorpayError)
+      if (errorMessage.includes('RAZORPAY_KEY_ID') || errorMessage.includes('RAZORPAY_KEY_SECRET')) {
+        console.error('[RAZORPAY] Missing environment variables. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env.local')
+        // Mark order as failed
+        await supabase
+          .from('Order')
+          .update({ status: 'PAYMENT_FAILED' })
+          .eq('id', orderId)
+        return createErrorResponse(
+          'Payment gateway configuration error. Please contact support.',
+          500
+        )
+      }
+      
+      // Mark order as failed if Razorpay order creation fails
+      await supabase
+        .from('Order')
+        .update({ status: 'PAYMENT_FAILED' })
+        .eq('id', orderId)
+      return createErrorResponse(
+        'Failed to initialize payment gateway. Please try again later.',
+        500
+      )
+    }
+
+    // Return Razorpay order details
     return NextResponse.json({
       success: true,
+      razorpayOrderId,
       orderId,
+      amount: razorpayAmount,
+      currency: razorpayCurrency,
       order: {
         id: orderId,
         status: newOrder.status,
@@ -278,7 +332,8 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('[API Orders Create] Error:', error)
-    return createErrorResponse('Failed to create order', 500, error)
+    console.error('[API Payments Create Order] Error:', error)
+    return createErrorResponse('Failed to create payment order', 500, error)
   }
 }
+

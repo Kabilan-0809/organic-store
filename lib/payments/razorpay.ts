@@ -8,8 +8,8 @@ import crypto from 'crypto'
  * Never expose RAZORPAY_KEY_SECRET to frontend.
  * 
  * Environment variables required:
- * - RAZORPAY_KEY_ID: Your Razorpay key ID
- * - RAZORPAY_KEY_SECRET: Your Razorpay key secret
+ * - NEXT_PUBLIC_RAZORPAY_KEY_ID: Your Razorpay key ID (public, safe for frontend)
+ * - RAZORPAY_KEY_SECRET: Your Razorpay key secret (private, backend only)
  */
 
 /**
@@ -19,12 +19,14 @@ import crypto from 'crypto'
  * This allows the app to build without keys, but fails fast when payment routes are accessed.
  */
 function getRazorpayInstance(): Razorpay {
-  const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID
+  // Use NEXT_PUBLIC_RAZORPAY_KEY_ID (same value, already set for frontend)
+  // Fallback to RAZORPAY_KEY_ID for backward compatibility
+  const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID
   const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET
 
   if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
     throw new Error(
-      'CRITICAL: RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables are required. ' +
+      'CRITICAL: NEXT_PUBLIC_RAZORPAY_KEY_ID (or RAZORPAY_KEY_ID) and RAZORPAY_KEY_SECRET environment variables are required. ' +
       'The application cannot process payments without these keys.'
     )
   }
@@ -68,12 +70,22 @@ export async function createRazorpayOrder(
   }
 
   try {
+    // Razorpay receipt field has max 40 characters
+    // Use truncated orderId for receipt, full orderId stored in notes
+    const receiptPrefix = 'ord_'
+    const maxReceiptLength = 40
+    const maxOrderIdLength = maxReceiptLength - receiptPrefix.length
+    const truncatedOrderId = orderId.length > maxOrderIdLength 
+      ? orderId.substring(0, maxOrderIdLength)
+      : orderId
+    const receipt = `${receiptPrefix}${truncatedOrderId}`
+
     const options = {
       amount, // Amount in smallest currency unit (paise)
       currency,
-      receipt: `order_${orderId}`, // Internal order reference
+      receipt, // Max 40 characters (Razorpay requirement)
       notes: {
-        orderId, // Store internal order ID for verification
+        orderId, // Store full internal order ID for verification
       },
     }
 

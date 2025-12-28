@@ -214,13 +214,20 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
     }
   }
 
+  /**
+   * Get valid next status options for admin to change order status
+   * Clean logic: ORDER_CONFIRMED → SHIPPED → DELIVERED
+   */
   const getNextStatusOptions = (currentStatus: string): string[] => {
     switch (currentStatus) {
       case 'ORDER_CONFIRMED':
-        return ['SHIPPED', 'CANCELLED']
+        // Admin can change ORDER_CONFIRMED to SHIPPED
+        return ['SHIPPED']
       case 'SHIPPED':
-        return ['DELIVERED', 'CANCELLED']
+        // Admin can change SHIPPED to DELIVERED (when delivery person confirms)
+        return ['DELIVERED']
       default:
+        // No status changes allowed for other statuses
         return []
     }
   }
@@ -522,32 +529,41 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                 </div>
               )}
 
-              {/* Status Update (Only for CONFIRMED and SHIPPED orders) */}
+              {/* Status Update (Only for ORDER_CONFIRMED and SHIPPED orders) */}
               {nextStatusOptions.length > 0 && (
                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                  <h2 className="mb-4 text-lg font-semibold text-neutral-900">Update Status</h2>
+                  <h2 className="mb-4 text-lg font-semibold text-neutral-900">Update Order Status</h2>
+                  <p className="mb-4 text-sm text-neutral-600">
+                    {order.status === 'ORDER_CONFIRMED' 
+                      ? 'Mark order as shipped when ready to dispatch'
+                      : order.status === 'SHIPPED'
+                      ? 'Mark order as delivered when delivery is confirmed'
+                      : 'Update order status'}
+                  </p>
                   <div className="space-y-2">
                     {nextStatusOptions.map((status) => (
                       <button
                         key={status}
                         onClick={() => {
-                          if (confirm(`Are you sure you want to mark this order as ${status}?`)) {
+                          const confirmMessage = order.status === 'ORDER_CONFIRMED'
+                            ? `Mark this order as SHIPPED?\n\nThis indicates the order has been dispatched and is on its way to the customer.`
+                            : order.status === 'SHIPPED'
+                            ? `Mark this order as DELIVERED?\n\nThis confirms the order has been successfully delivered to the customer.`
+                            : `Are you sure you want to mark this order as ${status}?`
+                          
+                          if (confirm(confirmMessage)) {
                             handleStatusUpdate(status)
                           }
                         }}
                         disabled={isUpdating}
-                        className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                          status === 'CANCELLED'
-                            ? 'border border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
-                            : 'bg-primary-600 text-white hover:bg-primary-700'
-                        }`}
+                        className="w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isUpdating ? 'Updating...' : `Mark as ${status}`}
                       </button>
                     ))}
                   </div>
                   <p className="mt-3 text-xs text-neutral-500">
-                    Note: You cannot modify prices or quantities
+                    Status flow: Payment Success → Order Confirmed → Shipped → Delivered
                   </p>
                 </div>
               )}

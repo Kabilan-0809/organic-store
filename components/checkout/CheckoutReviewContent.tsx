@@ -52,6 +52,7 @@ export default function CheckoutReviewContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreatingOrder, setIsCreatingOrder] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [isProcessingPaymentState, setIsProcessingPaymentState] = useState(false) // Track if payment is being processed
   
   // Address form state
   const [address, setAddress] = useState({
@@ -106,7 +107,10 @@ export default function CheckoutReviewContent() {
   }, 0)
 
   const handleCreateOrder = async () => {
-    if (!accessToken) return
+    if (!accessToken) {
+      alert('Please log in to continue')
+      return
+    }
 
     // Validate address
     if (!address.addressLine1 || !address.city || !address.state || !address.postalCode) {
@@ -114,11 +118,17 @@ export default function CheckoutReviewContent() {
       return
     }
 
+    // Prevent multiple clicks
+    if (isCreatingOrder || isProcessingPayment) {
+      return
+    }
+
     setIsCreatingOrder(true)
     try {
       const selectedCartItemIds = checkoutItems.map(item => item.cartItemId).filter((id): id is string => !!id)
       
-      const response = await fetch('/api/orders/create', {
+      // Step 1: Create order and Razorpay order
+      const response = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,38 +143,24 @@ export default function CheckoutReviewContent() {
       const data = await response.json()
 
       if (!response.ok) {
-        alert(data.message || 'Failed to create order')
+        alert(data.error || data.message || 'Failed to create order. Please try again.')
+        return
+      }
+
+      // Validate response data
+      if (!data.razorpayOrderId || !data.orderId || !data.amount || !data.currency) {
+        alert('Payment initialization incomplete. Please try again.')
         return
       }
 
       // Clear checkout session
       sessionStorage.removeItem('checkoutCartItemIds')
 
-      // Check if Razorpay order was created successfully
-      if (!data.razorpayOrderId) {
-        // Razorpay order creation failed, but order was created
-        // Redirect to order detail page where user can retry payment
-        if (data.warning) {
-          alert(data.warning)
-        } else {
-          alert('Order created successfully. Please retry payment from your orders page.')
-        }
-        router.push(`/orders/${data.orderId}`)
-        return
-      }
-
-      // Validate that we have all required data before opening Razorpay
-      if (!data.razorpayOrderId || !data.orderId || !data.amount || !data.currency) {
-        alert('Payment initialization incomplete. Please retry payment from your orders page.')
-        router.push(`/orders/${data.orderId}`)
-        return
-      }
-
-      // Open Razorpay checkout directly using razorpayOrderId from order creation
+      // Step 2: Open Razorpay checkout modal
       await openRazorpayCheckout(data.razorpayOrderId, data.orderId, data.amount, data.currency)
     } catch (error) {
-      console.error('[Checkout]', error)
-      alert('An error occurred. Please try again.')
+      console.error('[Checkout] Error creating order:', error)
+      alert('An error occurred while creating your order. Please try again.')
     } finally {
       setIsCreatingOrder(false)
     }
@@ -176,32 +172,42 @@ export default function CheckoutReviewContent() {
     amount: number,
     currency: string
   ) => {
-    if (!accessToken) return
+    if (!accessToken) {
+      alert('Please log in to continue')
+      return
+    }
 
     // Validate inputs
     if (!razorpayOrderId || !orderId || !amount || !currency) {
       console.error('[Razorpay] Missing required parameters:', { razorpayOrderId, orderId, amount, currency })
-      alert('Payment initialization failed. Please retry payment from your orders page.')
-      router.push(`/orders/${orderId}`)
+      alert('Payment initialization failed. Please try again.')
+      return
+    }
+
+    // Check if Razorpay script is loaded
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+    if (!razorpayKey) {
+      alert('Payment gateway configuration error. Please contact support.')
       return
     }
 
     setIsProcessingPayment(true)
     try {
-      // Initialize Razorpay checkout with razorpayOrderId from order creation
+      // Initialize Razorpay checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
-        amount: amount,
+        key: razorpayKey,
+        amount: amount, // Amount in paise
         currency: currency,
         name: 'Millets N Joy',
-        description: `Order #${orderId}`,
-        order_id: razorpayOrderId, // Use razorpayOrderId from order creation
+        description: `Order #${orderId.substring(0, 8)}`,
+        order_id: razorpayOrderId,
         handler: async function (response: {
           razorpay_order_id: string
           razorpay_payment_id: string
           razorpay_signature: string
         }) {
-          // Verify payment
+          // Payment successful - verify on backend
+          setIsProcessingPaymentState(true)
           try {
             const verifyResponse = await fetch('/api/payments/verify', {
               method: 'POST',
@@ -213,43 +219,29 @@ export default function CheckoutReviewContent() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                orderId: orderId, // Include orderId for fetching order
+                orderId: orderId,
               }),
             })
 
             const verifyData = await verifyResponse.json()
 
-            if (verifyResponse.ok) {
+            if (verifyResponse.ok && verifyData.success) {
+              // Payment verified successfully
               // Reload cart to remove purchased items
               await reload()
-              // Redirect to order detail page
-              router.push(`/orders/${orderId}`)
+              // Redirect to order success page
+              router.push(`/orders/${orderId}?payment=success`)
             } else {
-              // Payment verification failed - mark order as PAYMENT_FAILED
-              await fetch(`/api/orders/${orderId}/mark-failed`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              })
-              alert(verifyData.message || 'Payment verification failed')
+              // Payment verification failed
+              alert(verifyData.error || verifyData.message || 'Payment verification failed. Please contact support.')
+              router.push(`/orders/${orderId}?payment=failed`)
             }
           } catch (error) {
-            console.error('[Payment Verify]', error)
-            // Mark order as failed on error
-            try {
-              await fetch(`/api/orders/${orderId}/mark-failed`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              })
-            } catch (markFailedError) {
-              console.error('[Payment] Failed to mark order as failed:', markFailedError)
-            }
-            alert('Payment verification failed. Please contact support.')
+            console.error('[Payment Verify] Error:', error)
+            alert('Payment verification failed. Please contact support with your order ID.')
+            router.push(`/orders/${orderId}?payment=error`)
+          } finally {
+            setIsProcessingPayment(false)
           }
         },
         prefill: {
@@ -261,35 +253,34 @@ export default function CheckoutReviewContent() {
         },
         modal: {
           ondismiss: async function() {
-            // User closed payment modal - mark order as PAYMENT_FAILED
+            // User closed payment modal without completing payment
             setIsProcessingPayment(false)
-            try {
-              await fetch(`/api/orders/${orderId}/mark-failed`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              })
-              // Don't show alert - user intentionally closed the modal
-            } catch (error) {
-              console.error('[Payment] Failed to mark order as failed:', error)
-            }
+            // Order remains in PAYMENT_PENDING status
+            // User can retry payment from order details page
           },
         },
       }
 
+      // Wait for Razorpay script to load
       const razorpay = (window as Window & { Razorpay?: RazorpayConstructor }).Razorpay
-      if (razorpay) {
-        const razorpayInstance = new razorpay(options)
+      if (!razorpay) {
+        // Script not loaded yet, wait a bit and try again
+        await new Promise(resolve => setTimeout(resolve, 500))
+        const razorpayRetry = (window as Window & { Razorpay?: RazorpayConstructor }).Razorpay
+        if (!razorpayRetry) {
+          alert('Payment gateway not loaded. Please refresh the page and try again.')
+          setIsProcessingPayment(false)
+          return
+        }
+        const razorpayInstance = new razorpayRetry(options)
         razorpayInstance.open()
       } else {
-        alert('Payment gateway not loaded. Please refresh the page.')
+        const razorpayInstance = new razorpay(options)
+        razorpayInstance.open()
       }
     } catch (error) {
-      console.error('[Payment]', error)
-      alert('Failed to open payment gateway')
-    } finally {
+      console.error('[Payment] Error opening Razorpay:', error)
+      alert('Failed to open payment gateway. Please try again.')
       setIsProcessingPayment(false)
     }
   }
@@ -309,7 +300,16 @@ export default function CheckoutReviewContent() {
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script 
+        src="https://checkout.razorpay.com/v1/checkout.js" 
+        strategy="beforeInteractive"
+        onLoad={() => {
+          console.log('[Razorpay] Script loaded successfully')
+        }}
+        onError={() => {
+          console.error('[Razorpay] Failed to load script')
+        }}
+      />
       <AnimatedPage>
         <div className="mx-auto max-w-4xl py-8 sm:py-12">
           <h1 className="mb-8 text-3xl font-bold tracking-tight text-neutral-900">Review Your Order</h1>
@@ -474,14 +474,18 @@ export default function CheckoutReviewContent() {
                 </div>
                 <button
                   onClick={handleCreateOrder}
-                  disabled={isCreatingOrder || isProcessingPayment}
-                  className="mt-6 w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isCreatingOrder || isProcessingPayment || isProcessingPaymentState}
+                  className="mt-6 w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCreatingOrder ? 'Creating Order...' : isProcessingPayment ? 'Processing Payment...' : 'Place Order'}
+                  {isCreatingOrder 
+                    ? 'Creating Order...' 
+                    : isProcessingPayment || isProcessingPaymentState
+                    ? 'Processing Payment...' 
+                    : 'Pay Now'}
                 </button>
                 <button
                   onClick={() => router.back()}
-                  className="mt-3 w-full rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 focus:outline-none focus:outline-none"
+                  className="mt-3 w-full rounded-xl border border-neutral-300 bg-white px-6 py-3 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 focus:outline-none"
                 >
                   Cancel
                 </button>

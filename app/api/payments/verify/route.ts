@@ -1,23 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getSupabaseUser } from '@/lib/auth/supabase-auth'
+import { createSupabaseServer } from '@/lib/supabase/server'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { verifyRazorpaySignature, getRazorpayPayment } from '@/lib/payments/razorpay'
+
+export const runtime = 'nodejs'
 
 /**
  * POST /api/payments/verify
  * 
  * Verify payment after completion.
  * 
- * Supports both Supabase Auth (via cookies) and Bearer token (for compatibility)
+ * Flow:
+ * 1. Verify Razorpay signature (HMAC SHA256)
+ * 2. Verify payment status with Razorpay API
+ * 3. Validate stock availability
+ * 4. Reduce stock (safely)
+ * 5. Update order status: PAYMENT_PENDING → PAYMENT_SUCCESS → ORDER_CONFIRMED
+ * 6. Clear cart items
+ * 
+ * SECURITY: Signature verification is mandatory. Never trust frontend alone.
  */
 export async function POST(_req: NextRequest) {
   try {
-    // Get authenticated user from Supabase Auth cookies
-    const user = await getSupabaseUser()
+    const supabase = createSupabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (authError || !user) {
       return unauthorizedResponse()
     }
 
@@ -85,18 +94,19 @@ export async function POST(_req: NextRequest) {
     const order = orders[0]
 
     // Check order status (idempotency)
-    if (order.status === 'ORDER_CONFIRMED' || order.status === 'PAYMENT_SUCCESS') {
+    // Allow verification if status is PAYMENT_PENDING or PAYMENT_SUCCESS
+    if (order.status === 'ORDER_CONFIRMED') {
       return NextResponse.json({
         success: true,
         orderId: order.id,
         status: order.status,
-        message: 'Payment already verified',
+        message: 'Payment already verified and order confirmed',
       })
     }
 
-    if (order.status !== 'PAYMENT_PENDING') {
+    if (order.status !== 'PAYMENT_PENDING' && order.status !== 'PAYMENT_SUCCESS') {
       return createErrorResponse(
-        `Order status is ${order.status}, expected PAYMENT_PENDING`,
+        `Order status is ${order.status}, expected PAYMENT_PENDING or PAYMENT_SUCCESS`,
         400
       )
     }
@@ -112,10 +122,40 @@ export async function POST(_req: NextRequest) {
       return createErrorResponse('Invalid payment signature', 400)
     }
 
-    // Verify payment with Razorpay
+    // Verify payment with Razorpay API
     const razorpayPayment = await getRazorpayPayment(razorpayPaymentId)
-    if (!razorpayPayment || razorpayPayment.status !== 'captured') {
-      return createErrorResponse('Payment not captured', 400)
+    if (!razorpayPayment) {
+      console.error('[API Payments Verify] Razorpay payment not found:', razorpayPaymentId)
+      // Mark order as failed
+      await supabase
+        .from('Order')
+        .update({ status: 'PAYMENT_FAILED' })
+        .eq('id', orderId)
+      return createErrorResponse('Payment not found in Razorpay', 400)
+    }
+
+    if (razorpayPayment.status !== 'captured') {
+      console.error('[API Payments Verify] Payment not captured. Status:', razorpayPayment.status)
+      // Mark order as failed
+      await supabase
+        .from('Order')
+        .update({ status: 'PAYMENT_FAILED' })
+        .eq('id', orderId)
+      return createErrorResponse(`Payment not captured. Status: ${razorpayPayment.status}`, 400)
+    }
+
+    // Verify payment amount matches order amount
+    if (razorpayPayment.amount !== order.totalAmount) {
+      console.error('[API Payments Verify] Amount mismatch:', {
+        razorpayAmount: razorpayPayment.amount,
+        orderAmount: order.totalAmount,
+      })
+      // Mark order as failed
+      await supabase
+        .from('Order')
+        .update({ status: 'PAYMENT_FAILED' })
+        .eq('id', orderId)
+      return createErrorResponse('Payment amount mismatch', 400)
     }
 
     // Fetch order items for stock update
@@ -154,7 +194,23 @@ export async function POST(_req: NextRequest) {
       }
     }
 
-    // Reduce stock for each item
+    // Step 1: Update order status to PAYMENT_SUCCESS first
+    const { error: paymentSuccessError } = await supabase
+      .from('Order')
+      .update({
+        status: 'PAYMENT_SUCCESS',
+        razorpayPaymentId,
+        razorpaySignature,
+        paidAt: new Date().toISOString(),
+      })
+      .eq('id', orderId)
+
+    if (paymentSuccessError) {
+      console.error('[API Payments Verify] Failed to update order to PAYMENT_SUCCESS:', paymentSuccessError)
+      return createErrorResponse('Failed to update payment status', 500)
+    }
+
+    // Step 2: Reduce stock for each item (safely)
     for (const orderItem of orderItems) {
       const { error: stockError } = await supabase.rpc('decrement_stock', {
         product_id: orderItem.productId,
@@ -170,6 +226,7 @@ export async function POST(_req: NextRequest) {
           .single()
 
         if (!product) {
+          // Revert order status to PAYMENT_FAILED
           await supabase
             .from('Order')
             .update({ status: 'PAYMENT_FAILED' })
@@ -179,31 +236,39 @@ export async function POST(_req: NextRequest) {
 
         const newStock = product.stock - orderItem.quantity
         if (newStock < 0) {
+          // Revert order status to PAYMENT_FAILED
           await supabase
             .from('Order')
             .update({ status: 'PAYMENT_FAILED' })
             .eq('id', orderId)
           return createErrorResponse(
-            `Insufficient stock for ${orderItem.productName}`,
+            `Insufficient stock for ${orderItem.productName}. Available: ${product.stock}, Required: ${orderItem.quantity}`,
             400
           )
         }
 
-        await supabase
+        const { error: updateStockError } = await supabase
           .from('Product')
           .update({ stock: newStock })
           .eq('id', orderItem.productId)
+
+        if (updateStockError) {
+          console.error('[API Payments Verify] Failed to update stock:', updateStockError)
+          // Revert order status to PAYMENT_FAILED
+          await supabase
+            .from('Order')
+            .update({ status: 'PAYMENT_FAILED' })
+            .eq('id', orderId)
+          return createErrorResponse('Failed to update product stock', 500)
+        }
       }
     }
 
-    // Update order status to ORDER_CONFIRMED
+    // Step 3: Update order status to ORDER_CONFIRMED (final step)
     const { error: updateError } = await supabase
       .from('Order')
       .update({
         status: 'ORDER_CONFIRMED',
-        razorpayPaymentId,
-        razorpaySignature,
-        paidAt: new Date().toISOString(),
       })
       .eq('id', orderId)
 

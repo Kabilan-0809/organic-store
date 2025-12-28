@@ -1,7 +1,7 @@
 /**
- * Check Supabase environment variables
+ * Check environment variables
  * 
- * This script verifies that all required Supabase environment variables are set.
+ * This script verifies that all required environment variables are set.
  * It prints the keys (without exposing full values) for debugging.
  */
 
@@ -48,12 +48,15 @@ if (fs.existsSync(envPath)) {
   })
 }
 
-console.log('\n=== Supabase Environment Variables Check ===\n')
+console.log('\n=== Environment Variables Check ===\n')
 
 const requiredVars = {
   'NEXT_PUBLIC_SUPABASE_URL': process.env.NEXT_PUBLIC_SUPABASE_URL,
   'NEXT_PUBLIC_SUPABASE_ANON_KEY': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   'SUPABASE_SERVICE_ROLE_KEY': process.env.SUPABASE_SERVICE_ROLE_KEY,
+  // Razorpay: Key ID can use NEXT_PUBLIC_ prefix (same value for frontend/backend)
+  'NEXT_PUBLIC_RAZORPAY_KEY_ID': process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+  'RAZORPAY_KEY_SECRET': process.env.RAZORPAY_KEY_SECRET,
 }
 
 let allPresent = true
@@ -79,8 +82,24 @@ console.log(`\n=== Summary ===`)
 console.log(`All required variables present: ${allPresent ? 'YES ✓' : 'NO ✗'}\n`)
 
 if (!allPresent) {
-  console.log('⚠️  Missing environment variables will cause authentication to fail!')
-  console.log('   Make sure to set them in .env.local or your deployment platform.\n')
+  console.log('⚠️  Missing environment variables detected!')
+  console.log('')
+  console.log('Required variables:')
+  console.log('  - Supabase: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  console.log('  - Razorpay: NEXT_PUBLIC_RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET')
+  console.log('')
+  console.log('📝 Setup instructions:')
+  console.log('  1. Create a .env.local file in the project root')
+  console.log('  2. Add your environment variables:')
+  console.log('     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url')
+  console.log('     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key')
+  console.log('     NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id')
+  console.log('     RAZORPAY_KEY_SECRET=your_razorpay_key_secret')
+  console.log('')
+  console.log('  Get Razorpay keys from: https://dashboard.razorpay.com/app/keys')
+  console.log('  Get Supabase keys from: https://app.supabase.com/project/_/settings/api')
+  console.log('')
+  console.log('  3. Restart your development server after adding variables\n')
   process.exit(1)
 } else {
   console.log('✓ All environment variables are configured correctly.\n')

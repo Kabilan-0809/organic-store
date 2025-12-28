@@ -1,24 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { getSupabaseUser } from '@/lib/auth/supabase-auth'
+import { createSupabaseServer } from '@/lib/supabase/server'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { generateInvoicePDF } from '@/lib/invoice/generate-invoice'
+
+export const runtime = 'nodejs'
 
 /**
  * GET /api/orders/[orderId]/invoice
  * 
  * Generate invoice PDF for an order.
  * 
- * Uses Supabase Auth cookies as the ONLY authentication method.
+ * Uses Supabase Auth cookies for authentication.
  */
 export async function GET(
   _req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const user = await getSupabaseUser()
-    if (!user) {
+    const supabase = createSupabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
       return unauthorizedResponse()
     }
 
@@ -65,15 +68,12 @@ export async function GET(
       return createErrorResponse('Failed to fetch order items', 500)
     }
 
-    // Fetch user
-    const { data: users, error: userError } = await supabase
-      .from('User')
-      .select('*')
-      .eq('id', order.userId)
-      .limit(1)
-
-    if (userError || !users || users.length === 0) {
-      return createErrorResponse('User not found', 404)
+    // Use authenticated user's email (from Supabase Auth)
+    // No need to query User table - we have the user from auth
+    const userData = {
+      id: user.id,
+      email: user.email || 'N/A',
+      role: user.app_metadata?.role || 'USER',
     }
 
     // Generate PDF
@@ -81,7 +81,7 @@ export async function GET(
       order: {
         ...order,
         items: orderItems || [],
-        user: users[0],
+        user: userData,
       },
       isAdmin: false,
     })

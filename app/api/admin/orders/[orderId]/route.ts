@@ -6,6 +6,8 @@ import {
   forbiddenResponse,
 } from '@/lib/auth/api-auth'
 
+export const runtime = "nodejs"
+
 /**
  * GET /api/admin/orders/[orderId]
  *
@@ -84,5 +86,103 @@ export async function GET(
   } catch (error) {
     console.error('[API Admin Order Detail] Error:', error)
     return createErrorResponse('Failed to fetch order', 500)
+  }
+}
+
+/**
+ * PATCH /api/admin/orders/[orderId]
+ *
+ * Update order status (admin only).
+ * 
+ * Valid status transitions:
+ * - ORDER_CONFIRMED → SHIPPED
+ * - SHIPPED → DELIVERED
+ */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
+  try {
+    // 1️⃣ Ensure admin
+    const admin = await requireAdmin()
+    if (!admin) {
+      return forbiddenResponse()
+    }
+
+    // 2️⃣ Validate UUID
+    const orderId = params.orderId
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+    if (!orderId || !uuidRegex.test(orderId)) {
+      return createErrorResponse('Invalid order ID', 400)
+    }
+
+    // 3️⃣ Parse request body
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return createErrorResponse('Invalid JSON in request body', 400)
+    }
+
+    if (typeof body !== 'object' || body === null) {
+      return createErrorResponse('Invalid request body', 400)
+    }
+
+    const { status: newStatus } = body as { status?: string }
+
+    if (!newStatus || typeof newStatus !== 'string') {
+      return createErrorResponse('Status is required', 400)
+    }
+
+    // 4️⃣ Fetch current order
+    const { data: order, error: orderError } = await supabase
+      .from('Order')
+      .select('status')
+      .eq('id', orderId)
+      .single()
+
+    if (orderError || !order) {
+      return createErrorResponse('Order not found', 404)
+    }
+
+    const currentStatus = order.status
+
+    // 5️⃣ Validate status transition
+    const validTransitions: Record<string, string[]> = {
+      'ORDER_CONFIRMED': ['SHIPPED'],
+      'SHIPPED': ['DELIVERED'],
+    }
+
+    const allowedStatuses = validTransitions[currentStatus] || []
+
+    if (!allowedStatuses.includes(newStatus)) {
+      return createErrorResponse(
+        `Invalid status transition. Cannot change from ${currentStatus} to ${newStatus}. Allowed transitions: ${allowedStatuses.join(', ') || 'none'}`,
+        400
+      )
+    }
+
+    // 6️⃣ Update order status
+    const { error: updateError } = await supabase
+      .from('Order')
+      .update({ status: newStatus })
+      .eq('id', orderId)
+
+    if (updateError) {
+      console.error('[API Admin Order Update] Update error:', updateError)
+      return createErrorResponse('Failed to update order status', 500)
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Order status updated to ${newStatus}`,
+      orderId,
+      status: newStatus,
+    })
+  } catch (error) {
+    console.error('[API Admin Order Update] Error:', error)
+    return createErrorResponse('Failed to update order status', 500, error)
   }
 }

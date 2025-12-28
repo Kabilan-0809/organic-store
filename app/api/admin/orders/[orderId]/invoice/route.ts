@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth/api-auth'
+import { createSupabaseServer } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { createErrorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { generateInvoicePDF } from '@/lib/invoice/generate-invoice'
+
+export const runtime = 'nodejs'
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
-    const admin = await requireAdmin()
-    if (!admin) {
+    // Check if user is admin
+    const supabase = createSupabaseServer()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return unauthorizedResponse()
+    }
+
+    const role = user.app_metadata?.role as string | undefined
+    if (role !== 'ADMIN') {
       return forbiddenResponse()
     }
 
@@ -25,8 +36,8 @@ export async function GET(
       return createErrorResponse('Invalid order ID', 400)
     }
 
-    // Fetch order
-    const { data: orders, error: orderError } = await supabase
+    // Fetch order using admin client (bypasses RLS)
+    const { data: orders, error: orderError } = await supabaseAdmin
       .from('Order')
       .select('*')
       .eq('id', orderId)
@@ -46,8 +57,8 @@ export async function GET(
       )
     }
 
-    // Fetch order items
-    const { data: orderItems, error: itemsError } = await supabase
+    // Fetch order items using admin client
+    const { data: orderItems, error: itemsError } = await supabaseAdmin
       .from('OrderItem')
       .select('*')
       .eq('orderId', orderId)
@@ -56,15 +67,18 @@ export async function GET(
       return createErrorResponse('Failed to fetch order items', 500)
     }
 
-    // Fetch user
-    const { data: users, error: userError } = await supabase
-      .from('User')
-      .select('*')
-      .eq('id', order.userId)
-      .limit(1)
+    // Fetch user from Supabase Auth (using admin client)
+    const { data: authUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(order.userId)
 
-    if (userError || !users || users.length === 0) {
+    if (userError || !authUser?.user) {
       return createErrorResponse('User not found', 404)
+    }
+
+    // Create user data object for invoice
+    const userData = {
+      id: authUser.user.id,
+      email: authUser.user.email || 'N/A',
+      role: authUser.user.app_metadata?.role || 'USER',
     }
 
     // Generate PDF
@@ -72,7 +86,7 @@ export async function GET(
       order: {
         ...order,
         items: orderItems || [],
-        user: users[0],
+        user: userData,
       },
       isAdmin: true,
     })
