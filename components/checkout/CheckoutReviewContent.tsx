@@ -148,7 +148,7 @@ export default function CheckoutReviewContent() {
       }
 
       // Validate response data
-      if (!data.razorpayOrderId || !data.orderId || !data.amount || !data.currency) {
+      if (!data.razorpayOrderId || !data.amount || !data.currency || !data.orderData) {
         alert('Payment initialization incomplete. Please try again.')
         return
       }
@@ -157,7 +157,13 @@ export default function CheckoutReviewContent() {
       sessionStorage.removeItem('checkoutCartItemIds')
 
       // Step 2: Open Razorpay checkout modal
-      await openRazorpayCheckout(data.razorpayOrderId, data.orderId, data.amount, data.currency)
+      // Store orderData temporarily for verification
+      await openRazorpayCheckout(
+        data.razorpayOrderId,
+        data.amount,
+        data.currency,
+        data.orderData
+      )
     } catch (error) {
       console.error('[Checkout] Error creating order:', error)
       alert('An error occurred while creating your order. Please try again.')
@@ -168,9 +174,26 @@ export default function CheckoutReviewContent() {
 
   const openRazorpayCheckout = async (
     razorpayOrderId: string,
-    orderId: string,
     amount: number,
-    currency: string
+    currency: string,
+    orderData: {
+      selectedCartItemIds: string[]
+      orderItemsData: Array<{
+        productId: string
+        productName: string
+        unitPrice: number
+        discountPercent: number | null
+        finalPrice: number
+        quantity: number
+      }>
+      totalAmount: number
+      addressLine1: string
+      addressLine2: string | null
+      city: string
+      state: string
+      postalCode: string
+      country: string
+    }
   ) => {
     if (!accessToken) {
       alert('Please log in to continue')
@@ -178,8 +201,8 @@ export default function CheckoutReviewContent() {
     }
 
     // Validate inputs
-    if (!razorpayOrderId || !orderId || !amount || !currency) {
-      console.error('[Razorpay] Missing required parameters:', { razorpayOrderId, orderId, amount, currency })
+    if (!razorpayOrderId || !amount || !currency || !orderData) {
+      console.error('[Razorpay] Missing required parameters:', { razorpayOrderId, amount, currency, orderData })
       alert('Payment initialization failed. Please try again.')
       return
     }
@@ -199,14 +222,14 @@ export default function CheckoutReviewContent() {
         amount: amount, // Amount in paise
         currency: currency,
         name: 'Millets N Joy',
-        description: `Order #${orderId.substring(0, 8)}`,
+        description: `Order Payment`,
         order_id: razorpayOrderId,
         handler: async function (response: {
           razorpay_order_id: string
           razorpay_payment_id: string
           razorpay_signature: string
         }) {
-          // Payment successful - verify on backend
+          // Payment successful - verify on backend and create order
           setIsProcessingPaymentState(true)
           try {
             const verifyResponse = await fetch('/api/payments/verify', {
@@ -219,28 +242,29 @@ export default function CheckoutReviewContent() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                orderId: orderId,
+                orderData: orderData, // Pass order data to create order after payment
               }),
             })
 
             const verifyData = await verifyResponse.json()
 
             if (verifyResponse.ok && verifyData.success) {
-              // Payment verified successfully
+              // Payment verified and order created successfully
               // Reload cart to remove purchased items
               await reload()
               // Redirect to order success page
-              router.push(`/orders/${orderId}?payment=success`)
+              router.push(`/orders/${verifyData.orderId}?payment=success`)
             } else {
               // Payment verification failed
               alert(verifyData.error || verifyData.message || 'Payment verification failed. Please contact support.')
-              router.push(`/orders/${orderId}?payment=failed`)
+              router.push('/shop')
             }
           } catch (error) {
             console.error('[Payment Verify] Error:', error)
-            alert('Payment verification failed. Please contact support with your order ID.')
-            router.push(`/orders/${orderId}?payment=error`)
+            alert('Payment verification failed. Please contact support.')
+            router.push('/shop')
           } finally {
+            setIsProcessingPaymentState(false)
             setIsProcessingPayment(false)
           }
         },
@@ -302,7 +326,7 @@ export default function CheckoutReviewContent() {
     <>
       <Script 
         src="https://checkout.razorpay.com/v1/checkout.js" 
-        strategy="beforeInteractive"
+        strategy="lazyOnload"
         onLoad={() => {
           console.log('[Razorpay] Script loaded successfully')
         }}
@@ -342,7 +366,10 @@ export default function CheckoutReviewContent() {
                           />
                         </div>
                         <div className="flex flex-1 flex-col">
-                          <h3 className="font-semibold text-neutral-900">{item.product.name}</h3>
+                          <h3 className="font-semibold text-neutral-900">
+                            {item.product.name}
+                            {(item.product as typeof item.product & { sizeGrams?: number | null }).sizeGrams && ` – ${(item.product as typeof item.product & { sizeGrams?: number | null }).sizeGrams}g`}
+                          </h3>
                           <p className="text-sm text-neutral-500">{item.product.category}</p>
                           <div className="mt-2 flex items-center gap-2">
                             <span className="text-sm font-medium text-neutral-700">Qty: {item.quantity}</span>

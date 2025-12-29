@@ -30,30 +30,27 @@ export async function GET(
       return createErrorResponse('Invalid order ID', 400)
     }
 
-    // Fetch order
-    const { data: orders, error: orderError } = await supabase
-      .from('Order')
-      .select('*')
-      .eq('id', orderId)
-      .eq('userId', user.id)
-      .limit(1)
+    // Fetch order and items in parallel with explicit columns
+    const [orderResult, itemsResult] = await Promise.all([
+      supabase
+        .from('Order')
+        .select('id, status, totalAmount, currency, addressLine1, addressLine2, city, state, postalCode, country, razorpayPaymentId, paidAt, createdAt')
+        .eq('id', orderId)
+        .eq('userId', user.id)
+        .limit(1)
+        .single(),
+      supabase
+        .from('OrderItem')
+        .select('id, productId, productName, quantity, unitPrice, discountPercent, finalPrice, sizeGrams')
+        .eq('orderId', orderId),
+    ])
 
-    if (orderError) {
-      console.error('[API Order Detail] Supabase error:', orderError)
-      return createErrorResponse('Failed to fetch order', 500)
-    }
+    const { data: order, error: orderError } = orderResult
+    const { data: orderItems, error: itemsError } = itemsResult
 
-    if (!orders || orders.length === 0) {
+    if (orderError || !order) {
       return createErrorResponse('Order not found', 404)
     }
-
-    const order = orders[0]
-
-    // Fetch order items
-    const { data: orderItems, error: itemsError } = await supabase
-      .from('OrderItem')
-      .select('*')
-      .eq('orderId', orderId)
 
     if (itemsError) {
       console.error('[API Order Detail] Items error:', itemsError)
@@ -69,6 +66,7 @@ export async function GET(
       unitPrice: item.unitPrice / 100,
       discountPercent: item.discountPercent,
       finalPrice: item.finalPrice / 100,
+      sizeGrams: item.sizeGrams || null,
     }))
 
     return NextResponse.json({

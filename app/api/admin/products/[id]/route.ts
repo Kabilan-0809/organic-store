@@ -72,6 +72,22 @@ export async function PATCH(
     }
 
     if ('price' in body) {
+      // Check if product is Malt - if so, price updates must go to ProductVariant, not Product
+      const { data: existingProduct } = await supabase
+        .from('Product')
+        .select('category')
+        .eq('id', productId)
+        .single()
+
+      if (existingProduct?.category === 'Malt') {
+        // For Malt products, Product.price should NOT be editable
+        // Variant prices must be updated via ProductVariant table
+        return createErrorResponse(
+          'Price updates for Malt products must be done via variant prices. Product.price is not editable for Malt products.',
+          400
+        )
+      }
+
       const price = validateNumber(body.price, {
         min: 0,
         required: true,
@@ -101,6 +117,22 @@ export async function PATCH(
     }
 
     if ('stock' in body) {
+      // Check if product is Malt - if so, stock updates must go to ProductVariant, not Product
+      const { data: existingProduct } = await supabase
+        .from('Product')
+        .select('category')
+        .eq('id', productId)
+        .single()
+
+      if (existingProduct?.category === 'Malt') {
+        // For Malt products, Product.stock should NOT be editable
+        // Variant stock must be updated via ProductVariant table
+        return createErrorResponse(
+          'Stock updates for Malt products must be done via variant stock. Product.stock is not editable for Malt products.',
+          400
+        )
+      }
+
       const stock = validateNumber(body.stock, {
         min: 0,
         required: true,

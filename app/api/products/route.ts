@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createErrorResponse } from '@/lib/auth/api-auth'
 
-// Mark route as dynamic to prevent caching
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Edge runtime for better performance on public read-only endpoint
+export const runtime = 'edge'
 
 /**
  * GET /api/products
@@ -22,16 +21,36 @@ export async function GET(_req: NextRequest) {
     const excludeOutOfStock = searchParams.get('excludeOutOfStock') === 'true'
     const includeOutOfStock = searchParams.get('includeOutOfStock') === 'true'
 
-    // Build query - same pattern as cart routes
-    let query = supabase
+    // Build query - join with ProductVariant for malt products
+    // Explicit columns to reduce payload size
+    const query = supabase
       .from('Product')
-      .select('*')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        price,
+        discountPercent,
+        imageUrl,
+        category,
+        stock,
+        isActive,
+        ProductVariant (
+          id,
+          sizeGrams,
+          price,
+          stock
+        )
+      `)
       .eq('isActive', true)
       .order('createdAt', { ascending: false })
 
     // Filter out of stock if requested (but allow out of stock if includeOutOfStock is true)
+    // For non-malt products, check Product.stock
+    // For malt products, check if any variant has stock
     if (excludeOutOfStock && !includeOutOfStock) {
-      query = query.gt('stock', 0)
+      // This will be handled in mapping logic
     }
 
     const { data: products, error } = await query
@@ -45,31 +64,63 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ products: [] })
     }
 
-    // Map products to API response format - EXACTLY like cart routes do
-    // Cart uses: price: product.price / 100, discountPercent: product.discountPercent, stock: product.stock
-    const mappedProducts = products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      description: p.description,
-      price: p.price / 100, // Convert paise to rupees - SAME as cart
-      discountPercent: p.discountPercent, // SAME as cart
-      imageUrl: p.imageUrl,
-      category: p.category,
-      stock: p.stock, // SAME as cart
-      inStock: p.isActive && p.stock > 0, // SAME logic as cart
-      isActive: p.isActive,
-      image: p.imageUrl, // Map imageUrl to image for Product type
-    }))
+    // Map products to API response format
+    const mappedProducts = products.map((p: any) => {
+      const isMalt = p.category === 'Malt'
+      const variants = p.ProductVariant || []
+      
+      // For malt products: check if any variant has stock
+      // For non-malt: use product stock
+      let inStock: boolean
+      let stock: number
+      
+      if (isMalt) {
+        const hasStock = variants.some((v: any) => v.stock > 0)
+        const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
+        inStock = p.isActive && hasStock
+        stock = totalStock
+      } else {
+        inStock = p.isActive && p.stock > 0
+        stock = p.stock
+      }
 
-    // Return with no-cache headers to ensure fresh data
+      // Apply excludeOutOfStock filter
+      if (excludeOutOfStock && !includeOutOfStock && !inStock) {
+        return null
+      }
+
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        price: p.price / 100, // Convert paise to rupees - base price for non-malt
+        discountPercent: p.discountPercent,
+        imageUrl: p.imageUrl,
+        category: p.category,
+        stock: stock,
+        inStock: inStock,
+        isActive: p.isActive,
+        image: p.imageUrl,
+        // Include variants for malt products
+        ...(isMalt && {
+          variants: variants.map((v: any) => ({
+            id: v.id,
+            sizeGrams: v.sizeGrams,
+            price: v.price / 100, // Convert paise to rupees
+            stock: v.stock,
+            inStock: v.stock > 0,
+          })),
+        }),
+      }
+    }).filter((p): p is NonNullable<typeof p> => p !== null)
+
+    // Cache public read-only endpoint for 60s, allow stale for 300s
     return NextResponse.json(
       { products: mappedProducts },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
         },
       }
     )

@@ -34,16 +34,16 @@ interface CartState {
 
 type CartAction =
   | { type: 'ADD_ITEM'; product: Product; quantity: number }
-  | { type: 'REMOVE_ITEM'; productId: string }
-  | { type: 'SET_QUANTITY'; productId: string; quantity: number }
+  | { type: 'REMOVE_ITEM'; productId: string; cartItemId?: string; sizeGrams?: number | null }
+  | { type: 'SET_QUANTITY'; productId: string; quantity: number; cartItemId?: string; sizeGrams?: number | null }
   | { type: 'CLEAR' }
   | { type: 'REPLACE_ALL'; items: CartItem[] }
 
 interface CartContextValue {
   items: CartItem[]
-  addItem: (product: Product, quantity?: number) => Promise<void>
-  removeItem: (productId: string) => Promise<void>
-  setQuantity: (productId: string, quantity: number) => Promise<void>
+  addItem: (product: Product, quantity?: number, variantId?: string) => Promise<void>
+  removeItem: (productId: string, cartItemId?: string, sizeGrams?: number | null) => Promise<void>
+  setQuantity: (productId: string, quantity: number, cartItemId?: string, sizeGrams?: number | null) => Promise<void>
   clear: () => void
   reload: () => Promise<void>
   subtotal: number
@@ -60,14 +60,25 @@ const CartContext = createContext<CartContextValue | undefined>(undefined)
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existing = state.items.find((item) => item.product.id === action.product.id)
+      // For malt products with variants, check both product.id and sizeGrams
+      // Same product with different sizes = separate cart items
+      const isMalt = action.product.category === 'Malt'
+      const existing = state.items.find((item) => {
+        if (item.product.id !== action.product.id) return false
+        if (isMalt) {
+          // For malt products, match by sizeGrams
+          return item.product.sizeGrams === action.product.sizeGrams
+        }
+        return true
+      })
+      
       if (existing) {
         return {
-          items: state.items.map((item) =>
-            item.product.id === action.product.id
-              ? { ...item, quantity: item.quantity + action.quantity }
-              : item
-          ),
+          items: state.items.map((item) => {
+            if (item.product.id !== action.product.id) return item
+            if (isMalt && item.product.sizeGrams !== action.product.sizeGrams) return item
+            return { ...item, quantity: item.quantity + action.quantity }
+          }),
         }
       }
       return {
@@ -75,9 +86,55 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       }
     }
     case 'REMOVE_ITEM': {
+      // For authenticated users, cartItemId is provided and unique per variant
+      // For guest users, match by productId + sizeGrams for Malt products
+      if (action.cartItemId) {
+        return { items: state.items.filter((item) => item.cartItemId !== action.cartItemId) }
+      }
+      // Guest cart: match by productId + sizeGrams for Malt products
+      const itemToRemove = state.items.find((item) => item.product.id === action.productId)
+      if (itemToRemove) {
+        const isMalt = itemToRemove.product.category === 'Malt'
+        if (isMalt && action.sizeGrams !== undefined) {
+          return {
+            items: state.items.filter(
+              (item) =>
+                !(item.product.id === action.productId && item.product.sizeGrams === action.sizeGrams)
+            ),
+          }
+        }
+      }
       return { items: state.items.filter((item) => item.product.id !== action.productId) }
     }
     case 'SET_QUANTITY': {
+      // For authenticated users, cartItemId is provided and unique per variant
+      if (action.cartItemId) {
+        return {
+          items: state.items
+            .map((item) =>
+              item.cartItemId === action.cartItemId
+                ? { ...item, quantity: action.quantity }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        }
+      }
+      // Guest cart: match by productId + sizeGrams for Malt products
+      const itemToUpdate = state.items.find((item) => item.product.id === action.productId)
+      if (itemToUpdate) {
+        const isMalt = itemToUpdate.product.category === 'Malt'
+        if (isMalt && action.sizeGrams !== undefined) {
+          return {
+            items: state.items
+              .map((item) =>
+                item.product.id === action.productId && item.product.sizeGrams === action.sizeGrams
+                  ? { ...item, quantity: action.quantity }
+                  : item
+              )
+              .filter((item) => item.quantity > 0),
+          }
+        }
+      }
       return {
         items: state.items
           .map((item) =>
@@ -326,7 +383,7 @@ export function CartProvider({ children }: CartProviderProps) {
   const value: CartContextValue = useMemo(
     () => ({
       items: state.items,
-      addItem: async (product, quantity = 1) => {
+      addItem: async (product, quantity = 1, variantId?: string) => {
         if (quantity <= 0) return
 
         // Check stock availability before adding
@@ -364,6 +421,7 @@ export function CartProvider({ children }: CartProviderProps) {
               body: JSON.stringify({
                 productId: product.id,
                 quantity,
+                ...(variantId && { variantId }),
               }),
             })
 
@@ -410,13 +468,13 @@ export function CartProvider({ children }: CartProviderProps) {
           }
         }
       },
-      removeItem: async (productId: string) => {
-        // For authenticated users, delete from database
+      removeItem: async (productId: string, cartItemId?: string, sizeGrams?: number | null) => {
+        // For authenticated users, delete from database using cartItemId (unique per variant)
         if (isAuthenticated && accessToken) {
-          // Find the cartItemId for this product
-          const itemToRemove = state.items.find(
-            (item) => item.product.id === productId && item.cartItemId
-          )
+          // Use provided cartItemId or find it
+          const itemToRemove = cartItemId
+            ? state.items.find((item) => item.cartItemId === cartItemId)
+            : state.items.find((item) => item.product.id === productId && item.cartItemId)
 
           if (itemToRemove?.cartItemId) {
             try {
@@ -433,7 +491,7 @@ export function CartProvider({ children }: CartProviderProps) {
 
               if (response.ok) {
                 // Remove from in-memory state first for immediate UI update
-                dispatch({ type: 'REMOVE_ITEM', productId })
+                dispatch({ type: 'REMOVE_ITEM', productId, cartItemId: itemToRemove.cartItemId })
                 // Reload cart from server to ensure sync with database
                 await loadCart()
               } else {
@@ -449,15 +507,22 @@ export function CartProvider({ children }: CartProviderProps) {
             }
           } else {
             // No cartItemId, just remove from in-memory state
-            dispatch({ type: 'REMOVE_ITEM', productId })
+            dispatch({ type: 'REMOVE_ITEM', productId, sizeGrams })
           }
         } else {
-          // Guest user - remove from in-memory state
+          // Guest user - remove from in-memory state (match by productId + sizeGrams for Malt)
           // Calculate updated items (state.items will update after dispatch)
-          const updatedItems = state.items.filter((item) => item.product.id !== productId)
+          const itemToRemove = state.items.find((item) => item.product.id === productId)
+          const isMalt = itemToRemove?.product.category === 'Malt'
+          const updatedItems = isMalt && sizeGrams !== undefined
+            ? state.items.filter(
+                (item) =>
+                  !(item.product.id === productId && item.product.sizeGrams === sizeGrams)
+              )
+            : state.items.filter((item) => item.product.id !== productId)
 
           // Update state
-          dispatch({ type: 'REMOVE_ITEM', productId })
+          dispatch({ type: 'REMOVE_ITEM', productId, sizeGrams })
 
           // Force immediate save to localStorage for guest cart
           if (typeof window !== 'undefined' && cartId) {
@@ -474,13 +539,13 @@ export function CartProvider({ children }: CartProviderProps) {
           }
         }
       },
-      setQuantity: async (productId, quantity) => {
+      setQuantity: async (productId, quantity, cartItemId?: string, sizeGrams?: number | null) => {
         if (quantity <= 0) {
           // If quantity is 0 or less, remove the item instead
-          // Find the cart item to get cartItemId for removal
-          const itemToRemove = state.items.find(
-            (item) => item.product.id === productId && item.cartItemId
-          )
+          // Use provided cartItemId or find it
+          const itemToRemove = cartItemId
+            ? state.items.find((item) => item.cartItemId === cartItemId)
+            : state.items.find((item) => item.product.id === productId && item.cartItemId)
           
           if (isAuthenticated && accessToken && itemToRemove?.cartItemId) {
             try {
@@ -493,7 +558,7 @@ export function CartProvider({ children }: CartProviderProps) {
               )
 
               if (response.ok) {
-                dispatch({ type: 'REMOVE_ITEM', productId })
+                dispatch({ type: 'REMOVE_ITEM', productId, cartItemId: itemToRemove.cartItemId })
                 await loadCart()
               } else {
                 await loadCart()
@@ -503,15 +568,22 @@ export function CartProvider({ children }: CartProviderProps) {
               await loadCart()
             }
           } else {
-            dispatch({ type: 'REMOVE_ITEM', productId })
+            dispatch({ type: 'REMOVE_ITEM', productId, sizeGrams })
           }
           return
         }
 
-        // Find the cart item to get cartItemId
-        const itemToUpdate = state.items.find(
-          (item) => item.product.id === productId
-        )
+        // Use provided cartItemId or find the cart item
+        const itemToUpdate = cartItemId
+          ? state.items.find((item) => item.cartItemId === cartItemId)
+          : state.items.find((item) => {
+              if (item.product.id !== productId) return false
+              const isMalt = item.product.category === 'Malt'
+              if (isMalt && sizeGrams !== undefined) {
+                return item.product.sizeGrams === sizeGrams
+              }
+              return true
+            })
 
         if (!itemToUpdate) {
           console.error('[Cart] Item not found for quantity update:', productId)
@@ -528,7 +600,7 @@ export function CartProvider({ children }: CartProviderProps) {
           quantity = availableStock
         }
 
-        // For authenticated users, update in database
+        // For authenticated users, update in database using cartItemId (unique per variant)
         if (isAuthenticated && accessToken && itemToUpdate.cartItemId) {
           try {
             const response = await fetch(`/api/cart/items/${itemToUpdate.cartItemId}`, {
@@ -542,7 +614,7 @@ export function CartProvider({ children }: CartProviderProps) {
 
             if (response.ok) {
               // Update local state optimistically
-              dispatch({ type: 'SET_QUANTITY', productId, quantity })
+              dispatch({ type: 'SET_QUANTITY', productId, quantity, cartItemId: itemToUpdate.cartItemId })
               // Reload cart to ensure sync with server
               await loadCart()
             } else {
@@ -566,8 +638,21 @@ export function CartProvider({ children }: CartProviderProps) {
             await loadCart()
           }
         } else {
-          // Guest user - update in-memory state only
-          dispatch({ type: 'SET_QUANTITY', productId, quantity })
+          // Guest user - update in-memory state (match by productId + sizeGrams for Malt)
+          dispatch({ type: 'SET_QUANTITY', productId, quantity, sizeGrams })
+
+          // Force immediate save to localStorage
+          if (typeof window !== 'undefined' && cartId) {
+            try {
+              const serializedItems = serializeCartItems(state.items)
+              const snapshot = { cartId, items: serializedItems }
+              const json = JSON.stringify(snapshot)
+              saveCartSnapshot(snapshot)
+              lastSnapshotRef.current = json
+            } catch (error) {
+              console.error('[Cart] Error saving guest cart:', error)
+            }
+          }
         }
       },
       clear: () => dispatch({ type: 'CLEAR' }),

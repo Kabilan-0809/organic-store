@@ -28,7 +28,7 @@ export async function POST(_req: NextRequest) {
       return createErrorResponse('Invalid request body', 400)
     }
 
-    const { productId: rawProductId, quantity: rawQuantity } = body as Record<
+    const { productId: rawProductId, quantity: rawQuantity, variantId: rawVariantId } = body as Record<
       string,
       unknown
     >
@@ -53,17 +53,42 @@ export async function POST(_req: NextRequest) {
       integer: true,
     }) || 1
 
-    // Verify product exists and is available
+    // Verify product exists with explicit columns
     const { data: products, error: productError } = await supabase
       .from('Product')
-      .select('*')
+      .select('id, name, slug, description, price, discountPercent, imageUrl, category, stock, isActive, ProductVariant(id, sizeGrams, price, stock)')
       .eq('id', productId)
       .eq('isActive', true)
-      .gt('stock', 0)
       .single()
 
     if (productError || !products) {
       return createErrorResponse('Product not found or unavailable', 400)
+    }
+
+    const isMalt = products.category === 'Malt'
+    let variant: any = null
+    let variantId: string | null = null
+
+    // For malt products, variantId is required
+    if (isMalt) {
+      variantId = validateString(rawVariantId, {
+        minLength: 1,
+        maxLength: 100,
+        required: true,
+        trim: true,
+      })
+
+      if (!variantId) {
+        return createErrorResponse('Size selection is required for this product', 400)
+      }
+
+      // Verify variant exists and has stock (use variant from joined query if available)
+      const variants = products.ProductVariant || []
+      variant = variants.find((v: any) => v.id === variantId)
+      
+      if (!variant || variant.stock <= 0) {
+        return createErrorResponse('Selected size is out of stock', 400)
+      }
     }
 
     // Find or create cart
@@ -102,13 +127,34 @@ export async function POST(_req: NextRequest) {
       cartId = firstCart.id
     }
 
-    // Check if item already exists in cart
-    const { data: existingItems, error: existingError } = await supabase
+    // Determine stock and price based on product type
+    let availableStock: number
+    let unitPrice: number
+    let sizeGrams: number | null = null
+
+    if (isMalt) {
+      // Use variant stock and price
+      availableStock = variant.stock
+      unitPrice = variant.price / 100
+      sizeGrams = variant.sizeGrams
+    } else {
+      // Use product stock and price
+      availableStock = products.stock
+      unitPrice = products.price / 100
+    }
+
+    // Check if item already exists in cart (for malt, also check variantId)
+    let existingItemsQuery = supabase
       .from('CartItem')
-      .select('*')
+      .select('id, quantity')
       .eq('cartId', cartId)
       .eq('productId', productId)
-      .single()
+
+    if (isMalt && variantId) {
+      existingItemsQuery = existingItemsQuery.eq('variantId', variantId)
+    }
+
+    const { data: existingItems, error: existingError } = await existingItemsQuery.single()
 
     if (existingError && existingError.code !== 'PGRST116') {
       console.error('[API Cart Items] Error checking existing item:', existingError)
@@ -118,14 +164,14 @@ export async function POST(_req: NextRequest) {
     if (existingItems) {
       // Update quantity
       const requestedQuantity = existingItems.quantity + quantity
-      if (requestedQuantity > products.stock) {
+      if (requestedQuantity > availableStock) {
         return createErrorResponse(
-          `Only ${products.stock} available in stock. You already have ${existingItems.quantity} in your cart.`,
+          `Only ${availableStock} available in stock. You already have ${existingItems.quantity} in your cart.`,
           400
         )
       }
 
-      const newQuantity = Math.min(requestedQuantity, 99, products.stock)
+      const newQuantity = Math.min(requestedQuantity, 99, availableStock)
       const { data: updatedItem, error: updateError } = await supabase
         .from('CartItem')
         .update({ quantity: newQuantity })
@@ -146,29 +192,36 @@ export async function POST(_req: NextRequest) {
           name: products.name,
           slug: products.slug,
           description: products.description,
-          price: products.price / 100,
+          price: unitPrice,
           discountPercent: products.discountPercent,
           imageUrl: products.imageUrl,
           category: products.category,
-          stock: products.stock,
+          stock: availableStock,
+          ...(isMalt && { sizeGrams }),
         },
         quantity: updatedItem.quantity,
       })
     } else {
       // Create new cart item
-      if (quantity > products.stock) {
+      if (quantity > availableStock) {
         return createErrorResponse(
-          `Only ${products.stock} available in stock`,
+          `Only ${availableStock} available in stock`,
           400
         )
       }
 
-      const finalQuantity = Math.min(quantity, products.stock)
-      const { error } = await supabase.from('CartItem').insert({
+      const finalQuantity = Math.min(quantity, availableStock)
+      const insertData: any = {
         cartId,
         productId,
         quantity: finalQuantity,
-      })
+      }
+
+      if (isMalt && variantId) {
+        insertData.variantId = variantId
+      }
+
+      const { error } = await supabase.from('CartItem').insert(insertData)
 
       if (error) {
         console.error('[API Cart Items] Create error:', error)
@@ -182,11 +235,12 @@ export async function POST(_req: NextRequest) {
           name: products.name,
           slug: products.slug,
           description: products.description,
-          price: products.price / 100,
+          price: unitPrice,
           discountPercent: products.discountPercent,
           imageUrl: products.imageUrl,
           category: products.category,
-          stock: products.stock,
+          stock: availableStock,
+          ...(isMalt && { sizeGrams }),
         },
         quantity: finalQuantity,
       })

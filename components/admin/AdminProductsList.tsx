@@ -4,6 +4,13 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { calculateDiscountedPrice } from '@/lib/pricing'
 
+interface ProductVariant {
+  id: string
+  sizeGrams: number
+  price: number
+  stock: number
+}
+
 interface Product {
   id: string
   name: string
@@ -17,6 +24,7 @@ interface Product {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  variants?: ProductVariant[]
 }
 
 interface AdminProductsListProps {
@@ -31,6 +39,7 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
   const [isActivating, setIsActivating] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [editing, setEditing] = useState<{ productId: string; field: 'name' | 'description' | 'price' | 'stock' | 'discount' } | null>(null)
+  const [editingVariant, setEditingVariant] = useState<{ productId: string; variantId: string; field: 'price' | 'stock' } | null>(null)
 
   useEffect(() => {
     if (!accessToken) return
@@ -113,6 +122,62 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
     } catch (err) {
       console.error('[Admin Products]', err)
       alert('Failed to update product')
+    }
+  }
+
+  const handleUpdateVariant = async (
+    productId: string,
+    variantId: string,
+    updates: { price?: number; stock?: number }
+  ) => {
+    if (!accessToken) {
+      console.error('[Admin Products] No access token available')
+      alert('Authentication required. Please log in again.')
+      return
+    }
+
+    try {
+      const updateData: Record<string, unknown> = {}
+      if (updates.price !== undefined) {
+        updateData.price = updates.price
+      }
+      if (updates.stock !== undefined) {
+        updateData.stock = updates.stock
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        setEditingVariant(null)
+        return
+      }
+
+      const response = await fetch(`/api/admin/products/${productId}/variants/${variantId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response.ok) {
+        let errorMsg = 'Failed to update variant'
+        try {
+          const data = await response.json()
+          errorMsg = data.message || errorMsg
+        } catch {
+          errorMsg = `Failed to update variant: ${response.status} ${response.statusText}`
+        }
+        console.error('[Admin Products] Variant update failed:', errorMsg, response.status)
+        alert(errorMsg)
+        return
+      }
+
+      setEditingVariant(null)
+      await refreshProducts()
+    } catch (err) {
+      console.error('[Admin Products] Variant update error:', err)
+      alert('Failed to update variant. Please check your connection and try again.')
+      setEditingVariant(null)
     }
   }
 
@@ -539,127 +604,256 @@ export default function AdminProductsList({ accessToken }: AdminProductsListProp
                   {product.category}
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  {editing?.productId === product.id && editing.field === 'price' ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-neutral-500">₹</span>
-                      <input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        defaultValue={product.price}
-                        onBlur={async (e) => {
-                          const inputValue = e.target.value.trim()
-                          if (inputValue === '') {
-                            setEditing(null)
-                            return
-                          }
-                          const newPrice = parseFloat(inputValue)
-                          if (!isNaN(newPrice) && newPrice > 0) {
-                            if (newPrice !== product.price) {
-                              await handleUpdateProduct(product.id, { price: newPrice })
-                            }
-                            setEditing(null)
-                          } else {
-                            setEditing(null)
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            e.currentTarget.blur()
-                          } else if (e.key === 'Escape') {
-                            e.preventDefault()
-                            setEditing(null)
-                          }
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.select()
-                        }}
-                        className="w-20 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                        autoFocus
-                      />
+                  {product.category === 'Malt' && product.variants && product.variants.length > 0 ? (
+                    <div className="space-y-2">
+                      {product.variants.map((variant) => (
+                        <div key={variant.id} className="flex items-center gap-2 text-xs">
+                          <span className="font-medium text-neutral-600 w-12">{variant.sizeGrams}g:</span>
+                          {editingVariant?.productId === product.id && editingVariant?.variantId === variant.id && editingVariant.field === 'price' ? (
+                            <div className="flex items-center gap-1">
+                              <span className="text-neutral-500">₹</span>
+                              <input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                defaultValue={variant.price}
+                                onBlur={async (e) => {
+                                  const inputValue = e.target.value.trim()
+                                  if (inputValue === '') {
+                                    setEditingVariant(null)
+                                    return
+                                  }
+                                  const newPrice = parseFloat(inputValue)
+                                  if (!isNaN(newPrice) && newPrice > 0) {
+                                    if (newPrice !== variant.price) {
+                                      await handleUpdateVariant(product.id, variant.id, { price: newPrice })
+                                    }
+                                    setEditingVariant(null)
+                                  } else {
+                                    setEditingVariant(null)
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    e.currentTarget.blur()
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault()
+                                    setEditingVariant(null)
+                                  }
+                                }}
+                                onFocus={(e) => {
+                                  e.currentTarget.select()
+                                }}
+                                className="w-16 rounded border border-neutral-300 px-1 py-0.5 text-xs focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                autoFocus
+                              />
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                setEditingVariant({ productId: product.id, variantId: variant.id, field: 'price' })
+                              }}
+                              className="hover:text-primary-600 transition-colors cursor-pointer text-left"
+                            >
+                              <span className="text-neutral-900 font-semibold">
+                                ₹{variant.price.toFixed(2)}
+                              </span>
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-0.5">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        setEditing({ productId: product.id, field: 'price' })
-                      }}
-                        className="hover:text-primary-600 transition-colors cursor-pointer text-left"
-                    >
-                        {product.discountPercent && product.discountPercent > 0 ? (
-                          <>
-                            <span className="text-neutral-400 line-through text-xs">
-                      ₹{product.price.toFixed(2)}
-                            </span>
-                            <span className="block text-neutral-900 font-semibold">
-                              ₹{(
-                                calculateDiscountedPrice(product.price * 100, product.discountPercent) / 100
-                              ).toFixed(2)}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-neutral-900 font-semibold">
-                            ₹{product.price.toFixed(2)}
-                          </span>
-                        )}
-                    </button>
-                    </div>
+                    <>
+                      {editing?.productId === product.id && editing.field === 'price' ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-neutral-500">₹</span>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            defaultValue={product.price}
+                            onBlur={async (e) => {
+                              const inputValue = e.target.value.trim()
+                              if (inputValue === '') {
+                                setEditing(null)
+                                return
+                              }
+                              const newPrice = parseFloat(inputValue)
+                              if (!isNaN(newPrice) && newPrice > 0) {
+                                if (newPrice !== product.price) {
+                                  await handleUpdateProduct(product.id, { price: newPrice })
+                                }
+                                setEditing(null)
+                              } else {
+                                setEditing(null)
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                e.currentTarget.blur()
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault()
+                                setEditing(null)
+                              }
+                            }}
+                            onFocus={(e) => {
+                              e.currentTarget.select()
+                            }}
+                            className="w-20 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            autoFocus
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-0.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setEditing({ productId: product.id, field: 'price' })
+                          }}
+                            className="hover:text-primary-600 transition-colors cursor-pointer text-left"
+                        >
+                            {product.discountPercent && product.discountPercent > 0 ? (
+                              <>
+                                <span className="text-neutral-400 line-through text-xs">
+                          ₹{product.price.toFixed(2)}
+                                </span>
+                                <span className="block text-neutral-900 font-semibold">
+                                  ₹{(
+                                    calculateDiscountedPrice(product.price * 100, product.discountPercent) / 100
+                                  ).toFixed(2)}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-neutral-900 font-semibold">
+                                ₹{product.price.toFixed(2)}
+                              </span>
+                            )}
+                        </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900">
-                  {editing?.productId === product.id && editing.field === 'stock' ? (
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      defaultValue={product.stock}
-                      onBlur={async (e) => {
-                        const inputValue = e.target.value.trim()
-                        if (inputValue === '') {
-                          setEditing(null)
-                          return
-                        }
-                        const newStock = parseInt(inputValue, 10)
-                        if (!isNaN(newStock) && newStock >= 0) {
-                          if (newStock !== product.stock) {
-                            await handleUpdateProduct(product.id, { stock: newStock })
-                          }
-                          setEditing(null)
-                        } else {
-                          setEditing(null)
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          e.currentTarget.blur()
-                        } else if (e.key === 'Escape') {
-                          e.preventDefault()
-                          setEditing(null)
-                        }
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.select()
-                      }}
-                      className="w-20 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                      autoFocus
-                    />
+                  {product.category === 'Malt' && product.variants && product.variants.length > 0 ? (
+                    <div className="space-y-2">
+                      {product.variants.map((variant) => (
+                        <div key={variant.id} className="flex items-center gap-2 text-xs">
+                          <span className="font-medium text-neutral-600 w-12">{variant.sizeGrams}g:</span>
+                          {editingVariant?.productId === product.id && editingVariant?.variantId === variant.id && editingVariant.field === 'stock' ? (
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              defaultValue={variant.stock}
+                              onBlur={async (e) => {
+                                const inputValue = e.target.value.trim()
+                                if (inputValue === '') {
+                                  setEditingVariant(null)
+                                  return
+                                }
+                                const newStock = parseInt(inputValue, 10)
+                                if (!isNaN(newStock) && newStock >= 0) {
+                                  if (newStock !== variant.stock) {
+                                    await handleUpdateVariant(product.id, variant.id, { stock: newStock })
+                                  }
+                                  setEditingVariant(null)
+                                } else {
+                                  setEditingVariant(null)
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  e.currentTarget.blur()
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault()
+                                  setEditingVariant(null)
+                                }
+                              }}
+                              onFocus={(e) => {
+                                e.currentTarget.select()
+                              }}
+                              className="w-16 rounded border border-neutral-300 px-1 py-0.5 text-xs focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              autoFocus
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                setEditingVariant({ productId: product.id, variantId: variant.id, field: 'stock' })
+                              }}
+                              className="hover:text-primary-600 transition-colors cursor-pointer"
+                            >
+                              {variant.stock}
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        setEditing({ productId: product.id, field: 'stock' })
-                      }}
-                      className="hover:text-primary-600 transition-colors cursor-pointer"
-                    >
-                      {product.stock}
-                    </button>
+                    <>
+                      {editing?.productId === product.id && editing.field === 'stock' ? (
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          defaultValue={product.stock}
+                          onBlur={async (e) => {
+                            const inputValue = e.target.value.trim()
+                            if (inputValue === '') {
+                              setEditing(null)
+                              return
+                            }
+                            const newStock = parseInt(inputValue, 10)
+                            if (!isNaN(newStock) && newStock >= 0) {
+                              if (newStock !== product.stock) {
+                                await handleUpdateProduct(product.id, { stock: newStock })
+                              }
+                              setEditing(null)
+                            } else {
+                              setEditing(null)
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              e.currentTarget.blur()
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault()
+                              setEditing(null)
+                            }
+                          }}
+                          onFocus={(e) => {
+                            e.currentTarget.select()
+                          }}
+                          className="w-20 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                          autoFocus
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setEditing({ productId: product.id, field: 'stock' })
+                          }}
+                          className="hover:text-primary-600 transition-colors cursor-pointer"
+                        >
+                          {product.stock}
+                        </button>
+                      )}
+                    </>
                   )}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm">

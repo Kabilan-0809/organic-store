@@ -24,11 +24,28 @@ export default function ProductDetailPageContent({
   const [quantity, setQuantity] = useState(1)
   const [imageError, setImageError] = useState(false)
   const [stockError, setStockError] = useState<string | null>(null)
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const { addItem } = useCart()
 
-  const availableStock = product.stock ?? 0
+  const isMalt = product.category === 'Malt'
+  const variants = product.variants || []
+  
+  // For malt products, use selected variant stock; otherwise use product stock
+  const selectedVariant = isMalt && selectedVariantId 
+    ? variants.find(v => v.id === selectedVariantId)
+    : null
+  
+  const availableStock = selectedVariant 
+    ? selectedVariant.stock 
+    : (product.stock ?? 0)
+  
+  const displayPrice = selectedVariant 
+    ? selectedVariant.price 
+    : product.price
+
   const isLowStock = availableStock > 0 && availableStock < 20
   const maxQuantity = availableStock > 0 ? Math.min(availableStock, 99) : 0
+  const canAddToCart = !isMalt || (isMalt && selectedVariantId && availableStock > 0)
 
   const increment = () => {
     if (quantity < maxQuantity) {
@@ -90,17 +107,78 @@ export default function ProductDetailPageContent({
               </p>
             </div>
 
+            {/* Size selector for malt products */}
+            {isMalt && variants.length > 0 && (
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-neutral-900">
+                  Select Size <span className="text-red-500">*</span>
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {variants.map((variant) => {
+                    const discountedPrice = calculateDiscountedPrice(variant.price * 100, product.discountPercent) / 100
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedVariantId(variant.id)
+                          setQuantity(1)
+                          setStockError(null)
+                        }}
+                        disabled={variant.stock === 0}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                          selectedVariantId === variant.id
+                            ? 'bg-primary-600 text-white shadow-md'
+                            : variant.stock === 0
+                            ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
+                            : 'bg-white border-2 border-neutral-200 text-neutral-700 hover:border-primary-400 hover:text-primary-700'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center">
+                          <span>{variant.sizeGrams}g</span>
+                          {variant.stock === 0 ? (
+                            <span className="text-xs opacity-75">Out of Stock</span>
+                          ) : (
+                            <span className="text-xs font-normal">
+                              {product.discountPercent && product.discountPercent > 0 ? (
+                                <>
+                                  <span className="line-through opacity-75">₹{variant.price.toFixed(2)}</span>
+                                  <span className="ml-1">₹{discountedPrice.toFixed(2)}</span>
+                                </>
+                              ) : (
+                                `₹${variant.price.toFixed(2)}`
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+                {selectedVariant && (
+                  <div className="text-sm text-neutral-600">
+                    <span className="font-medium">Price:</span> ₹{selectedVariant.price.toFixed(2)}
+                    {selectedVariant.stock > 0 && (
+                      <span className="ml-4">
+                        <span className="font-medium">Stock:</span> {selectedVariant.stock} available
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <div className="flex flex-wrap items-baseline gap-3">
                 {product.discountPercent && product.discountPercent > 0 ? (
                   <>
                     <span className="text-3xl font-bold text-neutral-900 sm:text-4xl">
                       ₹{(
-                        calculateDiscountedPrice(product.price * 100, product.discountPercent) / 100
+                        calculateDiscountedPrice(displayPrice * 100, product.discountPercent) / 100
                       ).toFixed(2)}
                     </span>
                     <span className="text-lg text-neutral-400 line-through sm:text-xl">
-                      ₹{product.price.toFixed(2)}
+                      ₹{displayPrice.toFixed(2)}
                     </span>
                     <span className="rounded-full bg-primary-100 px-3 py-1 text-sm font-semibold text-primary-700">
                       {product.discountPercent}% OFF
@@ -108,11 +186,11 @@ export default function ProductDetailPageContent({
                   </>
                 ) : (
                   <span className="text-3xl font-semibold text-neutral-900 sm:text-4xl">
-                    ₹{product.price.toFixed(2)}
+                    ₹{displayPrice.toFixed(2)}
                   </span>
                 )}
               </div>
-              {product.inStock ? (
+              {availableStock > 0 ? (
                 <span className="block text-xs font-medium text-primary-700">
                   {isLowStock ? `Only ${availableStock} left in stock` : 'In stock, ships in 1–2 days'}
                 </span>
@@ -157,25 +235,33 @@ export default function ProductDetailPageContent({
               </div>
 
               {/* Add to Cart button or Unavailable message */}
-              {product.inStock ? (
+              {canAddToCart && availableStock > 0 ? (
                 <button
                   type="button"
                   onClick={async () => {
+                    if (isMalt && !selectedVariantId) {
+                      setStockError('Please select a size')
+                      return
+                    }
                     if (availableStock > 0 && quantity <= availableStock) {
                       setStockError(null)
-                      await addItem(product, quantity)
+                      // Create product with variant info for addItem
+                      const productToAdd = isMalt && selectedVariant
+                        ? { ...product, price: selectedVariant.price, stock: selectedVariant.stock, sizeGrams: selectedVariant.sizeGrams }
+                        : product
+                      await addItem(productToAdd, quantity, selectedVariantId || undefined)
                     } else {
                       setStockError(`Only ${availableStock} available in stock`)
                     }
                   }}
-                  disabled={quantity > availableStock || availableStock === 0}
+                  disabled={quantity > availableStock || availableStock === 0 || (isMalt && !selectedVariantId)}
                   className="inline-flex flex-1 items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-800 active:scale-95 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed sm:flex-none"
                 >
-                  Add to Cart
+                  {isMalt && !selectedVariantId ? 'Select Size' : 'Add to Cart'}
                 </button>
               ) : (
                 <div className="inline-flex flex-1 items-center justify-center rounded-full bg-neutral-100 px-6 py-3 text-sm font-semibold text-neutral-500 sm:flex-none">
-                  Currently unavailable
+                  {isMalt && !selectedVariantId ? 'Select Size to Add to Cart' : 'Currently unavailable'}
                 </div>
               )}
             </div>

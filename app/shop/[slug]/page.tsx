@@ -48,32 +48,67 @@ export async function generateMetadata({
 }
 
 export default async function ProductSlugPage({ params }: ProductSlugPageProps) {
-  const { data: products } = await supabase
+  // Fetch product with variants (same query as API route)
+  const { data: products, error } = await supabase
     .from('Product')
-    .select('*')
+    .select(`
+      *,
+      ProductVariant (
+        id,
+        sizeGrams,
+        price,
+        stock
+      )
+    `)
     .eq('slug', params.slug)
     .eq('isActive', true)
     .limit(1)
 
-  const product = products && products.length > 0 ? products[0] : null
-
-  if (!product) {
+  if (error || !products || products.length === 0) {
     notFound()
   }
 
+  const product: any = products[0]
+  const isMalt = product.category === 'Malt'
+  const variants = product.ProductVariant || []
+
+  // For malt products: check if any variant has stock
+  // For non-malt: use product stock
+  let inStock: boolean
+  let stock: number
+
+  if (isMalt) {
+    const hasStock = variants.some((v: any) => v.stock > 0)
+    const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
+    inStock = product.isActive && hasStock
+    stock = totalStock
+  } else {
+    inStock = product.isActive && product.stock > 0
+    stock = product.stock
+  }
+
   // Map to Product type expected by component
-  // Use same logic as cart routes: inStock = isActive && stock > 0
   const mappedProduct = {
     id: product.id,
     slug: product.slug,
     name: product.name,
     description: product.description,
-    price: product.price / 100, // Convert paise to rupees - SAME as cart
-    discountPercent: product.discountPercent, // SAME as cart
+    price: product.price / 100, // Convert paise to rupees
+    discountPercent: product.discountPercent,
     category: product.category,
     image: product.imageUrl,
-    inStock: product.isActive && product.stock > 0, // SAME logic as cart
-    stock: product.stock, // SAME as cart
+    inStock: inStock,
+    stock: stock,
+    // Include variants for malt products
+    ...(isMalt && {
+      variants: variants.map((v: any) => ({
+        id: v.id,
+        sizeGrams: v.sizeGrams,
+        price: v.price / 100, // Convert paise to rupees
+        stock: v.stock,
+        inStock: v.stock > 0,
+      })),
+    }),
   }
   return <ProductDetailPageContent product={mappedProduct} />
 }

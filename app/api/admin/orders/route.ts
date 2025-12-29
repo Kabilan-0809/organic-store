@@ -19,7 +19,7 @@ export async function GET(_req: NextRequest) {
 
     let query = supabase
       .from('Order')
-      .select('*')
+      .select('id, userId, status, totalAmount, currency, createdAt')
       .order('createdAt', { ascending: false })
 
     if (status) {

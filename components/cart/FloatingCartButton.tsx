@@ -12,7 +12,7 @@ export default function FloatingCartButton() {
         type="button"
         onClick={toggle}
         aria-label="Open cart"
-        className="pointer-events-auto inline-flex items-center justify-center rounded-full bg-neutral-900/90 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-neutral-900/40 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:bg-neutral-900 focus:outline-none focus:outline-none"
+        className="pointer-events-auto inline-flex items-center justify-center rounded-full bg-neutral-900/90 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-neutral-900/40 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:bg-neutral-900 focus:outline-none"
       >
         <span className="mr-2 text-base" aria-hidden="true">
           🛒
@@ -27,5 +27,3 @@ export default function FloatingCartButton() {
     </div>
   )
 }
-
-

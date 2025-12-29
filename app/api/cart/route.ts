@@ -51,10 +51,33 @@ export async function GET(_req: NextRequest) {
       cartId = firstCart.id
     }
 
-    // Fetch cart items with product details
+    // Fetch cart items with product and variant details in a single joined query
     const { data: cartItems, error: itemsError } = await supabase
       .from('CartItem')
-      .select('*')
+      .select(`
+        id,
+        productId,
+        variantId,
+        quantity,
+        Product (
+          id,
+          name,
+          slug,
+          description,
+          price,
+          discountPercent,
+          imageUrl,
+          category,
+          stock,
+          isActive
+        ),
+        ProductVariant (
+          id,
+          sizeGrams,
+          price,
+          stock
+        )
+      `)
       .eq('cartId', cartId)
 
     if (itemsError) {
@@ -62,16 +85,25 @@ export async function GET(_req: NextRequest) {
       return createErrorResponse('Failed to fetch cart items', 500)
     }
 
-    // Fetch product details for each item
-    const itemsWithProducts = await Promise.all(
-      (cartItems || []).map(async (item) => {
-        const { data: product } = await supabase
-          .from('Product')
-          .select('*')
-          .eq('id', item.productId)
-          .single()
+    // Map cart items with product and variant data
+    const itemsWithProducts = (cartItems || [])
+      .map((item: any) => {
+        const product = item.Product
+        const variant = item.ProductVariant
 
         if (!product) return null
+
+        const isMalt = product.category === 'Malt'
+        let price = product.price / 100
+        let stock = product.stock
+        let sizeGrams: number | null = null
+
+        // If malt product with variant, use variant data
+        if (isMalt && variant) {
+          price = variant.price / 100
+          stock = variant.stock
+          sizeGrams = variant.sizeGrams
+        }
 
         return {
           cartItemId: item.id,
@@ -80,19 +112,18 @@ export async function GET(_req: NextRequest) {
             slug: product.slug,
             name: product.name,
             description: product.description,
-            price: product.price / 100,
+            price: price,
             discountPercent: product.discountPercent,
             category: product.category,
             image: product.imageUrl,
-            inStock: product.isActive && product.stock > 0,
-            stock: product.stock,
+            inStock: product.isActive && stock > 0,
+            stock: stock,
+            ...(isMalt && sizeGrams && { sizeGrams }),
           },
           quantity: item.quantity,
         }
       })
-    )
-
-    const validItems = itemsWithProducts.filter((item): item is NonNullable<typeof item> => item !== null)
+      .filter((item): item is NonNullable<typeof item> => item !== null)
 
     return NextResponse.json({
       cartId,

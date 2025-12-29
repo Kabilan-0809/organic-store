@@ -33,22 +33,25 @@ export async function GET(
       return createErrorResponse('Invalid order ID', 400)
     }
 
-    // 3️⃣ Fetch order (NO invalid joins)
-    const { data: order, error: orderError } = await supabase
-      .from('Order')
-      .select('*')
-      .eq('id', orderId)
-      .single()
+    // 3️⃣ Fetch order and items in parallel with explicit columns
+    const [orderResult, itemsResult] = await Promise.all([
+      supabase
+        .from('Order')
+        .select('id, userId, status, totalAmount, currency, addressLine1, addressLine2, city, state, postalCode, country, razorpayPaymentId, paidAt, createdAt')
+        .eq('id', orderId)
+        .single(),
+      supabase
+        .from('OrderItem')
+        .select('id, productId, productName, quantity, unitPrice, discountPercent, finalPrice, sizeGrams')
+        .eq('orderId', orderId),
+    ])
+
+    const { data: order, error: orderError } = orderResult
+    const { data: orderItems, error: itemsError } = itemsResult
 
     if (orderError || !order) {
       return createErrorResponse('Order not found', 404)
     }
-
-    // 4️⃣ Fetch order items
-    const { data: orderItems, error: itemsError } = await supabase
-      .from('OrderItem')
-      .select('*')
-      .eq('orderId', orderId)
 
     if (itemsError) {
       console.error('[API Admin Order Detail] Order items error:', itemsError)
@@ -80,6 +83,7 @@ export async function GET(
           unitPrice: item.unitPrice / 100,
           discountPercent: item.discountPercent,
           finalPrice: item.finalPrice / 100,
+          sizeGrams: item.sizeGrams || null,
         })),
       },
     })

@@ -198,6 +198,7 @@ export default function CartDrawer() {
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-neutral-900">
                           {item.product.name}
+                          {item.product.sizeGrams && ` – ${item.product.sizeGrams}g`}
                         </p>
                         <p className="text-xs text-neutral-500">
                           {item.product.category}
@@ -220,7 +221,7 @@ export default function CartDrawer() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => removeItem(item.product.id)}
+                        onClick={() => removeItem(item.product.id, item.cartItemId, item.product.sizeGrams)}
                         className="text-xs text-neutral-400 hover:text-neutral-700"
                       >
                         Remove
@@ -232,7 +233,7 @@ export default function CartDrawer() {
                         <button
                           type="button"
                           onClick={() =>
-                            setQuantity(item.product.id, Math.max(item.quantity - 1, 1))
+                            setQuantity(item.product.id, Math.max(item.quantity - 1, 1), item.cartItemId, item.product.sizeGrams)
                           }
                           disabled={isUnavailable}
                           aria-label="Decrease quantity"
@@ -247,7 +248,7 @@ export default function CartDrawer() {
                           type="button"
                           onClick={() => {
                             const maxQuantity = availableStock > 0 ? Math.min(availableStock, 99) : 99
-                            setQuantity(item.product.id, Math.min(item.quantity + 1, maxQuantity))
+                            setQuantity(item.product.id, Math.min(item.quantity + 1, maxQuantity), item.cartItemId, item.product.sizeGrams)
                           }}
                           disabled={isUnavailable || (availableStock > 0 && item.quantity >= availableStock)}
                           aria-label="Increase quantity"

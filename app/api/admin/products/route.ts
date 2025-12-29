@@ -180,7 +180,26 @@ export async function GET(_req: NextRequest) {
 
     let query = supabase
       .from('Product')
-      .select('*')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        price,
+        discountPercent,
+        imageUrl,
+        category,
+        stock,
+        isActive,
+        createdAt,
+        updatedAt,
+        ProductVariant (
+          id,
+          sizeGrams,
+          price,
+          stock
+        )
+      `)
       .order('createdAt', { ascending: false })
 
     if (!includeInactive) {
@@ -195,7 +214,7 @@ export async function GET(_req: NextRequest) {
     }
 
     return NextResponse.json({
-      products: (products || []).map((p) => ({
+      products: (products || []).map((p: any) => ({
         id: p.id,
         name: p.name,
         slug: p.slug,
@@ -208,6 +227,12 @@ export async function GET(_req: NextRequest) {
         isActive: p.isActive,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
+        variants: p.ProductVariant ? p.ProductVariant.map((v: any) => ({
+          id: v.id,
+          sizeGrams: v.sizeGrams,
+          price: v.price / 100, // Convert to rupees
+          stock: v.stock,
+        })) : [],
       })),
     })
   } catch (error) {

@@ -1,4 +1,6 @@
 import PDFDocument from 'pdfkit'
+import fs from 'fs'
+import path from 'path'
 
 // Type definitions (no longer from Prisma)
 interface Order {
@@ -45,6 +47,40 @@ interface InvoiceData {
 }
 
 /**
+ * Get font path for PDF generation
+ * Works in both local dev and Vercel production
+ */
+function getFontPath(): string | null {
+  // Resolve font path relative to project root
+  // Works in both development and production (Vercel)
+  const fontPath = path.join(process.cwd(), 'assets', 'fonts', 'Inter-Regular.ttf')
+  
+  // Check if font file exists
+  if (fs.existsSync(fontPath)) {
+    return fontPath
+  }
+  
+  // Fallback: Try alternative locations
+  const altPaths = [
+    path.join(process.cwd(), 'public', 'fonts', 'Inter-Regular.ttf'),
+    path.join(__dirname, '..', '..', 'assets', 'fonts', 'Inter-Regular.ttf'),
+  ]
+  
+  for (const altPath of altPaths) {
+    if (fs.existsSync(altPath)) {
+      return altPath
+    }
+  }
+  
+  // Font not found - return null (will use fallback)
+  console.warn(
+    `[PDF Generation] Font file not found at ${fontPath}. ` +
+    `Using fallback approach. Please add Inter-Regular.ttf to assets/fonts/ for best results.`
+  )
+  return null
+}
+
+/**
  * Generate invoice PDF for an order
  * 
  * @param invoiceData - Order data with user and items
@@ -55,7 +91,14 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
 
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument({ margin: 50, size: 'A4' })
+      // Get font path
+      const fontPath = getFontPath()
+
+      // Create PDF document
+      const doc = new PDFDocument({ 
+        margin: 50, 
+        size: 'A4',
+      })
       const buffers: Buffer[] = []
 
       doc.on('data', buffers.push.bind(buffers))
@@ -63,21 +106,47 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
         const pdfBuffer = Buffer.concat(buffers)
         resolve(pdfBuffer)
       })
-      doc.on('error', reject)
+      doc.on('error', (err) => {
+        console.error('[PDF Generation] Error:', err)
+        reject(err)
+      })
+
+      // Register and use custom font if available
+      // DO NOT use PDFKit default font names (Helvetica, Times-Roman, etc.)
+      if (fontPath) {
+        try {
+          doc.registerFont('CustomFont', fontPath)
+          doc.registerFont('CustomFontBold', fontPath) // Use same font for bold
+          // Set default font before writing any text
+          doc.font('CustomFont')
+        } catch (fontError) {
+          console.error('[PDF Generation] Failed to register font:', fontError)
+          // Continue without custom font - PDFKit will use its internal fallback
+          // But we still need to avoid using default font names
+          throw new Error('Custom font registration failed. Please ensure Inter-Regular.ttf exists in assets/fonts/')
+        }
+      } else {
+        // Font file not found - throw error with instructions
+        throw new Error(
+          'Font file not found. Please add Inter-Regular.ttf to assets/fonts/ directory. ' +
+          'Run: node scripts/download-font.js or download from https://fonts.google.com/specimen/Inter'
+        )
+      }
 
       // Header
       doc
         .fontSize(20)
-        .font('Helvetica-Bold')
+        .font('CustomFontBold')
         .text('Millets N Joy', 50, 50)
         .fontSize(12)
-        .font('Helvetica')
+        .font('CustomFont')
         .text('Invoice', 50, 80)
 
       // Order Info
       let yPos = 120
       doc
         .fontSize(10)
+        .font('CustomFont')
         .text(`Order ID: ${order.id}`, 50, yPos)
         .text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 50, yPos + 15)
 
@@ -85,20 +154,20 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       yPos += 50
       doc
         .fontSize(12)
-        .font('Helvetica-Bold')
+        .font('CustomFontBold')
         .text('Bill To:', 50, yPos)
         .fontSize(10)
-        .font('Helvetica')
+        .font('CustomFont')
         .text(order.user.email, 50, yPos + 15)
 
       // Delivery Address
       yPos += 60
       doc
         .fontSize(12)
-        .font('Helvetica-Bold')
+        .font('CustomFontBold')
         .text('Delivery Address:', 50, yPos)
         .fontSize(10)
-        .font('Helvetica')
+        .font('CustomFont')
         .text(order.addressLine1, 50, yPos + 15)
       if (order.addressLine2) {
         doc.text(order.addressLine2, 50, yPos + 30)
@@ -111,14 +180,14 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       yPos += 120
       doc
         .fontSize(12)
-        .font('Helvetica-Bold')
+        .font('CustomFontBold')
         .text('Items', 50, yPos)
 
       yPos += 20
       // Table header
       doc
         .fontSize(10)
-        .font('Helvetica-Bold')
+        .font('CustomFontBold')
         .text('Product', 50, yPos)
         .text('Qty', 200, yPos)
         .text('Price', 250, yPos)
@@ -133,7 +202,7 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       yPos += 10
 
       // Items
-      doc.font('Helvetica')
+      doc.font('CustomFont')
       for (const item of order.items) {
         const unitPrice = item.unitPrice / 100
         const finalPrice = item.finalPrice / 100
@@ -160,7 +229,7 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       const subtotal = order.totalAmount / 100
       doc
         .fontSize(10)
-        .font('Helvetica')
+        .font('CustomFont')
         .text('Subtotal:', 400, yPos)
         .text(`₹${subtotal.toFixed(2)}`, 450, yPos)
 
@@ -179,7 +248,7 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       const total = subtotal + taxAmount
       doc
         .fontSize(12)
-        .font('Helvetica-Bold')
+        .font('CustomFontBold')
         .text('Total:', 400, yPos)
         .text(`₹${total.toFixed(2)}`, 450, yPos)
 
@@ -188,7 +257,7 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       if (order.razorpayPaymentId) {
         doc
           .fontSize(10)
-          .font('Helvetica')
+          .font('CustomFont')
           .text(`Payment ID: ${order.razorpayPaymentId.substring(0, 20)}...`, 50, yPos)
       }
       if (order.paidAt) {

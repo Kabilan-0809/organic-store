@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createErrorResponse } from '@/lib/auth/api-auth'
 
-// Prevent caching to ensure fresh product data
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Edge runtime for better performance on public read-only endpoint
+export const runtime = 'edge'
 
 /**
  * GET /api/products/[slug]
@@ -21,10 +20,27 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    // Same query pattern as cart routes
+    // Query with variants for malt products - explicit columns
     const { data: products, error } = await supabase
       .from('Product')
-      .select('*')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        price,
+        discountPercent,
+        imageUrl,
+        category,
+        stock,
+        isActive,
+        ProductVariant (
+          id,
+          sizeGrams,
+          price,
+          stock
+        )
+      `)
       .eq('slug', params.slug)
       .eq('isActive', true)
       .limit(1)
@@ -41,11 +57,25 @@ export async function GET(
       )
     }
 
-    const product = products[0]
+    const product: any = products[0]
+    const isMalt = product.category === 'Malt'
+    const variants = product.ProductVariant || []
 
-    // Map products to API response format - EXACTLY like cart routes do
-    // Cart uses: price: product.price / 100, discountPercent: product.discountPercent, stock: product.stock
-    // Cart uses: inStock: product.isActive && product.stock > 0
+    // For malt products: check if any variant has stock
+    // For non-malt: use product stock
+    let inStock: boolean
+    let stock: number
+
+    if (isMalt) {
+      const hasStock = variants.some((v: any) => v.stock > 0)
+      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
+      inStock = product.isActive && hasStock
+      stock = totalStock
+    } else {
+      inStock = product.isActive && product.stock > 0
+      stock = product.stock
+    }
+
     return NextResponse.json(
       {
         product: {
@@ -53,20 +83,28 @@ export async function GET(
           name: product.name,
           slug: product.slug,
           description: product.description,
-          price: product.price / 100, // Convert paise to rupees - SAME as cart
-          discountPercent: product.discountPercent, // SAME as cart
+          price: product.price / 100, // Convert paise to rupees - base price for non-malt
+          discountPercent: product.discountPercent,
           imageUrl: product.imageUrl,
           category: product.category,
-          stock: product.stock, // SAME as cart
-          inStock: product.isActive && product.stock > 0, // SAME logic as cart
-          image: product.imageUrl, // Map imageUrl to image for Product type
+          stock: stock,
+          inStock: inStock,
+          image: product.imageUrl,
+          // Include variants for malt products
+          ...(isMalt && {
+            variants: variants.map((v: any) => ({
+              id: v.id,
+              sizeGrams: v.sizeGrams,
+              price: v.price / 100, // Convert paise to rupees
+              stock: v.stock,
+              inStock: v.stock > 0,
+            })),
+          }),
         },
       },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
         },
       }
     )

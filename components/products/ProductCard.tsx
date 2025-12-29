@@ -4,15 +4,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import type { Product } from '@/types'
-import { useCart } from '@/components/cart/CartContext'
-import { calculateDiscountedPrice } from '@/lib/pricing'
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useCart()
   const [imageError, setImageError] = useState(false)
 
   const slugOrId = product.slug ?? product.id
@@ -102,32 +99,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           }`}>
             {product.description}
           </p>
-
-          {/* Price */}
-          <div className={`mt-auto ${isOutOfStock ? 'text-neutral-400' : ''}`}>
-            {product.discountPercent != null && product.discountPercent > 0 ? (
-              <div className="flex flex-col gap-1">
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-2xl font-bold ${isOutOfStock ? 'text-neutral-400' : 'text-neutral-900'}`}>
-                    ₹{(
-                      calculateDiscountedPrice(product.price * 100, product.discountPercent) / 100
-                    ).toFixed(2)}
-                  </span>
-                  <span className="text-base text-neutral-400 line-through">
-                    ₹{product.price.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <span className={`text-2xl font-bold ${isOutOfStock ? 'text-neutral-400' : 'text-neutral-900'}`}>
-                ₹{product.price.toFixed(2)}
-              </span>
-            )}
-          </div>
           
           {/* Low stock indicator */}
           {product.inStock && product.stock !== undefined && product.stock > 0 && product.stock < 20 && (
-            <div className="mt-2">
+            <div className="mt-auto">
               <p className="text-xs font-medium text-amber-600">
                 Only {product.stock} left in stock
               </p>
@@ -135,39 +110,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </Link>
-
-      {/* Add to Cart button or Unavailable message */}
-      <div className="border-t border-neutral-100 bg-neutral-50/50 px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-4.5">
-        {isOutOfStock ? (
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-neutral-200 px-5 py-3 text-sm font-semibold text-neutral-400 opacity-60"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-            }}
-          >
-            Out of Stock
-          </button>
-        ) : product.inStock ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              addItem(product, 1)
-            }}
-            className="flex w-full items-center justify-center rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all duration-200 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] focus:outline-none focus:outline-none"
-          >
-            Add to Cart
-          </button>
-        ) : (
-          <div className="flex w-full items-center justify-center rounded-xl bg-neutral-100 px-5 py-3 text-sm font-semibold text-neutral-500">
-            Currently unavailable
-          </div>
-        )}
-      </div>
     </article>
   )
 }

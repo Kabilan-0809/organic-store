@@ -20,6 +20,7 @@ interface Order {
   createdAt: string
   paidAt?: string | null
   items?: OrderItem[]
+  itemCount?: number // Item count from API
   paymentStatus: string
 }
 
@@ -141,11 +142,11 @@ export default function OrdersListContent({
       <section className="py-16">
         <div className="mx-auto max-w-4xl space-y-4">
           {orders.map((order) => {
-            const items = order.items ?? [] // ✅ SAFE DEFAULT
-            const itemCount = items.reduce(
+            // Use itemCount from API if available, otherwise calculate from items array
+            const itemCount = order.itemCount ?? (order.items?.reduce(
               (sum, item) => sum + item.quantity,
               0
-            )
+            ) ?? 0)
             // totalAmount from API is already in rupees (converted from paise)
             const totalInRupees = order.totalAmount
             const orderDate = new Date(order.createdAt).toLocaleDateString(

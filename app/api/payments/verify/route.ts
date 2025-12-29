@@ -9,15 +9,21 @@ export const runtime = 'nodejs'
 /**
  * POST /api/payments/verify
  * 
- * Verify payment after completion.
+ * Verify payment and create order ONLY after successful payment.
  * 
  * Flow:
  * 1. Verify Razorpay signature (HMAC SHA256)
  * 2. Verify payment status with Razorpay API
- * 3. Validate stock availability
- * 4. Reduce stock (safely)
- * 5. Update order status: PAYMENT_PENDING → PAYMENT_SUCCESS → ORDER_CONFIRMED
- * 6. Clear cart items
+ * 3. Validate payment amount
+ * 4. Create Order in database (ONLY after payment verified)
+ * 5. Create OrderItems
+ * 6. Validate stock availability
+ * 7. Reduce stock (safely)
+ * 8. Mark order as ORDER_CONFIRMED
+ * 9. Clear cart items
+ * 
+ * IMPORTANT: Order is created ONLY after payment is verified.
+ * This prevents ghost orders if payment fails.
  * 
  * SECURITY: Signature verification is mandatory. Never trust frontend alone.
  */
@@ -46,7 +52,7 @@ export async function POST(_req: NextRequest) {
       razorpay_order_id: rawRazorpayOrderId,
       razorpay_payment_id: rawRazorpayPaymentId,
       razorpay_signature: rawRazorpaySignature,
-      orderId: rawOrderId,
+      orderData: rawOrderData,
     } = body as Record<string, unknown>
 
     const razorpayOrderId = validateString(rawRazorpayOrderId, {
@@ -67,51 +73,41 @@ export async function POST(_req: NextRequest) {
       required: true,
       trim: true,
     })
-    const orderId = validateString(rawOrderId, {
-      minLength: 1,
-      maxLength: 100,
-      required: true,
-      trim: true,
-    })
 
-    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !orderId) {
+    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
       return createErrorResponse('Invalid payment data', 400)
     }
 
-    // Fetch order
-    const { data: orders, error: orderError } = await supabase
-      .from('Order')
-      .select('*')
-      .eq('id', orderId)
-      .eq('userId', user.id)
-      .eq('razorpayOrderId', razorpayOrderId)
-      .limit(1)
-
-    if (orderError || !orders || orders.length === 0) {
-      return createErrorResponse('Order not found', 404)
+    // Validate orderData
+    if (!rawOrderData || typeof rawOrderData !== 'object') {
+      return createErrorResponse('Order data is required', 400)
     }
 
-    const order = orders[0]
-
-    // Check order status (idempotency)
-    // Allow verification if status is PAYMENT_PENDING or PAYMENT_SUCCESS
-    if (order.status === 'ORDER_CONFIRMED') {
-      return NextResponse.json({
-        success: true,
-        orderId: order.id,
-        status: order.status,
-        message: 'Payment already verified and order confirmed',
-      })
+    const orderData = rawOrderData as {
+      selectedCartItemIds: string[]
+      orderItemsData: Array<{
+        productId: string
+        productName: string
+        unitPrice: number
+        discountPercent: number | null
+        finalPrice: number
+        quantity: number
+        sizeGrams?: number | null
+      }>
+      totalAmount: number
+      addressLine1: string
+      addressLine2: string | null
+      city: string
+      state: string
+      postalCode: string
+      country: string
     }
 
-    if (order.status !== 'PAYMENT_PENDING' && order.status !== 'PAYMENT_SUCCESS') {
-      return createErrorResponse(
-        `Order status is ${order.status}, expected PAYMENT_PENDING or PAYMENT_SUCCESS`,
-        400
-      )
+    if (!orderData.orderItemsData || orderData.orderItemsData.length === 0) {
+      return createErrorResponse('Order items are required', 400)
     }
 
-    // Verify Razorpay signature
+    // Step 1: Verify Razorpay signature FIRST (before creating order)
     const isValidSignature = verifyRazorpaySignature(
       razorpayOrderId,
       razorpayPaymentId,
@@ -122,162 +118,213 @@ export async function POST(_req: NextRequest) {
       return createErrorResponse('Invalid payment signature', 400)
     }
 
-    // Verify payment with Razorpay API
+    // Step 2: Verify payment with Razorpay API
     const razorpayPayment = await getRazorpayPayment(razorpayPaymentId)
     if (!razorpayPayment) {
       console.error('[API Payments Verify] Razorpay payment not found:', razorpayPaymentId)
-      // Mark order as failed
-      await supabase
-        .from('Order')
-        .update({ status: 'PAYMENT_FAILED' })
-        .eq('id', orderId)
       return createErrorResponse('Payment not found in Razorpay', 400)
     }
 
     if (razorpayPayment.status !== 'captured') {
       console.error('[API Payments Verify] Payment not captured. Status:', razorpayPayment.status)
-      // Mark order as failed
-      await supabase
-        .from('Order')
-        .update({ status: 'PAYMENT_FAILED' })
-        .eq('id', orderId)
       return createErrorResponse(`Payment not captured. Status: ${razorpayPayment.status}`, 400)
     }
 
-    // Verify payment amount matches order amount
-    if (razorpayPayment.amount !== order.totalAmount) {
+    // Step 3: Verify payment amount matches expected amount
+    if (razorpayPayment.amount !== orderData.totalAmount) {
       console.error('[API Payments Verify] Amount mismatch:', {
         razorpayAmount: razorpayPayment.amount,
-        orderAmount: order.totalAmount,
+        expectedAmount: orderData.totalAmount,
       })
-      // Mark order as failed
-      await supabase
-        .from('Order')
-        .update({ status: 'PAYMENT_FAILED' })
-        .eq('id', orderId)
       return createErrorResponse('Payment amount mismatch', 400)
     }
 
-    // Fetch order items for stock update
-    const { data: orderItems, error: itemsError } = await supabase
-      .from('OrderItem')
-      .select('*')
-      .eq('orderId', orderId)
-
-    if (itemsError || !orderItems) {
-      return createErrorResponse('Failed to fetch order items', 500)
-    }
-
-    // Update order and reduce stock atomically
-    // Note: Supabase doesn't support transactions like Prisma, so we'll do it sequentially
-    // In production, consider using Supabase functions or stored procedures for atomicity
-
-    // First, validate stock availability
-    for (const orderItem of orderItems) {
+    // Step 4: Validate stock availability BEFORE creating order
+    for (const orderItem of orderData.orderItemsData) {
       const { data: product } = await supabase
         .from('Product')
-        .select('stock')
+        .select('stock, isActive, category')
         .eq('id', orderItem.productId)
         .single()
 
-      if (!product || product.stock < orderItem.quantity) {
-        // Update order status to PAYMENT_FAILED
-        await supabase
-          .from('Order')
-          .update({ status: 'PAYMENT_FAILED' })
-          .eq('id', orderId)
-
-        return createErrorResponse(
-          `Insufficient stock for ${orderItem.productName}. Available: ${product?.stock || 0}, Required: ${orderItem.quantity}`,
-          400
-        )
+      if (!product) {
+        return createErrorResponse(`Product not found: ${orderItem.productName}`, 404)
       }
-    }
 
-    // Step 1: Update order status to PAYMENT_SUCCESS first
-    const { error: paymentSuccessError } = await supabase
-      .from('Order')
-      .update({
-        status: 'PAYMENT_SUCCESS',
-        razorpayPaymentId,
-        razorpaySignature,
-        paidAt: new Date().toISOString(),
-      })
-      .eq('id', orderId)
+      if (!product.isActive) {
+        return createErrorResponse(`Product ${orderItem.productName} is no longer available`, 400)
+      }
 
-    if (paymentSuccessError) {
-      console.error('[API Payments Verify] Failed to update order to PAYMENT_SUCCESS:', paymentSuccessError)
-      return createErrorResponse('Failed to update payment status', 500)
-    }
-
-    // Step 2: Reduce stock for each item (safely)
-    for (const orderItem of orderItems) {
-      const { error: stockError } = await supabase.rpc('decrement_stock', {
-        product_id: orderItem.productId,
-        quantity: orderItem.quantity,
-      })
-
-      // If RPC doesn't exist, use update with decrement
-      if (stockError) {
-        const { data: product } = await supabase
-          .from('Product')
+      const isMalt = product.category === 'Malt'
+      
+      // For malt products with sizeGrams, check variant stock
+      const orderItemWithSize = orderItem as typeof orderItem & { sizeGrams?: number | null }
+      if (isMalt && orderItemWithSize.sizeGrams) {
+        const { data: variant } = await supabase
+          .from('ProductVariant')
           .select('stock')
-          .eq('id', orderItem.productId)
+          .eq('productId', orderItem.productId)
+          .eq('sizeGrams', orderItem.sizeGrams)
           .single()
 
-        if (!product) {
-          // Revert order status to PAYMENT_FAILED
-          await supabase
-            .from('Order')
-            .update({ status: 'PAYMENT_FAILED' })
-            .eq('id', orderId)
-          return createErrorResponse('Product not found', 404)
+        if (!variant) {
+          return createErrorResponse(`Variant not found for ${orderItem.productName}`, 404)
         }
 
-        const newStock = product.stock - orderItem.quantity
-        if (newStock < 0) {
-          // Revert order status to PAYMENT_FAILED
-          await supabase
-            .from('Order')
-            .update({ status: 'PAYMENT_FAILED' })
-            .eq('id', orderId)
+        if (variant.stock < orderItem.quantity) {
+          return createErrorResponse(
+            `Insufficient stock for ${orderItem.productName}. Available: ${variant.stock}, Required: ${orderItem.quantity}`,
+            400
+          )
+        }
+      } else {
+        // For non-malt products, check product stock
+        if (product.stock < orderItem.quantity) {
           return createErrorResponse(
             `Insufficient stock for ${orderItem.productName}. Available: ${product.stock}, Required: ${orderItem.quantity}`,
             400
           )
         }
+      }
+    }
+
+    // Step 5: Create Order in database (ONLY after payment verified)
+    const { data: newOrder, error: orderError } = await supabase
+      .from('Order')
+      .insert({
+        userId: user.id,
+        status: 'ORDER_CONFIRMED', // Directly to ORDER_CONFIRMED since payment is verified
+        totalAmount: orderData.totalAmount,
+        currency: 'INR',
+        addressLine1: orderData.addressLine1,
+        addressLine2: orderData.addressLine2 ?? undefined,
+        city: orderData.city,
+        state: orderData.state,
+        postalCode: orderData.postalCode,
+        country: orderData.country,
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature,
+        paidAt: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (orderError || !newOrder) {
+      console.error('[API Payments Verify] Failed to create order:', orderError)
+      return createErrorResponse('Failed to create order', 500)
+    }
+
+    const orderId = newOrder.id
+
+    // Step 6: Create order items (with sizeGrams snapshot for malt products)
+    const orderItemsInsert = orderData.orderItemsData.map((item) => ({
+      orderId,
+      productId: item.productId,
+      productName: item.productName,
+      unitPrice: item.unitPrice,
+      discountPercent: item.discountPercent,
+      finalPrice: item.finalPrice,
+      quantity: item.quantity,
+      ...(item.sizeGrams && { sizeGrams: item.sizeGrams }),
+    }))
+
+    const { error: orderItemsError } = await supabase
+      .from('OrderItem')
+      .insert(orderItemsInsert)
+
+    if (orderItemsError) {
+      console.error('[API Payments Verify] Failed to create order items:', orderItemsError)
+      // Order was created but items failed - this is a problem
+      // In production, you might want to delete the order or handle this differently
+      return createErrorResponse('Failed to create order items', 500)
+    }
+
+    // Step 7: Reduce stock for each item (safely)
+    for (const orderItem of orderData.orderItemsData) {
+      // Check if this is a malt product with variant
+      const { data: product } = await supabase
+        .from('Product')
+        .select('category, stock')
+        .eq('id', orderItem.productId)
+        .single()
+
+      if (!product) {
+        console.error('[API Payments Verify] Product not found during stock update:', orderItem.productId)
+        continue
+      }
+
+      const isMalt = product.category === 'Malt'
+      
+      if (isMalt && orderItem.sizeGrams) {
+        // Reduce stock from ProductVariant for malt products
+        const { data: variant, error: fetchVariantError } = await supabase
+          .from('ProductVariant')
+          .select('stock')
+          .eq('productId', orderItem.productId)
+          .eq('sizeGrams', orderItem.sizeGrams)
+          .single()
+
+        if (fetchVariantError || !variant) {
+          console.error('[API Payments Verify] Variant not found during stock update:', {
+            productId: orderItem.productId,
+            sizeGrams: orderItem.sizeGrams,
+          })
+          continue
+        }
+
+        const newStock = variant.stock - orderItem.quantity
+        if (newStock < 0) {
+          console.error('[API Payments Verify] Variant stock went negative:', {
+            productId: orderItem.productId,
+            sizeGrams: orderItem.sizeGrams,
+            currentStock: variant.stock,
+            requested: orderItem.quantity,
+          })
+          continue
+        }
 
         const { error: updateStockError } = await supabase
-          .from('Product')
+          .from('ProductVariant')
           .update({ stock: newStock })
-          .eq('id', orderItem.productId)
+          .eq('productId', orderItem.productId)
+          .eq('sizeGrams', orderItem.sizeGrams)
 
         if (updateStockError) {
-          console.error('[API Payments Verify] Failed to update stock:', updateStockError)
-          // Revert order status to PAYMENT_FAILED
-          await supabase
-            .from('Order')
-            .update({ status: 'PAYMENT_FAILED' })
-            .eq('id', orderId)
-          return createErrorResponse('Failed to update product stock', 500)
+          console.error('[API Payments Verify] Failed to update variant stock:', updateStockError)
+        }
+      } else {
+        // Reduce stock from Product for non-malt products
+        const { error: stockError } = await supabase.rpc('decrement_stock', {
+          product_id: orderItem.productId,
+          quantity: orderItem.quantity,
+        })
+
+        // If RPC doesn't exist, use update with decrement
+        if (stockError) {
+          const newStock = product.stock - orderItem.quantity
+          if (newStock < 0) {
+            console.error('[API Payments Verify] Stock went negative:', {
+              productId: orderItem.productId,
+              currentStock: product.stock,
+              requested: orderItem.quantity,
+            })
+            continue
+          }
+
+          const { error: updateStockError } = await supabase
+            .from('Product')
+            .update({ stock: newStock })
+            .eq('id', orderItem.productId)
+
+          if (updateStockError) {
+            console.error('[API Payments Verify] Failed to update product stock:', updateStockError)
+          }
         }
       }
     }
 
-    // Step 3: Update order status to ORDER_CONFIRMED (final step)
-    const { error: updateError } = await supabase
-      .from('Order')
-      .update({
-        status: 'ORDER_CONFIRMED',
-      })
-      .eq('id', orderId)
-
-    if (updateError) {
-      console.error('[API Payments Verify] Failed to update order:', updateError)
-      return createErrorResponse('Failed to confirm order', 500)
-    }
-
-    // Remove purchased items from cart
+    // Step 8: Remove purchased items from cart
     const { data: userCart } = await supabase
       .from('Cart')
       .select('id')
@@ -287,7 +334,7 @@ export async function POST(_req: NextRequest) {
     if (userCart && userCart.length > 0) {
       const firstCart = userCart[0]
       if (firstCart) {
-        const productIds = orderItems.map((item) => item.productId)
+        const productIds = orderData.orderItemsData.map((item) => item.productId)
         await supabase
           .from('CartItem')
           .delete()
@@ -298,7 +345,7 @@ export async function POST(_req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      orderId: order.id,
+      orderId: newOrder.id,
       status: 'ORDER_CONFIRMED',
       message: 'Payment verified successfully. Order confirmed.',
     })

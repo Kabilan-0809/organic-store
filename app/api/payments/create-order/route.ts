@@ -10,16 +10,19 @@ export const runtime = 'nodejs'
 /**
  * POST /api/payments/create-order
  * 
- * Create a Razorpay order from cart items.
+ * Create a Razorpay order from cart items (NO database order created yet).
+ * 
  * This endpoint:
  * 1. Validates cart items
  * 2. Calculates final payable amount (applies discounts)
- * 3. Creates internal Order record with PAYMENT_PENDING status
- * 4. Creates Razorpay Order
- * 5. Stores razorpayOrderId in Order
- * 6. Returns Razorpay order details for frontend
+ * 3. Validates stock availability
+ * 4. Creates Razorpay Order ONLY
+ * 5. Returns Razorpay order details + order data for verification
  * 
- * SECURITY: Only authenticated users can create orders.
+ * IMPORTANT: Database order is created ONLY after successful payment verification.
+ * This prevents ghost orders if payment gateway fails.
+ * 
+ * SECURITY: Only authenticated users can create payment orders.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -153,6 +156,21 @@ export async function POST(req: NextRequest) {
       return createErrorResponse('Failed to fetch products', 500)
     }
 
+    // Fetch variants for malt products
+    const variantIds = cartItems
+      .map((item: any) => item.variantId)
+      .filter((id: string | null): id is string => id !== null && id !== undefined)
+    
+    let variants: any[] = []
+    if (variantIds.length > 0) {
+      const { data: variantsData } = await supabase
+        .from('ProductVariant')
+        .select('*')
+        .in('id', variantIds)
+      
+      variants = variantsData || []
+    }
+
     // Validate stock and calculate totals
     let totalAmount = 0
     const orderItemsData: Array<{
@@ -162,6 +180,7 @@ export async function POST(req: NextRequest) {
       discountPercent: number | null
       finalPrice: number
       quantity: number
+      sizeGrams?: number | null
     }> = []
 
     for (const cartItem of cartItems) {
@@ -174,17 +193,36 @@ export async function POST(req: NextRequest) {
         return createErrorResponse(`Product ${product.name} is no longer available`, 400)
       }
 
-      if (product.stock < cartItem.quantity) {
+      const isMalt = product.category === 'Malt'
+      let variant: any = null
+      let unitPriceInPaise: number
+      let availableStock: number
+      let sizeGrams: number | null = null
+
+      if (isMalt && cartItem.variantId) {
+        variant = variants.find((v) => v.id === cartItem.variantId)
+        if (!variant) {
+          return createErrorResponse(`Variant not found for ${product.name}`, 404)
+        }
+        unitPriceInPaise = variant.price
+        availableStock = variant.stock
+        sizeGrams = variant.sizeGrams
+      } else {
+        unitPriceInPaise = product.price
+        availableStock = product.stock
+      }
+
+      if (availableStock < cartItem.quantity) {
+        const sizeText = sizeGrams ? ` (${sizeGrams}g)` : ''
         return createErrorResponse(
-          `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${cartItem.quantity}`,
+          `Insufficient stock for ${product.name}${sizeText}. Available: ${availableStock}, Requested: ${cartItem.quantity}`,
           400
         )
       }
 
       // Use the same calculation logic as cart
-      // product.price is already in paise from database
+      // unitPriceInPaise is already in paise from database
       // Apply discount using the same logic as cart
-      const unitPriceInPaise = product.price
       const discountedPriceInPaise = calculateDiscountedPrice(
         unitPriceInPaise,
         product.discountPercent
@@ -192,13 +230,16 @@ export async function POST(req: NextRequest) {
       // Calculate final price for the quantity (in paise)
       const finalPriceInPaise = discountedPriceInPaise * cartItem.quantity
 
+      const productName = sizeGrams ? `${product.name} – ${sizeGrams}g` : product.name
+
       orderItemsData.push({
         productId: product.id,
-        productName: product.name,
+        productName: productName,
         unitPrice: unitPriceInPaise,
         discountPercent: product.discountPercent,
         finalPrice: finalPriceInPaise,
         quantity: cartItem.quantity,
+        ...(sizeGrams && { sizeGrams }),
       })
 
       totalAmount += finalPriceInPaise
@@ -208,85 +249,24 @@ export async function POST(req: NextRequest) {
       return createErrorResponse('Invalid order amount', 400)
     }
 
-    // Create order with PAYMENT_PENDING status
-    const { data: newOrder, error: orderError } = await supabase
-      .from('Order')
-      .insert({
-        userId: user.id,
-        status: 'PAYMENT_PENDING',
-        totalAmount,
-        currency: 'INR',
-        addressLine1,
-        addressLine2: addressLine2 ?? undefined,
-        city,
-        state,
-        postalCode,
-        country,
-      })
-      .select()
-      .single()
-
-    if (orderError) {
-      console.error('[API Payments Create Order] Failed to create order:', orderError)
-      return NextResponse.json({ error: orderError.message }, { status: 500 })
-    }
-
-    if (!newOrder) {
-      return createErrorResponse('Failed to create order', 500)
-    }
-
-    const orderId = newOrder.id
-
-    // Create order items
-    const orderItemsInsert = orderItemsData.map((item) => ({
-      orderId,
-      productId: item.productId,
-      productName: item.productName,
-      unitPrice: item.unitPrice,
-      discountPercent: item.discountPercent,
-      finalPrice: item.finalPrice,
-      quantity: item.quantity,
-    }))
-
-    const { error: orderItemsError } = await supabase
-      .from('OrderItem')
-      .insert(orderItemsInsert)
-
-    if (orderItemsError) {
-      console.error('[API Payments Create Order] Failed to create order items:', orderItemsError)
-      // Order was created but items failed - mark as failed
-      await supabase
-        .from('Order')
-        .update({ status: 'PAYMENT_FAILED' })
-        .eq('id', orderId)
-      return createErrorResponse('Failed to create order items', 500)
-    }
-
-    // Create Razorpay order
+    // Create Razorpay order ONLY (no database order yet)
+    // Order will be created only after successful payment verification
     let razorpayOrderId: string | null = null
     let razorpayAmount: number | null = null
     let razorpayCurrency: string | null = null
 
     try {
+      // Use a temporary reference ID for Razorpay order
+      // We'll store the actual order data in the verify endpoint
+      const tempReferenceId = `temp_${Date.now()}_${user.id.substring(0, 8)}`
       const razorpayOrder = await createRazorpayOrder(
         totalAmount,
         'INR',
-        orderId
+        tempReferenceId
       )
       razorpayOrderId = razorpayOrder.id
       razorpayAmount = razorpayOrder.amount
       razorpayCurrency = razorpayOrder.currency
-
-      // Update order with Razorpay order ID
-      const { error: updateError } = await supabase
-        .from('Order')
-        .update({ razorpayOrderId })
-        .eq('id', orderId)
-
-      if (updateError) {
-        console.error('[API Payments Create Order] Failed to update order with Razorpay ID:', updateError)
-        // Don't fail the request, but log the error
-      }
     } catch (razorpayError) {
       console.error('[RAZORPAY] Failed to create Razorpay order:', razorpayError)
       
@@ -294,41 +274,36 @@ export async function POST(req: NextRequest) {
       const errorMessage = razorpayError instanceof Error ? razorpayError.message : String(razorpayError)
       if (errorMessage.includes('RAZORPAY_KEY_ID') || errorMessage.includes('RAZORPAY_KEY_SECRET')) {
         console.error('[RAZORPAY] Missing environment variables. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env.local')
-        // Mark order as failed
-        await supabase
-          .from('Order')
-          .update({ status: 'PAYMENT_FAILED' })
-          .eq('id', orderId)
         return createErrorResponse(
           'Payment gateway configuration error. Please contact support.',
           500
         )
       }
       
-      // Mark order as failed if Razorpay order creation fails
-      await supabase
-        .from('Order')
-        .update({ status: 'PAYMENT_FAILED' })
-        .eq('id', orderId)
       return createErrorResponse(
         'Failed to initialize payment gateway. Please try again later.',
         500
       )
     }
 
-    // Return Razorpay order details
+    // Return Razorpay order details + order data for verification endpoint
+    // NO database order created yet - will be created only after payment success
     return NextResponse.json({
       success: true,
       razorpayOrderId,
-      orderId,
       amount: razorpayAmount,
       currency: razorpayCurrency,
-      order: {
-        id: orderId,
-        status: newOrder.status,
-        totalAmount: newOrder.totalAmount,
-        currency: newOrder.currency,
-        createdAt: newOrder.createdAt,
+      // Include order data for verification endpoint
+      orderData: {
+        selectedCartItemIds,
+        orderItemsData,
+        totalAmount,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        postalCode,
+        country,
       },
     })
   } catch (error) {
@@ -336,4 +311,3 @@ export async function POST(req: NextRequest) {
     return createErrorResponse('Failed to create payment order', 500, error)
   }
 }
-
