@@ -544,17 +544,20 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
                 <h2 className="mb-4 text-lg font-semibold text-neutral-900">Payment Status</h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-600">Payment Status</span>
-                    <span className={getStatusBadge(order.status)}>
-                      {order.paymentStatus === 'paid' ? 'Paid' 
-                        : order.paymentStatus === 'pending' ? 'Pending'
-                        : order.paymentStatus === 'cancelled' ? 'Cancelled'
-                        : order.status}
-                    </span>
+                    <span className="text-neutral-600">Payment Method</span>
+                    {order.paidAt && order.paymentId ? (
+                      <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+                        Online Payment
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+                        Cash on Delivery (COD)
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-neutral-600">Order Status</span>
-                    <span className="font-medium text-neutral-900">{order.status}</span>
+                    <span className={getStatusBadge(order.status)}>{order.status}</span>
                   </div>
                   {order.paidAt && (
                     <div className="flex items-center justify-between">

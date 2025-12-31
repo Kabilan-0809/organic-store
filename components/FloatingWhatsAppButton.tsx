@@ -25,7 +25,7 @@ export default function FloatingWhatsAppButton() {
   const handleWhatsAppClick = () => {
     // WhatsApp deep link with pre-filled message
     const message = encodeURIComponent('Hi. I have a question about the products.')
-    const whatsappUrl = `https://wa.me/918248569193?text=${message}`
+    const whatsappUrl = `https://wa.me/918072101964?text=${message}`
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
   }
 

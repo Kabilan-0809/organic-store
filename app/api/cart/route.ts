@@ -51,33 +51,10 @@ export async function GET(_req: NextRequest) {
       cartId = firstCart.id
     }
 
-    // Fetch cart items with product and variant details in a single joined query
+    // Fetch cart items
     const { data: cartItems, error: itemsError } = await supabase
       .from('CartItem')
-      .select(`
-        id,
-        productId,
-        variantId,
-        quantity,
-        Product (
-          id,
-          name,
-          slug,
-          description,
-          price,
-          discountPercent,
-          imageUrl,
-          category,
-          stock,
-          isActive
-        ),
-        ProductVariant (
-          id,
-          sizeGrams,
-          price,
-          stock
-        )
-      `)
+      .select('id, productId, variantId, quantity')
       .eq('cartId', cartId)
 
     if (itemsError) {
@@ -85,12 +62,49 @@ export async function GET(_req: NextRequest) {
       return createErrorResponse('Failed to fetch cart items', 500)
     }
 
-    // Map cart items with product and variant data
-    const itemsWithProducts = (cartItems || [])
-      .map((item: any) => {
-        const product = item.Product
-        const variant = item.ProductVariant
+    if (!cartItems || cartItems.length === 0) {
+      return NextResponse.json({
+        cartId,
+        items: [],
+      })
+    }
 
+    // Fetch products for cart items
+    const productIds = cartItems.map((item) => item.productId)
+    const { data: products, error: productsError } = await supabase
+      .from('Product')
+      .select('id, name, slug, description, price, discountPercent, imageUrl, category, stock, isActive')
+      .in('id', productIds)
+
+    if (productsError || !products) {
+      console.error('[API Cart] Failed to fetch products:', productsError)
+      return createErrorResponse('Failed to fetch products', 500)
+    }
+
+    // Fetch variants for malt products
+    const variantIds = cartItems
+      .map((item) => item.variantId)
+      .filter((id: string | null): id is string => id !== null && id !== undefined)
+    
+    let variants: any[] = []
+    if (variantIds.length > 0) {
+      const { data: variantsData, error: variantsError } = await supabase
+        .from('ProductVariant')
+        .select('id, productId, sizeGrams, price, stock')
+        .in('id', variantIds)
+      
+      if (variantsError) {
+        console.error('[API Cart] Failed to fetch variants:', variantsError)
+        // Continue without variants - non-critical
+      } else {
+        variants = variantsData || []
+      }
+    }
+
+    // Map cart items with product and variant data
+    const itemsWithProducts = cartItems
+      .map((item) => {
+        const product = products.find((p) => p.id === item.productId)
         if (!product) return null
 
         const isMalt = product.category === 'Malt'
@@ -99,10 +113,13 @@ export async function GET(_req: NextRequest) {
         let sizeGrams: number | null = null
 
         // If malt product with variant, use variant data
-        if (isMalt && variant) {
-          price = variant.price / 100
-          stock = variant.stock
-          sizeGrams = variant.sizeGrams
+        if (isMalt && item.variantId) {
+          const variant = variants.find((v) => v.id === item.variantId)
+          if (variant) {
+            price = variant.price / 100
+            stock = variant.stock
+            sizeGrams = variant.sizeGrams
+          }
         }
 
         return {

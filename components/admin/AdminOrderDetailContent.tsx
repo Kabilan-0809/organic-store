@@ -448,6 +448,18 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                     <span className="text-neutral-600">Order Status</span>
                     <span className={getStatusBadge(order.status)}>{order.status}</span>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral-600">Payment Method</span>
+                    {order.paidAt && order.razorpayPaymentId ? (
+                      <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
+                        Online Payment
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+                        Cash on Delivery (COD)
+                      </span>
+                    )}
+                  </div>
                   {order.paidAt && (
                     <div className="flex items-center justify-between">
                       <span className="text-neutral-600">Paid At</span>
