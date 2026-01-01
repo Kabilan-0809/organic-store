@@ -30,7 +30,7 @@ export default function CustomerFeedbackSection() {
             Loved by families who care about what they eat
           </h2>
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-neutral-600">
-            Real feedback from customers who chose healthier, traditional malt and food products.
+            Real feedback from customers who chose healthier, traditional malt and millet products.
           </p>
         </div>
 

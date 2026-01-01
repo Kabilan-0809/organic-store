@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     template: '%s | Millets N Joy',
   },
   description:
-    'Discover premium malt, saadha podi, and traditional foods made with quality ingredients and authentic preparation.',
+    'Discover premium malt, saadha podi, and traditional millet products made with quality ingredients and authentic preparation.',
 }
 
 export default function RootLayout({

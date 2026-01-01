@@ -7,7 +7,7 @@ export const valueCards: ValueCard[] = [
   {
     title: 'Authentic Preparation',
     description:
-      'Our premium malt and traditional foods are prepared using traditional methods, ensuring authentic taste and nutritional value.',
+      'Our premium malt and millet products are prepared using traditional methods, ensuring authentic taste and nutritional value.',
     icon: '🌾',
   },
   {

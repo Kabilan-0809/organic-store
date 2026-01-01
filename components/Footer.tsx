@@ -21,7 +21,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">Millets N Joy</h3>
             <p className="text-sm text-neutral-400">
-              Premium malt, saadha podi, and traditional foods. Your trusted source for quality products made with authentic preparation.
+              Premium malt, saadha podi, and traditional millet products. Your trusted source for quality products made with authentic preparation.
             </p>
           </div>
 
