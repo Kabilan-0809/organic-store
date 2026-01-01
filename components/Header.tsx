@@ -126,7 +126,7 @@ export default function Header() {
             <Link
               href="/shop"
               aria-label="Browse organic products"
-              className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none focus:outline-none rounded"
+              className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none rounded"
             >
               Shop
             </Link>
@@ -140,7 +140,7 @@ export default function Header() {
           {/* Mobile menu button - safe to show during SSR */}
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:outline-none md:hidden"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none md:hidden"
             aria-label="Open menu"
             disabled
           >
@@ -206,7 +206,7 @@ export default function Header() {
             <Link
               href="/shop"
               aria-label="Browse organic products"
-              className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
+              className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${
                 isActive('/shop')
                   ? 'text-primary-600'
                   : 'text-neutral-700 hover:text-primary-600'
@@ -219,7 +219,7 @@ export default function Header() {
                 <Link
                   href="/orders"
                   aria-label="View my orders"
-                  className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
+                  className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${
                     isActive('/orders')
                       ? 'text-primary-600'
                       : 'text-neutral-700 hover:text-primary-600'
@@ -269,7 +269,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none focus:outline-none rounded"
+                    className="text-sm font-medium text-neutral-700 transition-colors duration-200 hover:text-primary-600 focus:outline-none rounded"
                     aria-label="Sign out"
                   >
                     Logout
@@ -281,7 +281,7 @@ export default function Header() {
                   <Link
                     href="/auth/login"
                     aria-label="Sign in to your account"
-                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
+                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${
                       isActive('/auth/login')
                         ? 'text-primary-600'
                         : 'text-neutral-700 hover:text-primary-600'
@@ -293,7 +293,7 @@ export default function Header() {
                   <Link
                     href="/auth/register"
                     aria-label="Create a new account"
-                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none focus:outline-none rounded ${
+                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${
                       isActive('/auth/register')
                         ? 'text-primary-600'
                         : 'text-neutral-700 hover:text-primary-600'
@@ -311,7 +311,7 @@ export default function Header() {
                 type="button"
                 onClick={cartToggle}
                 aria-label={`Shopping cart with ${cartCount} items`}
-                className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none focus:outline-none"
+                className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none"
               >
               {/* Shopping Cart SVG Icon */}
               <svg
@@ -348,7 +348,7 @@ export default function Header() {
               type="button"
               onClick={cartToggle}
               aria-label={`Shopping cart with ${cartCount} items`}
-              className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none focus:outline-none"
+              className="relative inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-all duration-200 hover:bg-neutral-100 hover:scale-105 focus:outline-none"
             >
             {/* Shopping Cart SVG Icon */}
             <svg
@@ -379,7 +379,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:outline-none"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none"
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -441,7 +441,7 @@ export default function Header() {
               <Link
                 href="/shop"
                 aria-label="Browse organic products"
-                className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
+                className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${
                   isActive('/shop')
                     ? 'bg-primary-50 text-primary-600'
                     : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
@@ -455,7 +455,7 @@ export default function Header() {
                   <Link
                     href="/orders"
                     aria-label="View my orders"
-                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
+                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${
                       isActive('/orders')
                         ? 'bg-primary-50 text-primary-600'
                         : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
@@ -503,7 +503,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50 hover:text-primary-600 focus:outline-none focus:outline-none"
+                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50 hover:text-primary-600 focus:outline-none"
                   aria-label="Sign out"
                 >
                   Logout
@@ -515,7 +515,7 @@ export default function Header() {
                 <Link
                   href="/auth/login"
                   aria-label="Sign in to your account"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${
                     isActive('/auth/login')
                       ? 'bg-primary-50 text-primary-600'
                       : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
@@ -528,7 +528,7 @@ export default function Header() {
                 <Link
                   href="/auth/register"
                   aria-label="Create a new account"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none focus:outline-none ${
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${
                     isActive('/auth/register')
                       ? 'bg-primary-50 text-primary-600'
                       : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'

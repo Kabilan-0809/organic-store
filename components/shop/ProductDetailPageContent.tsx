@@ -159,7 +159,7 @@ export default function ProductDetailPageContent({
                 {selectedVariant && (
                   <div className="text-sm text-neutral-600">
                     <span className="font-medium">Price:</span> ₹{selectedVariant.price.toFixed(2)}
-                    {selectedVariant.stock > 0 && (
+                    {selectedVariant.stock > 0 && selectedVariant.stock < 20 && (
                       <span className="ml-4">
                         <span className="font-medium">Stock:</span> {selectedVariant.stock} available
                       </span>
@@ -192,9 +192,11 @@ export default function ProductDetailPageContent({
                 )}
               </div>
               {availableStock > 0 ? (
-                <span className="block text-xs font-medium text-primary-700">
-                  {isLowStock ? `Only ${availableStock} left in stock` : 'In stock, ships in 1–2 days'}
-                </span>
+                isLowStock ? (
+                  <span className="block text-xs font-medium text-primary-700">
+                    Only {availableStock} left in stock
+                  </span>
+                ) : null
               ) : (
                 <span className="block text-xs font-medium text-neutral-500">
                   Currently unavailable

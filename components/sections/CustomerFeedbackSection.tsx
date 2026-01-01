@@ -4,19 +4,19 @@ const feedbacks = [
   {
     rating: 5,
     text: 'Switching to these products has been a game-changer for our family. The quality is exceptional, and I feel confident knowing exactly what we\'re eating. The malt products are perfect for our morning routine.',
-    customerName: 'Priya Sharma',
+    customerName: 'Kavitha Ramesh',
     subtitle: 'Verified Buyer',
   },
   {
     rating: 5,
     text: 'As a health-conscious parent, finding trustworthy malt products was challenging. This store has become our go-to. The products are authentic, well-packaged, and the customer service is outstanding. Highly recommend!',
-    customerName: 'Rajesh Kumar',
+    customerName: 'Suresh Kumar',
     subtitle: 'Verified Buyer',
   },
   {
     rating: 5,
     text: 'The quality and taste of these malt products is unmatched. We\'ve been using them for months now, and the difference in taste and nutrition is remarkable. Worth every rupee for our family\'s health. Loved the quality of the products.',
-    customerName: 'Anjali Patel',
+    customerName: 'Lakshmi Devi',
     subtitle: 'Verified Buyer',
   },
 ]

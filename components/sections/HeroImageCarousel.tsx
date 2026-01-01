@@ -62,14 +62,21 @@ export default function HeroImageCarousel() {
 
   return (
     <section
-      className="relative -mx-4 mb-0 mt-0 w-[calc(100%+2rem)] sm:-mx-6 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:w-[calc(100%+4rem)]"
+      className="relative mx-auto mb-0 mt-8 w-full px-0 sm:mt-12"
       aria-label="Hero image carousel"
     >
+      {/* Text above the carousel */}
+      <div className="mb-6 text-center">
+        <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
+          Tradition You Can Taste
+        </h2>
+      </div>
       <div
-        className="relative overflow-hidden"
+        className="relative"
         style={{
           height: 'clamp(50vh, 65vh, 75vh)',
           minHeight: '250px',
+          overflow: 'hidden',
         }}
       >
         {HERO_IMAGES.map((image, index) => {
@@ -83,7 +90,7 @@ export default function HeroImageCarousel() {
               style={{
                 opacity: isActive ? 1 : 0,
                 zIndex: isActive ? 1 : 0,
-                filter: isActive ? 'blur(0px) brightness(0.98)' : 'blur(4px) brightness(0.95)',
+                filter: isActive ? 'blur(0px)' : 'blur(4px)',
                 transform: isActive ? 'scale(1)' : 'scale(1.05)',
               }}
               aria-hidden={!isActive}
@@ -92,7 +99,7 @@ export default function HeroImageCarousel() {
               <div 
                 className="absolute inset-0"
                 style={{
-                  filter: 'brightness(0.98) contrast(1.02) saturate(1.03)',
+                  filter: 'brightness(0.98) contrast(1.02) saturate(1.02)',
                 }}
               >
                 <Image
@@ -101,42 +108,44 @@ export default function HeroImageCarousel() {
                   fill
                   priority={index === 0}
                   className="object-cover"
-                  sizes="100vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
                 />
               </div>
-              {/* Top and bottom fade gradients for seamless blending */}
+              {/* Green gradient overlay at top edge - fades outward */}
               <div 
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-x-0 top-0 pointer-events-none"
                 style={{
-                  background: `
-                    linear-gradient(to bottom, 
-                      rgba(255,255,255,0.4) 0%, 
-                      rgba(255,255,255,0.15) 8%, 
-                      transparent 15%, 
-                      transparent 85%, 
-                      rgba(0,0,0,0.15) 92%, 
-                      rgba(0,0,0,0.3) 100%
-                    )
-                  `,
+                  height: '10%',
+                  background: 'linear-gradient(to bottom, rgba(246,251,247,1) 0%, rgba(246,251,247,0.8) 30%, rgba(246,251,247,0.4) 70%, transparent 100%)',
+                }}
+              />
+              {/* White gradient overlay at bottom edge - fades outward */}
+              <div 
+                className="absolute inset-x-0 bottom-0 pointer-events-none"
+                style={{
+                  height: '10%',
+                  background: 'linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 30%, rgba(255,255,255,0.4) 70%, transparent 100%)',
+                }}
+              />
+              {/* White gradient overlay at left edge - fades outward */}
+              <div 
+                className="absolute inset-y-0 left-0 pointer-events-none"
+                style={{
+                  width: '6%',
+                  background: 'linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 50%, transparent 100%)',
+                }}
+              />
+              {/* White gradient overlay at right edge - fades outward */}
+              <div 
+                className="absolute inset-y-0 right-0 pointer-events-none"
+                style={{
+                  width: '6%',
+                  background: 'linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 50%, transparent 100%)',
                 }}
               />
             </Link>
           )
         })}
-        {/* Side edge fade gradients for seamless blending */}
-        <div 
-          className="absolute inset-0 pointer-events-none z-10"
-          style={{
-            background: `
-              linear-gradient(to right, 
-                rgba(255,255,255,0.3) 0%, 
-                transparent 5%, 
-                transparent 95%, 
-                rgba(255,255,255,0.3) 100%
-              )
-            `,
-          }}
-        />
       </div>
     </section>
   )
