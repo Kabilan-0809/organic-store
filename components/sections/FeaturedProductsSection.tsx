@@ -13,7 +13,7 @@ export default function FeaturedProductsSection() {
   const shouldReduceMotion = useReducedMotion()
   const carouselRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLElement | null)[]>([])
-  
+
   // Single source of truth for carousel position
   const positionX = useRef<number>(0)
   const lastUpdateTime = useRef<number>(Date.now())
@@ -23,6 +23,9 @@ export default function FeaturedProductsSection() {
   const animationFrameRef = useRef<number | null>(null)
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const dragDistance = useRef<number>(0)
+
+
+  const gestureRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -83,10 +86,10 @@ export default function FeaturedProductsSection() {
   }, [])
 
   // Duplicate products for seamless infinite loop (3 sets)
-  const duplicatedProducts = products.length > 0 
+  const duplicatedProducts = products.length > 0
     ? [...products, ...products, ...products]
     : []
-  
+
   // Calculate item width for seamless reset
   const getItemWidth = () => {
     if (typeof window === 'undefined') return 212
@@ -94,37 +97,45 @@ export default function FeaturedProductsSection() {
     if (window.innerWidth >= 640) return 236 // 220px + 16px padding
     return 212 // 180px + 32px padding
   }
-  
+
   const itemWidth = getItemWidth()
   const oneSetWidth = products.length > 0 ? products.length * itemWidth : 0
 
   // Drag handlers - directly mutate positionX
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault()
+  const handleDragStart = (e: any) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+
+    // If it's not a touch event, we might need to prevent default
+    if (e.cancelable && e.type !== 'mousedown') {
+      e.preventDefault()
+    }
     e.stopPropagation()
-    
+
     isInteracting.current = true
     setIsDragging(true)
     dragDistance.current = 0
-    const clientX = 'touches' in e && e.touches[0] ? e.touches[0].clientX : (e as React.MouseEvent).clientX
+
     dragStartX.current = clientX
     lastDragX.current = clientX
     lastUpdateTime.current = Date.now()
   }
 
-  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleDragMove = (e: any) => {
     if (!isDragging) return
-    e.preventDefault()
+
+    if (e.cancelable) {
+      e.preventDefault()
+    }
     e.stopPropagation()
-    
-    const clientX = 'touches' in e && e.touches[0] ? e.touches[0].clientX : (e as React.MouseEvent).clientX
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
     const deltaX = clientX - lastDragX.current
     lastDragX.current = clientX
-    
-    // Directly mutate positionX (reversed direction)
-    positionX.current -= deltaX
+
+    // Directly mutate positionX (follow drag direction)
+    positionX.current += deltaX
     dragDistance.current += Math.abs(deltaX)
-    
+
     lastUpdateTime.current = Date.now()
   }
 
@@ -137,34 +148,48 @@ export default function FeaturedProductsSection() {
   }
 
   // Handle wheel/trackpad scroll - directly mutate positionX
-  const handleWheel = (e: React.WheelEvent) => {
+  const handleWheel = (e: WheelEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     // Only handle horizontal scrolling
     if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
       e.preventDefault()
       return
     }
-    
+
     isInteracting.current = true
-    
+
     // Directly mutate positionX (reversed direction)
     const scrollSpeed = 1.5
     const delta = -e.deltaX * scrollSpeed
     positionX.current += delta
-    
+
     lastUpdateTime.current = Date.now()
 
     // Resume auto-scroll after user stops scrolling
     if (wheelTimeoutRef.current) {
       clearTimeout(wheelTimeoutRef.current)
     }
-    
+
     wheelTimeoutRef.current = setTimeout(() => {
       isInteracting.current = false
     }, 1500)
   }
+
+  // Attach non-passive wheel listener
+  useEffect(() => {
+    const element = gestureRef.current
+    if (!element) return
+
+    const onWheel = (e: WheelEvent) => handleWheel(e)
+
+    element.addEventListener('wheel', onWheel, { passive: false })
+
+    return () => {
+      element.removeEventListener('wheel', onWheel)
+    }
+  }, [])
 
   // Continuous auto-scroll animation - single source of truth
   useEffect(() => {
@@ -237,7 +262,7 @@ export default function FeaturedProductsSection() {
         const distanceFromCenter = Math.abs(itemCenter - viewportCenter)
         const maxDistance = window.innerWidth / 2
         const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1)
-        
+
         // Scale: center = 1.15, edges = 0.9
         const scale = 1.15 - normalizedDistance * 0.25
         // Opacity: center = 1, edges = 0.5
@@ -288,7 +313,7 @@ export default function FeaturedProductsSection() {
             Our Products
           </h2>
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-neutral-600">
-            A carefully curated selection of premium malt, saadha podi, and other traditional millet products 
+            A carefully curated selection of premium malt, saadha podi, and other traditional millet products
             made with quality ingredients and authentic preparation.
           </p>
         </div>
@@ -320,11 +345,11 @@ export default function FeaturedProductsSection() {
       </div>
 
       {/* Continuous horizontal infinite carousel - Full width from edge to edge */}
-      <div 
-        className="relative w-full overflow-hidden" 
-        style={{ 
-          marginLeft: 'calc(-50vw + 50%)', 
-          marginRight: 'calc(-50vw + 50%)', 
+      <div
+        className="relative w-full overflow-hidden"
+        style={{
+          marginLeft: 'calc(-50vw + 50%)',
+          marginRight: 'calc(-50vw + 50%)',
           width: '100vw',
           touchAction: 'none', // Prevent all browser touch gestures
           overscrollBehaviorX: 'contain', // Prevent horizontal overscroll navigation
@@ -352,6 +377,7 @@ export default function FeaturedProductsSection() {
         }}
       >
         <div
+          ref={gestureRef}
           className="relative h-[350px] sm:h-[400px] lg:h-[450px] overflow-hidden cursor-grab active:cursor-grabbing select-none"
           onMouseDown={handleDragStart}
           onMouseMove={handleDragMove}
@@ -377,20 +403,19 @@ export default function FeaturedProductsSection() {
             e.stopPropagation()
             handleDragEnd()
           }}
-          onWheel={handleWheel}
           style={{
             touchAction: 'none', // Completely disable browser touch gestures
             WebkitTouchCallout: 'none', // Disable iOS callout menu
             userSelect: 'none', // Prevent text selection
           }}
         >
-            <div
-              ref={carouselRef}
-              className="flex items-center h-full will-change-transform"
-              style={{
-                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
-              }}
-            >
+          <div
+            ref={carouselRef}
+            className="flex items-center h-full will-change-transform"
+            style={{
+              transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+            }}
+          >
             {duplicatedProducts.map((product, index) => (
               <Link
                 key={`${product.id}-${index}`}

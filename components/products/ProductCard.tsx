@@ -31,9 +31,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const hasDiscount = product.discountPercent != null && product.discountPercent > 0
 
   return (
-    <article className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-all duration-300 ease-smooth ${isOutOfStock
+    <article className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 ease-smooth ${isOutOfStock
       ? 'opacity-60'
-      : 'hover:-translate-y-1 hover:shadow-xl hover:shadow-neutral-900/5'
+      : 'hover:-translate-y-1 hover:shadow-organic hover:ring-2 hover:ring-primary-soft'
       }`}>
       <Link
         href={`/shop/${slugOrId}`} // Use filtered slug from props

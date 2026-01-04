@@ -62,15 +62,9 @@ export default function HeroImageCarousel() {
 
   return (
     <section
-      className="relative mx-auto mb-0 mt-8 w-full px-0 sm:mt-12"
+      className="relative mx-auto mb-0 mt-6 w-full px-0 sm:mt-8"
       aria-label="Hero image carousel"
     >
-      {/* Text above the carousel */}
-      <div className="mb-6 text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
-          Tradition You Can Taste
-        </h2>
-      </div>
       <div
         className="relative"
         style={{
@@ -96,7 +90,7 @@ export default function HeroImageCarousel() {
               aria-hidden={!isActive}
               aria-label="Browse our malt and traditional products"
             >
-              <div 
+              <div
                 className="absolute inset-0"
                 style={{
                   filter: 'brightness(0.98) contrast(1.02) saturate(1.02)',
@@ -112,7 +106,7 @@ export default function HeroImageCarousel() {
                 />
               </div>
               {/* Green gradient overlay at top edge - fades outward */}
-              <div 
+              <div
                 className="absolute inset-x-0 top-0 pointer-events-none"
                 style={{
                   height: '10%',
@@ -120,7 +114,7 @@ export default function HeroImageCarousel() {
                 }}
               />
               {/* White gradient overlay at bottom edge - fades outward */}
-              <div 
+              <div
                 className="absolute inset-x-0 bottom-0 pointer-events-none"
                 style={{
                   height: '10%',
@@ -128,7 +122,7 @@ export default function HeroImageCarousel() {
                 }}
               />
               {/* White gradient overlay at left edge - fades outward */}
-              <div 
+              <div
                 className="absolute inset-y-0 left-0 pointer-events-none"
                 style={{
                   width: '6%',
@@ -136,7 +130,7 @@ export default function HeroImageCarousel() {
                 }}
               />
               {/* White gradient overlay at right edge - fades outward */}
-              <div 
+              <div
                 className="absolute inset-y-0 right-0 pointer-events-none"
                 style={{
                   width: '6%',

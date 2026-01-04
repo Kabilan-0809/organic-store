@@ -12,6 +12,7 @@
   from {
     transform: translateX(0);
   }
+
   to {
     /* Move exactly one full set width for seamless loop */
     transform: translateX(calc(-33.333%));
@@ -39,19 +40,52 @@
 
 @layer base {
   :root {
-    /* Organic theme color variables - Ambient light approach */
-    --color-organic-bg: #F6FBF7; /* Very soft neutral green base */
-    --color-organic-bg-alt: #F4FAF6;
-    --color-organic-accent: #4CAF50;
-    --color-organic-soft: #A8D5BA;
-    --color-organic-border: rgba(76, 175, 80, 0.06); /* Very subtle borders */
-    --color-organic-hover-glow: rgba(76, 175, 80, 0.08); /* Hover glow */
-    --color-organic-shadow: rgba(76, 175, 80, 0.06); /* Soft shadows */
-    --color-organic-text-dark: #2d6d31;
+    /* Base Colors - Warm & Organic */
+    --color-background: 252 250 248;
+    /* #FCFAF8 */
+    --color-surface: 255 255 255;
+    /* #FFFFFF */
+    --color-surface-soft: 248 250 245;
+    /* #F8FAF5 */
+    --color-surface-alt: 244 249 244;
+    /* #F4F9F4 */
+
+    /* Text Colors */
+    --color-text-primary: 28 28 28;
+    /* #1C1C1C */
+    --color-text-secondary: 75 85 80;
+    /* #4B5550 */
+    --color-text-muted: 120 130 125;
+    /* #78827D */
+
+    /* Primary Brand - Organic Green */
+    --color-primary: 76 175 80;
+    /* #4CAF50 - Keeping the vibrant brand green */
+    --color-primary-soft: 232 245 233;
+    /* #E8F5E9 */
+    --color-primary-hover: 67 160 71;
+    /* #43A047 */
+    --color-primary-foreground: 255 255 255;
+
+    /* Secondary/Accent */
+    --color-accent: 240 253 244;
+    /* #F0FDF4 */
+
+    /* UI Elements */
+    --color-border: 226 232 226;
+    /* #E2E8E2 */
+    --color-input: 226 232 226;
+    /* #E2E8E2 */
+    --color-ring: 76 175 80;
+    /* #4CAF50 */
+
+    /* Effects */
+    --color-shadow: 76 175 80;
+    /* Primary-tinted shadow */
   }
 
   * {
-    border-color: var(--color-organic-border);
+    border-color: rgb(var(--color-border));
   }
 
   html {
@@ -60,23 +94,14 @@
 
   body {
     @apply text-neutral-900 antialiased;
-    @apply transition-colors duration-400;
-    background: 
-      radial-gradient(
-        1200px 500px at 50% -10%,
-        rgba(168, 213, 186, 0.35) 0%,
-        rgba(168, 213, 186, 0.20) 25%,
-        rgba(168, 213, 186, 0.15) 50%,
-        rgba(168, 213, 186, 0.08) 75%,
-        rgba(246, 251, 247, 0) 100%
-      ),
-      linear-gradient(
-        180deg,
-        #F6FBF7 0%,
-        #F8FCF9 35%,
-        #FAFDFB 60%,
-        #FFFFFF 100%
-      );
+    color: rgb(var(--color-text-primary));
+    background:
+      radial-gradient(circle at 50% 0%,
+        rgb(var(--color-primary) / 0.08) 0%,
+        rgba(255, 255, 255, 0) 50%),
+      linear-gradient(180deg,
+        rgb(var(--color-background)) 0%,
+        rgb(var(--color-surface-soft)) 100%);
     background-attachment: fixed;
     font-feature-settings: 'kern' 1, 'liga' 1;
     -webkit-font-smoothing: antialiased;
@@ -118,53 +143,54 @@
   input,
   textarea,
   select {
-    @apply transition-all duration-300 ease-smooth;
+    @apply transition-all duration-300;
   }
 
   /* Hover glow for interactive elements - soft aura effect */
   a:hover:not([class*="bg-primary"]):not([class*="bg-neutral"]),
   button:hover:not([class*="bg-primary"]):not([class*="bg-neutral"]) {
-    box-shadow: 0 0 0 2px var(--color-organic-hover-glow);
+    box-shadow: 0 0 0 2px rgb(var(--color-primary-soft));
   }
 
   /* Hover glow effect - soft green aura, not background fill */
   article:hover,
   .card:hover {
-    box-shadow: 0 0 0 2px var(--color-organic-hover-glow), 0 6px 20px var(--color-organic-shadow);
+    box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.1), 0 8px 24px rgb(var(--color-shadow) / 0.1);
   }
 
   /* Focus styles for accessibility - removed green ring */
   :focus-visible {
-    @apply outline-none;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 
 @layer utilities {
+
   /* Organic theme utilities - Ambient approach */
   .bg-organic {
-    background-color: var(--color-organic-bg);
+    @apply bg-background;
   }
 
   .bg-organic-alt {
-    background-color: var(--color-organic-bg-alt);
+    @apply bg-surface-soft;
   }
 
   .border-organic {
-    border-color: var(--color-organic-border);
+    @apply border-border;
   }
 
   /* Hover glow utility - soft green aura */
   .hover-organic-glow {
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .hover-organic-glow:hover {
-    box-shadow: 0 0 0 2px var(--color-organic-hover-glow), 0 6px 20px var(--color-organic-shadow);
+    box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.1), 0 8px 30px rgb(var(--color-shadow) / 0.12);
   }
 
   /* Soft green shadow utility */
   .shadow-organic {
-    box-shadow: 0 6px 20px var(--color-organic-shadow);
+    box-shadow: 0 6px 20px rgb(var(--color-shadow) / 0.08);
   }
 
   /* Custom utility classes for premium aesthetic */
@@ -174,17 +200,17 @@
 
   /* Smooth fade transitions */
   .transition-fade {
-    @apply transition-opacity duration-400 ease-smooth;
+    @apply transition-opacity duration-300;
   }
 
   /* Smooth transform transitions */
   .transition-transform-smooth {
-    @apply transition-transform duration-400 ease-out-cubic;
+    @apply transition-transform duration-300 ease-out-cubic;
   }
 
   /* Animation-ready classes for future use */
   .animate-ready {
-    @apply transition-all duration-400 ease-smooth;
+    @apply transition-all duration-300;
   }
 
   .animate-fade-in {
@@ -199,6 +225,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -209,11 +236,33 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
+  /* Marquee Animation */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+    will-change: transform;
+  }
+
+  /* Pause on hover if desired, though user requested constant movement */
+  /* .animate-marquee:hover {
+    animation-play-state: paused;
+  } */
 
   /* Product image utility - ensures images are never cropped and properly centered */
   .product-image {
@@ -238,18 +287,21 @@
     width: 100%;
     height: auto;
     max-width: 100%;
-    max-height: 55vh; /* Mobile portrait */
+    max-height: 55vh;
+    /* Mobile portrait */
   }
 
   @media (min-width: 640px) {
     .product-detail-image {
-      max-height: 60vh; /* Tablet */
+      max-height: 60vh;
+      /* Tablet */
     }
   }
 
   @media (min-width: 1024px) {
     .product-detail-image {
-      max-height: 70vh; /* Desktop */
+      max-height: 70vh;
+      /* Desktop */
     }
   }
 
@@ -259,19 +311,22 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-height: 55vh; /* Mobile portrait */
+    max-height: 55vh;
+    /* Mobile portrait */
     overflow: hidden;
   }
 
   @media (min-width: 640px) {
     .product-detail-image-container {
-      max-height: 60vh; /* Tablet */
+      max-height: 60vh;
+      /* Tablet */
     }
   }
 
   @media (min-width: 1024px) {
     .product-detail-image-container {
-      max-height: 70vh; /* Desktop */
+      max-height: 70vh;
+      /* Desktop */
     }
   }
 }
