@@ -96,6 +96,7 @@ export async function POST(_req: NextRequest) {
         sizeGrams?: number | null
       }>
       totalAmount: number
+      shippingFee?: number
       addressLine1: string
       addressLine2: string | null
       city: string
@@ -140,6 +141,37 @@ export async function POST(_req: NextRequest) {
       return createErrorResponse('Payment amount mismatch', 400)
     }
 
+    // Step 3.5: Validate shipping fee calculation
+    const SHIPPING_THRESHOLD = 49900
+    const SHIPPING_FEE = 4000 // ₹40 in paise
+
+    // Calculate expected total from items
+    let expectedItemsTotal = 0
+    for (const item of orderData.orderItemsData) {
+      // Re-verify item price/discount logic if needed, but for now specific check on shipping
+      expectedItemsTotal += item.finalPrice
+    }
+
+    let expectedShippingFee = 0
+    if (expectedItemsTotal < SHIPPING_THRESHOLD) {
+      expectedShippingFee = SHIPPING_FEE
+    }
+
+    // Allow for minor floating point diffs if any, but logic is integer based (paise)
+    const calculatedTotal = expectedItemsTotal + expectedShippingFee
+
+    if (Math.abs(calculatedTotal - orderData.totalAmount) > 100) { // Allow 1 rupee difference for safety
+      console.error('[API Payments Verify] Total amount calculation mismatch:', {
+        calculatedItemsTotal: expectedItemsTotal,
+        calculatedShipping: expectedShippingFee,
+        calculatedTotal: calculatedTotal,
+        receivedTotal: orderData.totalAmount,
+      })
+      // We don't fail here to strictly avoid blocking payment if minor calc issue, 
+      // but strictly we should. Proceeding as Razorpay payment is already CAPTURED.
+      // Ideally we would trigger a refund if serious mismatch, but for now we log.
+    }
+
     // Step 4: Validate stock availability BEFORE creating order
     for (const orderItem of orderData.orderItemsData) {
       const { data: product } = await supabase
@@ -157,7 +189,7 @@ export async function POST(_req: NextRequest) {
       }
 
       const usesVariants = hasVariants(product.category)
-      
+
       // For variant-based products with sizeGrams, check variant stock
       const orderItemWithSize = orderItem as typeof orderItem & { sizeGrams?: number | null }
       if (usesVariants && orderItemWithSize.sizeGrams) {
@@ -256,7 +288,7 @@ export async function POST(_req: NextRequest) {
       }
 
       const usesVariants = hasVariants(product.category)
-      
+
       if (usesVariants && orderItem.sizeGrams) {
         // Reduce stock from ProductVariant for variant-based products
         const { data: variant, error: fetchVariantError } = await supabase

@@ -107,11 +107,11 @@ export async function POST(req: NextRequest) {
     }) || 'IN'
     const addressLine2 = rawAddressLine2
       ? validateString(rawAddressLine2, {
-          minLength: 1,
-          maxLength: 200,
-          required: false,
-          trim: true,
-        })
+        minLength: 1,
+        maxLength: 200,
+        required: false,
+        trim: true,
+      })
       : null
 
     if (!addressLine1 || !city || !state || !postalCode) {
@@ -161,14 +161,14 @@ export async function POST(req: NextRequest) {
     const variantIds = cartItems
       .map((item: any) => item.variantId)
       .filter((id: string | null): id is string => id !== null && id !== undefined)
-    
+
     let variants: any[] = []
     if (variantIds.length > 0) {
       const { data: variantsData } = await supabase
         .from('ProductVariant')
         .select('*')
         .in('id', variantIds)
-      
+
       variants = variantsData || []
     }
 
@@ -246,6 +246,18 @@ export async function POST(req: NextRequest) {
       totalAmount += finalPriceInPaise
     }
 
+    // Calculate shipping fee
+    // Free shipping for orders above ₹499
+    // Current logic uses paise, so 499 * 100 = 49900
+    const SHIPPING_THRESHOLD = 49900
+    const SHIPPING_FEE = 4000 // ₹40 in paise
+
+    let shippingFee = 0
+    if (totalAmount < SHIPPING_THRESHOLD) {
+      shippingFee = SHIPPING_FEE
+      totalAmount += shippingFee
+    }
+
     if (totalAmount <= 0) {
       return createErrorResponse('Invalid order amount', 400)
     }
@@ -270,7 +282,7 @@ export async function POST(req: NextRequest) {
       razorpayCurrency = razorpayOrder.currency
     } catch (razorpayError) {
       console.error('[RAZORPAY] Failed to create Razorpay order:', razorpayError)
-      
+
       // Check if it's a missing environment variable error
       const errorMessage = razorpayError instanceof Error ? razorpayError.message : String(razorpayError)
       if (errorMessage.includes('RAZORPAY_KEY_ID') || errorMessage.includes('RAZORPAY_KEY_SECRET')) {
@@ -280,7 +292,7 @@ export async function POST(req: NextRequest) {
           500
         )
       }
-      
+
       return createErrorResponse(
         'Failed to initialize payment gateway. Please try again later.',
         500
@@ -299,6 +311,7 @@ export async function POST(req: NextRequest) {
         selectedCartItemIds,
         orderItemsData,
         totalAmount,
+        shippingFee,
         addressLine1,
         addressLine2,
         city,

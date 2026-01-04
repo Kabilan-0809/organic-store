@@ -10,7 +10,7 @@ import { formatDateIST } from '@/lib/utils'
 
 // Razorpay is loaded dynamically from CDN
 interface RazorpayConstructor {
-  new (options: {
+  new(options: {
     key: string
     amount: number
     currency: string
@@ -388,6 +388,15 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
   // totalAmount from API is already in rupees (converted from paise by API)
   const totalInRupees = order.totalAmount
 
+  // Calculate items total to derive shipping fee
+  const itemsTotalInRupees = order.items.reduce((sum, item) => {
+    return sum + (item.finalPrice || 0)
+  }, 0)
+
+  const shippingFee = totalInRupees - itemsTotalInRupees
+  // Allow for small floating point differences, assume < 1 rupee diff is zero/rounding
+  const isFreeShipping = shippingFee < 1
+
   return (
     <AnimatedPage>
       <section className="py-10 sm:py-12 lg:py-16">
@@ -403,41 +412,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {['ORDER_CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status) && (
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(`/api/orders/${orderId}/invoice`, {
-                        headers: {
-                          Authorization: `Bearer ${accessToken}`,
-                        },
-                      })
 
-                      if (!response.ok) {
-                        const error = await response.json()
-                        alert(error.message || 'Failed to download invoice')
-                        return
-                      }
-
-                      const blob = await response.blob()
-                      const url = window.URL.createObjectURL(blob)
-                      const a = document.createElement('a')
-                      a.href = url
-                      a.download = `invoice-${order.id.substring(0, 8)}.pdf`
-                      document.body.appendChild(a)
-                      a.click()
-                      window.URL.revokeObjectURL(url)
-                      document.body.removeChild(a)
-                    } catch (error) {
-                      console.error('[Invoice Download]', error)
-                      alert('Failed to download invoice. Please try again.')
-                    }
-                  }}
-                  className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-                >
-                  Download Invoice
-                </button>
-              )}
               <span className={getStatusBadge(order.status)}>
                 {order.status}
               </span>
@@ -503,7 +478,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
                   )
                 })}
               </div>
-              
+
               {/* Price Breakdown */}
               <div className="mt-6 space-y-3 border-t border-neutral-200 pt-4">
                 <div className="flex items-center justify-between text-sm">
@@ -514,7 +489,11 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-600">Shipping</span>
-                  <span className="font-medium text-neutral-900">Free</span>
+                  {isFreeShipping ? (
+                    <span className="font-medium text-green-600">Free</span>
+                  ) : (
+                    <span className="font-medium text-neutral-900">₹{shippingFee.toFixed(2)}</span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between border-t border-neutral-200 pt-3">
                   <span className="text-lg font-semibold text-neutral-900">Total</span>

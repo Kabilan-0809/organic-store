@@ -11,7 +11,7 @@ import Script from 'next/script'
 
 // Razorpay is loaded dynamically from CDN
 interface RazorpayConstructor {
-  new (options: {
+  new(options: {
     key: string
     amount: number
     currency: string
@@ -54,7 +54,7 @@ export default function CheckoutReviewContent() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const [isProcessingPaymentState, setIsProcessingPaymentState] = useState(false) // Track if payment is being processed
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay')
-  
+
   // Address form state
   const [address, setAddress] = useState({
     addressLine1: '',
@@ -79,7 +79,7 @@ export default function CheckoutReviewContent() {
     }
 
     const selectedCartItemIds: string[] = JSON.parse(storedIds)
-    
+
     // Filter cart items to only selected ones
     const selectedItems = items.filter(
       (item) => item.cartItemId && selectedCartItemIds.includes(item.cartItemId) && item.product.inStock
@@ -107,6 +107,14 @@ export default function CheckoutReviewContent() {
     return sum + discountedPriceInRupees * item.quantity
   }, 0)
 
+  // Calculate Shipping (Logic duplicated from util/cart for consistency)
+  const SHIPPING_THRESHOLD = 499
+  const SHIPPING_FEE = 40
+  const isFreeShipping = subtotal >= SHIPPING_THRESHOLD
+  const shippingFee = isFreeShipping ? 0 : SHIPPING_FEE
+
+  const finalTotal = subtotal + shippingFee
+
   const handleCreateOrder = async () => {
     if (!accessToken) {
       alert('Please log in to continue')
@@ -127,7 +135,7 @@ export default function CheckoutReviewContent() {
     setIsCreatingOrder(true)
     try {
       const selectedCartItemIds = checkoutItems.map(item => item.cartItemId).filter((id): id is string => !!id)
-      
+
       // Handle COD orders
       if (paymentMethod === 'cod') {
         const response = await fetch('/api/orders/create-cod', {
@@ -221,6 +229,7 @@ export default function CheckoutReviewContent() {
         quantity: number
       }>
       totalAmount: number
+      shippingFee?: number
       addressLine1: string
       addressLine2: string | null
       city: string
@@ -310,7 +319,7 @@ export default function CheckoutReviewContent() {
           color: '#4CAF50',
         },
         modal: {
-          ondismiss: async function() {
+          ondismiss: async function () {
             // User closed payment modal without completing payment
             setIsProcessingPayment(false)
             // Order remains in PAYMENT_PENDING status
@@ -358,8 +367,8 @@ export default function CheckoutReviewContent() {
 
   return (
     <>
-      <Script 
-        src="https://checkout.razorpay.com/v1/checkout.js" 
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="lazyOnload"
         onLoad={() => {
           console.log('[Razorpay] Script loaded successfully')
@@ -561,25 +570,30 @@ export default function CheckoutReviewContent() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Shipping</span>
-                    <span className="font-medium text-neutral-900">Free</span>
+
+                    {isFreeShipping ? (
+                      <span className="font-medium text-green-600">Free</span>
+                    ) : (
+                      <span className="font-medium text-neutral-900">₹{shippingFee.toFixed(2)}</span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-4 flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-primary-600">₹{subtotal.toFixed(2)}</span>
+                  <span className="text-primary-600">₹{finalTotal.toFixed(2)}</span>
                 </div>
                 <button
                   onClick={handleCreateOrder}
                   disabled={isCreatingOrder || isProcessingPayment || isProcessingPaymentState}
                   className="mt-6 w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isCreatingOrder 
-                    ? 'Creating Order...' 
+                  {isCreatingOrder
+                    ? 'Creating Order...'
                     : isProcessingPayment || isProcessingPaymentState
-                    ? 'Processing Payment...' 
-                    : paymentMethod === 'cod'
-                    ? 'Place Order (COD)'
-                    : 'Pay Now'}
+                      ? 'Processing Payment...'
+                      : paymentMethod === 'cod'
+                        ? 'Place Order (COD)'
+                        : 'Pay Now'}
                 </button>
                 <button
                   onClick={() => router.back()}

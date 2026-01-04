@@ -88,27 +88,34 @@ export default function CartDrawer() {
       return sum + discountedPriceInRupees * item.quantity
     }, 0)
 
+  // Calculate shipping fee logic
+  const SHIPPING_THRESHOLD = 499
+  const SHIPPING_FEE = 40
+
+  const isFreeShipping = selectedSubtotal >= SHIPPING_THRESHOLD
+  const shippingFee = isFreeShipping ? 0 : SHIPPING_FEE
+  const amountToFreeShipping = Math.max(0, SHIPPING_THRESHOLD - selectedSubtotal)
+
+  const finalTotal = selectedSubtotal + (hasItems && isAuthenticated && selectedCartItemIds.length > 0 ? shippingFee : 0)
+
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-end ${
-        isOpen ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
+      className={`fixed inset-0 z-50 flex justify-end ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
       aria-hidden={!isOpen}
     >
       {/* Backdrop */}
       <button
         type="button"
         onClick={close}
-        className={`h-full w-full bg-black/20 transition-opacity ${
-          isOpen ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`h-full w-full bg-black/20 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0'
+          }`}
       />
 
       {/* Drawer */}
       <aside
-        className={`relative flex h-full w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ease-smooth pb-[env(safe-area-inset-bottom)] ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`relative flex h-full w-full max-w-md flex-col bg-white shadow-xl transition-transform duration-300 ease-smooth pb-[env(safe-area-inset-bottom)] ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
         aria-label="Shopping cart"
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-4 sm:px-6">
@@ -127,6 +134,34 @@ export default function CartDrawer() {
             ✕
           </button>
         </div>
+
+
+
+        {/* Free Shipping Progress */}
+        {
+          hasItems && isAuthenticated && selectedCartItemIds.length > 0 && (
+            <div className="bg-primary-50 px-4 py-3 sm:px-6">
+              {isFreeShipping ? (
+                <div className="flex items-center gap-2 text-sm text-green-700">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-200 text-xs text-green-800">✓</span>
+                  <p className="font-medium">You've unlocked FREE delivery!</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-primary-800">
+                    Add <span className="font-bold">₹{amountToFreeShipping.toFixed(2)}</span> more for FREE delivery
+                  </p>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary-200">
+                    <div
+                      className="h-full bg-primary-600 transition-all duration-500"
+                      style={{ width: `${(selectedSubtotal / SHIPPING_THRESHOLD) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        }
 
         <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {hasItems ? (
@@ -151,11 +186,10 @@ export default function CartDrawer() {
                 return (
                   <li
                     key={item.product.id}
-                    className={`flex items-start gap-4 rounded-2xl border p-3 ${
-                      isUnavailable || exceedsStock
+                    className={`flex items-start gap-4 rounded-2xl border p-3 ${isUnavailable || exceedsStock
                         ? 'border-neutral-200 bg-neutral-50/40 opacity-75'
                         : 'border-neutral-200 bg-neutral-50/60'
-                    }`}
+                      }`}
                   >
                     {/* Checkbox (only for authenticated users, disabled if unavailable) */}
                     {canSelect && (
@@ -194,106 +228,106 @@ export default function CartDrawer() {
                       )}
                     </Link>
                     <div className="flex flex-1 flex-col">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-neutral-900">
-                          {item.product.name}
-                          {item.product.sizeGrams && ` – ${item.product.sizeGrams}g`}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          {item.product.category}
-                        </p>
-                        {isUnavailable && (
-                          <p className="mt-1 text-xs font-medium text-amber-600">
-                            Currently unavailable
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-neutral-900">
+                            {item.product.name}
+                            {item.product.sizeGrams && ` – ${item.product.sizeGrams}g`}
                           </p>
-                        )}
-                        {!isUnavailable && exceedsStock && (
-                          <p className="mt-1 text-xs font-medium text-amber-600">
-                            Low stock: Only {availableStock} available (you have {item.quantity})
+                          <p className="text-xs text-neutral-500">
+                            {item.product.category}
                           </p>
-                        )}
-                        {!isUnavailable && !exceedsStock && isLowStock && (
-                          <p className="mt-1 text-xs font-medium text-amber-600">
-                            Low stock: Only {availableStock} left
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.product.id, item.cartItemId, item.product.sizeGrams)}
-                        className="text-xs text-neutral-400 hover:text-neutral-700"
-                      >
-                        Remove
-                      </button>
-                    </div>
-
-                    <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-2 py-1 w-fit">
+                          {isUnavailable && (
+                            <p className="mt-1 text-xs font-medium text-amber-600">
+                              Currently unavailable
+                            </p>
+                          )}
+                          {!isUnavailable && exceedsStock && (
+                            <p className="mt-1 text-xs font-medium text-amber-600">
+                              Low stock: Only {availableStock} available (you have {item.quantity})
+                            </p>
+                          )}
+                          {!isUnavailable && !exceedsStock && isLowStock && (
+                            <p className="mt-1 text-xs font-medium text-amber-600">
+                              Low stock: Only {availableStock} left
+                            </p>
+                          )}
+                        </div>
                         <button
                           type="button"
-                          onClick={() =>
-                            setQuantity(item.product.id, Math.max(item.quantity - 1, 1), item.cartItemId, item.product.sizeGrams)
-                          }
-                          disabled={isUnavailable}
-                          aria-label="Decrease quantity"
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => removeItem(item.product.id, item.cartItemId, item.product.sizeGrams)}
+                          className="text-xs text-neutral-400 hover:text-neutral-700"
                         >
-                          −
-                        </button>
-                        <span className="min-w-[1.75rem] text-center text-xs font-medium text-neutral-900">
-                          {item.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const maxQuantity = availableStock > 0 ? Math.min(availableStock, 99) : 99
-                            setQuantity(item.product.id, Math.min(item.quantity + 1, maxQuantity), item.cartItemId, item.product.sizeGrams)
-                          }}
-                          disabled={isUnavailable || (availableStock > 0 && item.quantity >= availableStock)}
-                          aria-label="Increase quantity"
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          +
+                          Remove
                         </button>
                       </div>
 
-                      <div className="flex flex-col items-start gap-1 sm:items-end">
-                        {item.product.discountPercent && item.product.discountPercent > 0 ? (
-                          <>
-                            <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-                            <span className="text-sm font-semibold text-neutral-900 whitespace-nowrap">
-                              ₹{(
-                                (calculateDiscountedPrice(item.product.price * 100, item.product.discountPercent) / 100) *
-                                item.quantity
-                              ).toFixed(2)}
-                            </span>
-                            <span className="text-xs text-neutral-400 line-through whitespace-nowrap">
-                              ₹{(item.product.price * item.quantity).toFixed(2)}
-                              </span>
-                              <span className="rounded-full bg-primary-100 px-1.5 py-0.5 text-[10px] sm:text-xs font-semibold text-primary-700 whitespace-nowrap">
-                                {item.product.discountPercent}% OFF
-                              </span>
-                            </div>
-                            <span className="text-xs text-neutral-500 whitespace-nowrap">
-                              ₹{(calculateDiscountedPrice(item.product.price * 100, item.product.discountPercent) / 100).toFixed(2)} per unit
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                          <span className="text-sm font-semibold text-neutral-900 whitespace-nowrap">
-                            ₹{(item.product.price * item.quantity).toFixed(2)}
+                      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-2 py-1 w-fit">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setQuantity(item.product.id, Math.max(item.quantity - 1, 1), item.cartItemId, item.product.sizeGrams)
+                            }
+                            disabled={isUnavailable}
+                            aria-label="Decrease quantity"
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="min-w-[1.75rem] text-center text-xs font-medium text-neutral-900">
+                            {item.quantity}
                           </span>
-                            <span className="text-xs text-neutral-500 whitespace-nowrap">
-                              ₹{item.product.price.toFixed(2)} per unit
-                            </span>
-                          </>
-                        )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const maxQuantity = availableStock > 0 ? Math.min(availableStock, 99) : 99
+                              setQuantity(item.product.id, Math.min(item.quantity + 1, maxQuantity), item.cartItemId, item.product.sizeGrams)
+                            }}
+                            disabled={isUnavailable || (availableStock > 0 && item.quantity >= availableStock)}
+                            aria-label="Increase quantity"
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <div className="flex flex-col items-start gap-1 sm:items-end">
+                          {item.product.discountPercent && item.product.discountPercent > 0 ? (
+                            <>
+                              <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+                                <span className="text-sm font-semibold text-neutral-900 whitespace-nowrap">
+                                  ₹{(
+                                    (calculateDiscountedPrice(item.product.price * 100, item.product.discountPercent) / 100) *
+                                    item.quantity
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="text-xs text-neutral-400 line-through whitespace-nowrap">
+                                  ₹{(item.product.price * item.quantity).toFixed(2)}
+                                </span>
+                                <span className="rounded-full bg-primary-100 px-1.5 py-0.5 text-[10px] sm:text-xs font-semibold text-primary-700 whitespace-nowrap">
+                                  {item.product.discountPercent}% OFF
+                                </span>
+                              </div>
+                              <span className="text-xs text-neutral-500 whitespace-nowrap">
+                                ₹{(calculateDiscountedPrice(item.product.price * 100, item.product.discountPercent) / 100).toFixed(2)} per unit
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-sm font-semibold text-neutral-900 whitespace-nowrap">
+                                ₹{(item.product.price * item.quantity).toFixed(2)}
+                              </span>
+                              <span className="text-xs text-neutral-500 whitespace-nowrap">
+                                ₹{item.product.price.toFixed(2)} per unit
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </li>
-              )
+                  </li>
+                )
               })}
             </ul>
           ) : (
@@ -318,6 +352,29 @@ export default function CartDrawer() {
                 : subtotal.toFixed(2)}
             </span>
           </div>
+
+          {/* Shipping Fee Line */}
+          {isAuthenticated && selectedCartItemIds.length > 0 && (
+            <div className="mb-3 flex items-center justify-between text-sm">
+              <span className="text-neutral-600">Shipping</span>
+              {isFreeShipping ? (
+                <span className="font-medium text-green-600">Free</span>
+              ) : (
+                <span className="font-medium text-neutral-900">₹{SHIPPING_FEE.toFixed(2)}</span>
+              )}
+            </div>
+          )}
+
+          {/* Total Line */}
+          {isAuthenticated && selectedCartItemIds.length > 0 && (
+            <div className="mb-4 flex items-center justify-between border-t border-neutral-200 pt-3">
+              <span className="text-base font-bold text-neutral-900">Total</span>
+              <span className="text-xl font-bold text-neutral-900">
+                ₹{finalTotal.toFixed(2)}
+              </span>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={handleCheckout}
@@ -331,8 +388,8 @@ export default function CartDrawer() {
                 : 'Login to Checkout'}
           </button>
         </div>
-      </aside>
-    </div>
+      </aside >
+    </div >
   )
 }
 

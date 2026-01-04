@@ -139,7 +139,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
 
     // Confirm refund action
     const confirmMessage = `Are you sure you want to refund this order?\n\nOrder ID: ${order.id?.substring(0, 8) || 'N/A'}\nAmount: ₹${order.totalAmount.toFixed(2)}\n\nThis action will:\n- Process refund through Razorpay\n- Restore product stock\n- Mark order as REFUNDED\n\nThis action cannot be undone.`
-    
+
     if (!confirm(confirmMessage)) {
       return
     }
@@ -290,41 +290,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {['ORDER_CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(order.status) && (
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(`/api/admin/orders/${orderId}/invoice`, {
-                        headers: {
-                          Authorization: `Bearer ${accessToken}`,
-                        },
-                      })
 
-                      if (!response.ok) {
-                        const error = await response.json()
-                        alert(error.message || 'Failed to download invoice')
-                        return
-                      }
-
-                      const blob = await response.blob()
-                      const url = window.URL.createObjectURL(blob)
-                      const a = document.createElement('a')
-                      a.href = url
-                      a.download = `invoice-${order.id?.substring(0, 8) || 'N/A'}.pdf`
-                      document.body.appendChild(a)
-                      a.click()
-                      window.URL.revokeObjectURL(url)
-                      document.body.removeChild(a)
-                    } catch (error) {
-                      console.error('[Invoice Download]', error)
-                      alert('Failed to download invoice. Please try again.')
-                    }
-                  }}
-                  className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
-                >
-                  Download Invoice
-                </button>
-              )}
               <span className={getStatusBadge(order.status)}>
                 {order.status}
               </span>
@@ -392,7 +358,7 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                     )
                   })}
                 </div>
-                
+
                 {/* Price Breakdown */}
                 <div className="mt-6 space-y-3 border-t border-neutral-200 pt-4">
                   <div className="flex items-center justify-between text-sm">
@@ -550,11 +516,11 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
                   <h2 className="mb-4 text-lg font-semibold text-neutral-900">Update Order Status</h2>
                   <p className="mb-4 text-sm text-neutral-600">
-                    {order.status === 'ORDER_CONFIRMED' 
+                    {order.status === 'ORDER_CONFIRMED'
                       ? 'Mark order as shipped when ready to dispatch'
                       : order.status === 'SHIPPED'
-                      ? 'Mark order as delivered when delivery is confirmed'
-                      : 'Update order status'}
+                        ? 'Mark order as delivered when delivery is confirmed'
+                        : 'Update order status'}
                   </p>
                   <div className="space-y-2">
                     {nextStatusOptions.map((status) => (
@@ -564,9 +530,9 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                           const confirmMessage = order.status === 'ORDER_CONFIRMED'
                             ? `Mark this order as SHIPPED?\n\nThis indicates the order has been dispatched and is on its way to the customer.`
                             : order.status === 'SHIPPED'
-                            ? `Mark this order as DELIVERED?\n\nThis confirms the order has been successfully delivered to the customer.`
-                            : `Are you sure you want to mark this order as ${status}?`
-                          
+                              ? `Mark this order as DELIVERED?\n\nThis confirms the order has been successfully delivered to the customer.`
+                              : `Are you sure you want to mark this order as ${status}?`
+
                           if (confirm(confirmMessage)) {
                             handleStatusUpdate(status)
                           }

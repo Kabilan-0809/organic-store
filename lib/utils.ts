@@ -35,10 +35,13 @@ export function formatDateIST(
   }
 ): string {
   if (!dateString) return 'N/A'
-  
+
   // Parse the date string as UTC
-  const date = new Date(dateString)
-  
+  // If the string doesn't include timezone information (e.g., 'Z' or '+...'), assume it's UTC
+  // This handles ISO strings from DB that might be like '2023-01-01T12:00:00'
+  const dateStr = dateString.endsWith('Z') || dateString.includes('+') ? dateString : `${dateString}Z`
+  const date = new Date(dateStr)
+
   // Format in IST timezone (Asia/Kolkata = UTC+5:30)
   return new Intl.DateTimeFormat('en-IN', {
     ...options,
