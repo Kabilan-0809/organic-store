@@ -144,7 +144,7 @@ export default function CartDrawer() {
               {isFreeShipping ? (
                 <div className="flex items-center gap-2 text-sm text-green-700">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-200 text-xs text-green-800">✓</span>
-                  <p className="font-medium">You've unlocked FREE delivery!</p>
+                  <p className="font-medium">You&apos;ve unlocked FREE delivery!</p>
                 </div>
               ) : (
                 <div className="space-y-1">
@@ -187,8 +187,8 @@ export default function CartDrawer() {
                   <li
                     key={item.product.id}
                     className={`flex items-start gap-4 rounded-2xl border p-3 ${isUnavailable || exceedsStock
-                        ? 'border-neutral-200 bg-neutral-50/40 opacity-75'
-                        : 'border-neutral-200 bg-neutral-50/60'
+                      ? 'border-neutral-200 bg-neutral-50/40 opacity-75'
+                      : 'border-neutral-200 bg-neutral-50/60'
                       }`}
                   >
                     {/* Checkbox (only for authenticated users, disabled if unavailable) */}

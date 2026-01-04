@@ -354,7 +354,6 @@ export async function POST(_req: NextRequest) {
           // Reduce stock from Product (Non-variant)
 
           // TRY RPC FIRST
-          // @ts-ignore - Supabase rpc types can be finicky
           const { error: rpcError } = await supabase.rpc('decrement_stock', {
             product_id: orderItem.productId,
             quantity: orderItem.quantity,
