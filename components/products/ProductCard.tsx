@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { calculateDiscountedPrice } from '@/lib/pricing'
 import type { Product } from '@/types'
 
 interface ProductCardProps {
@@ -13,17 +14,30 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [imageError, setImageError] = useState(false)
 
   const slugOrId = product.slug ?? product.id
-  const isOutOfStock = (product.stock ?? 0) === 0
+  // Determine stock status: check product stock or sum of variant stocks
+  const hasVariants = product.variants && product.variants.length > 0
+  const totalStock = hasVariants
+    ? product.variants!.reduce((sum, v) => sum + (v.stock || 0), 0)
+    : (product.stock ?? 0)
+
+  const isOutOfStock = totalStock <= 0
+
+  // Pricing Logic
+  // product.price is in Rupees. calculateDiscountedPrice expects Paise.
+  const originalPriceInRupees = product.price
+  const originalPriceInPaise = originalPriceInRupees * 100
+  const discountedPriceInPaise = calculateDiscountedPrice(originalPriceInPaise, product.discountPercent)
+  const discountedPriceInRupees = discountedPriceInPaise / 100
+  const hasDiscount = product.discountPercent != null && product.discountPercent > 0
 
   return (
-    <article className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-all duration-300 ease-smooth ${
-      isOutOfStock 
-        ? 'opacity-50' 
-        : 'hover:-translate-y-1 hover:shadow-xl hover:shadow-neutral-900/5'
-    }`}>
+    <article className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm transition-all duration-300 ease-smooth ${isOutOfStock
+      ? 'opacity-60'
+      : 'hover:-translate-y-1 hover:shadow-xl hover:shadow-neutral-900/5'
+      }`}>
       <Link
-        href={`/shop/${slugOrId}`}
-        aria-label={`View details for ${product.name}`}
+        href={`/shop/${slugOrId}`} // Use filtered slug from props
+        aria-label={`View details for ${product.name}, price ₹${discountedPriceInRupees}`}
         className="flex flex-1 flex-col"
         draggable="false"
       >
@@ -35,37 +49,39 @@ export default function ProductCard({ product }: ProductCardProps) {
               alt={product.name}
               width={400}
               height={600}
-              className={`product-image h-auto w-full max-w-full object-contain transition-transform duration-300 ${
-                isOutOfStock 
-                  ? 'grayscale' 
-                  : 'group-hover:scale-[1.02]'
-              }`}
+              className={`product-image h-auto w-full max-w-full object-contain transition-transform duration-300 ${isOutOfStock
+                ? 'grayscale'
+                : 'group-hover:scale-[1.02]'
+                }`}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
               onError={() => setImageError(true)}
             />
           ) : (
-            // Fallback placeholder if image fails to load
+            // Fallback placeholder
             <div className="flex h-full min-h-[200px] items-center justify-center sm:min-h-[240px]">
               <div className="h-16 w-16 rounded-full bg-white/80 shadow-sm backdrop-blur-sm" />
             </div>
           )}
-          {/* Out of Stock badge on image */}
+
+          {/* Out of Stock badge */}
           {isOutOfStock && (
             <div className="absolute top-3 left-3 z-10">
-              <span className="inline-flex items-center rounded-full bg-neutral-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-neutral-600/30 sm:px-3.5 sm:py-2 sm:text-sm">
+              <span className="inline-flex items-center rounded-full bg-neutral-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-neutral-600/30">
                 Out of Stock
               </span>
             </div>
           )}
-          {/* Discount badge on image (only if not out of stock) */}
-          {!isOutOfStock && product.discountPercent != null && product.discountPercent > 0 && (
+
+          {/* Discount badge */}
+          {!isOutOfStock && hasDiscount && (
             <div className="absolute top-3 right-3 z-10">
-              <span className="inline-flex items-center rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-emerald-500/30 sm:px-3.5 sm:py-2 sm:text-sm">
+              <span className="inline-flex items-center rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-emerald-500/30">
                 {product.discountPercent}% OFF
               </span>
             </div>
           )}
-          {/* Subtle overlay on hover (only if in stock) */}
+
+          {/* Hover overlay */}
           {!isOutOfStock && (
             <div className="absolute inset-0 bg-primary-600/0 transition-colors duration-300 group-hover:bg-primary-600/5" />
           )}
@@ -73,41 +89,74 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Content */}
         <div className="flex flex-1 flex-col p-5 sm:p-6">
-          {/* Category badge */}
-          <div className="mb-3">
-            <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
-              isOutOfStock 
-                ? 'bg-neutral-100 text-neutral-400' 
-                : 'bg-primary-50 text-primary-700'
-            }`}>
+          {/* Category */}
+          <div className="mb-2">
+            <span className={`inline-block text-xs font-medium tracking-wide uppercase ${isOutOfStock
+              ? 'text-neutral-400'
+              : 'text-primary-600'
+              }`}>
               {product.category}
             </span>
           </div>
 
           {/* Product name */}
-          <h3 className={`mb-2 text-xl font-semibold leading-tight transition-colors duration-200 ${
-            isOutOfStock 
-              ? 'text-neutral-400' 
-              : 'text-neutral-900 group-hover:text-primary-700'
-          }`}>
+          <h3 className={`mb-2 text-lg font-semibold leading-tight transition-colors duration-200 ${isOutOfStock
+            ? 'text-neutral-500'
+            : 'text-neutral-900 group-hover:text-primary-700'
+            }`}>
             {product.name}
           </h3>
 
-          {/* Description */}
-          <p className={`mb-5 flex-1 text-sm leading-relaxed line-clamp-3 ${
-            isOutOfStock ? 'text-neutral-400' : 'text-neutral-600'
-          }`}>
+          {/* Description (truncated) */}
+          <p className={`mb-4 flex-1 text-sm leading-relaxed line-clamp-2 ${isOutOfStock ? 'text-neutral-400' : 'text-neutral-600'
+            }`}>
             {product.description}
           </p>
-          
-          {/* Low stock indicator */}
-          {product.inStock && product.stock !== undefined && product.stock > 0 && product.stock < 20 && (
-            <div className="mt-auto">
-              <p className="text-xs font-medium text-amber-600">
-                Only {product.stock} left in stock
-              </p>
+
+          {/* Pack Size / Variants Info */}
+          <div className="mb-4">
+            {hasVariants ? (
+              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-600">
+                {product.variants!.length} sizes available
+                {/* Optional: Show range e.g. 200g - 1kg */}
+              </span>
+            ) : product.sizeGrams ? (
+              <span className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-600">
+                {product.sizeGrams}g
+              </span>
+            ) : (
+              // Space filler if no size info
+              <span className="block h-6"></span>
+            )}
+          </div>
+
+          {/* Price & Stock */}
+          <div className="mt-auto flex items-end justify-between">
+            <div className="flex flex-col">
+              {/* Price Display */}
+              {hasDiscount ? (
+                <div className="flex flex-col">
+                  <span className="text-xs text-neutral-400 line-through">
+                    ₹{originalPriceInRupees.toFixed(2)}
+                  </span>
+                  <span className={`text-lg font-bold ${isOutOfStock ? 'text-neutral-500' : 'text-primary-700'}`}>
+                    ₹{discountedPriceInRupees.toFixed(2)}
+                  </span>
+                </div>
+              ) : (
+                <span className={`text-lg font-bold ${isOutOfStock ? 'text-neutral-500' : 'text-neutral-900'}`}>
+                  ₹{originalPriceInRupees.toFixed(2)}
+                </span>
+              )}
             </div>
-          )}
+
+            {/* Low stock indicator */}
+            {!isOutOfStock && totalStock < 20 && (
+              <span className="text-xs font-medium text-amber-600">
+                Only {totalStock} left
+              </span>
+            )}
+          </div>
         </div>
       </Link>
     </article>

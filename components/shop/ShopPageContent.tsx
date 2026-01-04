@@ -37,6 +37,7 @@ export default function ShopPageContent() {
           imageUrl: string
           stock: number
           inStock: boolean
+          variants?: any[]
         }) => ({
           id: p.id,
           slug: p.slug,
@@ -48,6 +49,7 @@ export default function ShopPageContent() {
           image: p.imageUrl,
           inStock: p.inStock,
           stock: p.stock, // Include stock for low stock warnings
+          variants: p.variants,
         }))
         setProducts(mappedProducts)
       } catch (err) {

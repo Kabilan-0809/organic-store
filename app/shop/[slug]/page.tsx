@@ -51,7 +51,7 @@ export async function generateMetadata({
 export default async function ProductSlugPage({ params }: ProductSlugPageProps) {
   // Decode the slug parameter (handles URL encoding like %20 for spaces)
   const decodedSlug = decodeURIComponent(params.slug)
-  
+
   // Fetch product first (without nested query to avoid Supabase issues)
   // Try exact match first, then case-insensitive match if needed
   const { data: products, error: productError } = await supabase
@@ -82,8 +82,8 @@ export default async function ProductSlugPage({ params }: ProductSlugPageProps) 
   // Find product by slug (case-insensitive comparison to handle slug variations)
   const product = products.find(
     (p) => p.slug?.toLowerCase().trim() === decodedSlug.toLowerCase().trim() ||
-           p.slug === decodedSlug ||
-           p.name?.toLowerCase().trim() === decodedSlug.toLowerCase().trim()
+      p.slug === decodedSlug ||
+      p.name?.toLowerCase().trim() === decodedSlug.toLowerCase().trim()
   )
 
   if (!product) {
@@ -92,7 +92,7 @@ export default async function ProductSlugPage({ params }: ProductSlugPageProps) 
 
   const productData: any = product
   const usesVariants = hasVariants(productData.category)
-  
+
   // Fetch variants separately if this product uses variants
   let variants: any[] = []
   if (usesVariants) {
@@ -149,8 +149,41 @@ export default async function ProductSlugPage({ params }: ProductSlugPageProps) 
     }),
   }
 
+  // Create JSON-LD Structured Data
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: productData.name,
+    image: productData.imageUrl ? [productData.imageUrl] : [],
+    description: productData.description,
+    sku: productData.id,
+    brand: {
+      '@type': 'Brand',
+      name: 'Millets N Joy',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://milletsnjoy.com/shop/${productData.slug}`,
+      priceCurrency: 'INR',
+      price: (productData.price / 100).toFixed(2),
+      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: {
+        '@type': 'Organization',
+        name: 'Millets N Joy',
+      },
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ProductDetailPageContent product={mappedProduct} />
     </>
   )

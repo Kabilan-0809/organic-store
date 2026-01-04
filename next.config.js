@@ -7,6 +7,14 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@/components', '@/lib'],
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Handle PDFKit font files for server-side rendering

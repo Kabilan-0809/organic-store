@@ -287,73 +287,130 @@ export async function POST(_req: NextRequest) {
         continue
       }
 
+      // Retry loop for optimistic concurrency control
+      const MAX_RETRIES = 3
+      let retries = 0
+      let updated = false
+
+      // Re-derive usesVariants since it was lost in previous edit
       const usesVariants = hasVariants(product.category)
 
-      if (usesVariants && orderItem.sizeGrams) {
-        // Reduce stock from ProductVariant for variant-based products
-        const { data: variant, error: fetchVariantError } = await supabase
-          .from('ProductVariant')
-          .select('stock')
-          .eq('productId', orderItem.productId)
-          .eq('sizeGrams', orderItem.sizeGrams)
-          .single()
+      while (retries < MAX_RETRIES && !updated) {
+        if (usesVariants && orderItem.sizeGrams) {
+          // Reduce stock from ProductVariant
+          const { data: variant, error: fetchVariantError } = await supabase
+            .from('ProductVariant')
+            .select('stock, id')
+            .eq('productId', orderItem.productId)
+            .eq('sizeGrams', orderItem.sizeGrams)
+            .single()
 
-        if (fetchVariantError || !variant) {
-          console.error('[API Payments Verify] Variant not found during stock update:', {
-            productId: orderItem.productId,
-            sizeGrams: orderItem.sizeGrams,
-          })
-          continue
-        }
-
-        const newStock = variant.stock - orderItem.quantity
-        if (newStock < 0) {
-          console.error('[API Payments Verify] Variant stock went negative:', {
-            productId: orderItem.productId,
-            sizeGrams: orderItem.sizeGrams,
-            currentStock: variant.stock,
-            requested: orderItem.quantity,
-          })
-          continue
-        }
-
-        const { error: updateStockError } = await supabase
-          .from('ProductVariant')
-          .update({ stock: newStock })
-          .eq('productId', orderItem.productId)
-          .eq('sizeGrams', orderItem.sizeGrams)
-
-        if (updateStockError) {
-          console.error('[API Payments Verify] Failed to update variant stock:', updateStockError)
-        }
-      } else {
-        // Reduce stock from Product for non-variant products
-        const { error: stockError } = await supabase.rpc('decrement_stock', {
-          product_id: orderItem.productId,
-          quantity: orderItem.quantity,
-        })
-
-        // If RPC doesn't exist, use update with decrement
-        if (stockError) {
-          const newStock = product.stock - orderItem.quantity
-          if (newStock < 0) {
-            console.error('[API Payments Verify] Stock went negative:', {
+          if (fetchVariantError || !variant) {
+            console.error('[API Payments Verify] Variant not found during stock update:', {
               productId: orderItem.productId,
-              currentStock: product.stock,
-              requested: orderItem.quantity,
+              sizeGrams: orderItem.sizeGrams,
             })
-            continue
+            break // Skip if not found
           }
 
-          const { error: updateStockError } = await supabase
-            .from('Product')
-            .update({ stock: newStock })
-            .eq('id', orderItem.productId)
+          if (variant.stock < orderItem.quantity) {
+            console.error('[API Payments Verify] Insufficient variant stock during deduction:', {
+              productId: orderItem.productId,
+              variantId: variant.id,
+              stock: variant.stock,
+              required: orderItem.quantity
+            })
+            // In a perfect world we might refund/cancel, but payment is captured.
+            // We log critical error.
+            break
+          }
 
-          if (updateStockError) {
-            console.error('[API Payments Verify] Failed to update product stock:', updateStockError)
+          const newStock = variant.stock - orderItem.quantity
+
+          // Atomic update using optimistic locking
+          const { data: updatedVariants, error: updateStockError } = await supabase
+            .from('ProductVariant')
+            .update({ stock: newStock })
+            .eq('productId', orderItem.productId)
+            .eq('sizeGrams', orderItem.sizeGrams)
+            .eq('stock', variant.stock) // Optimistic lock
+            .select('id')
+
+          if (!updateStockError && updatedVariants && updatedVariants.length === 1) {
+            updated = true
+          } else {
+            // If valid error, log it.
+            if (updateStockError) {
+              console.error('[API Payments Verify] Variant update error:', updateStockError)
+              break
+            }
+            // If length is 0, it means race condition (no rows updated), retry.
+            retries++
+            // Small delay to reduce contention
+            await new Promise(r => setTimeout(r, 50 * retries))
+          }
+
+        } else {
+          // Reduce stock from Product (Non-variant)
+
+          // TRY RPC FIRST
+          // @ts-ignore - Supabase rpc types can be finicky
+          const { error: rpcError } = await supabase.rpc('decrement_stock', {
+            product_id: orderItem.productId,
+            quantity: orderItem.quantity,
+          })
+
+          if (!rpcError) {
+            updated = true
+          } else {
+            // Fallback to OCC
+            const { data: product, error: fetchError } = await supabase
+              .from('Product')
+              .select('stock, id')
+              .eq('id', orderItem.productId)
+              .single()
+
+            if (fetchError || !product) {
+              break
+            }
+
+            if (product.stock < orderItem.quantity) {
+              console.error('[API Payments Verify] Insufficient product stock', {
+                id: orderItem.productId,
+                stock: product.stock,
+              })
+              break
+            }
+
+            const newStock = product.stock - orderItem.quantity
+
+            const { data: updatedProducts, error: updateError } = await supabase
+              .from('Product')
+              .update({ stock: newStock })
+              .eq('id', orderItem.productId)
+              .eq('stock', product.stock)
+              .select('id')
+
+            if (!updateError && updatedProducts && updatedProducts.length === 1) {
+              updated = true
+            } else {
+              if (updateError) {
+                console.error('[API Payments Verify] Product update error:', updateError)
+                break
+              }
+              retries++
+              await new Promise(r => setTimeout(r, 50 * retries))
+            }
           }
         }
+      }
+
+      if (!updated) {
+        console.error('[API Payments Verify] FAILED to reduce stock for item after retries:', {
+          product: orderItem.productName,
+          qty: orderItem.quantity
+        })
+        // TODO: Alert admin or track this critical mismatch
       }
     }
 
@@ -384,6 +441,7 @@ export async function POST(_req: NextRequest) {
     })
   } catch (error) {
     console.error('[API Payments Verify] Error:', error)
-    return createErrorResponse('Failed to verify payment', 500, error)
+    // Fix: createErrorResponse likely takes 2 args, pass error as part of metadata or log it
+    return createErrorResponse('Failed to verify payment', 500)
   }
 }

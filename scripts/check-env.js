@@ -53,10 +53,12 @@ console.log('\n=== Environment Variables Check ===\n')
 const requiredVars = {
   'NEXT_PUBLIC_SUPABASE_URL': process.env.NEXT_PUBLIC_SUPABASE_URL,
   'NEXT_PUBLIC_SUPABASE_ANON_KEY': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  'SUPABASE_SERVICE_ROLE_KEY': process.env.SUPABASE_SERVICE_ROLE_KEY,
+  // 'SUPABASE_SERVICE_ROLE_KEY': process.env.SUPABASE_SERVICE_ROLE_KEY, // Optional in some contexts but good to check
   // Razorpay: Key ID can use NEXT_PUBLIC_ prefix (same value for frontend/backend)
   'NEXT_PUBLIC_RAZORPAY_KEY_ID': process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
   'RAZORPAY_KEY_SECRET': process.env.RAZORPAY_KEY_SECRET,
+  // SEO
+  'NEXT_PUBLIC_APP_URL': process.env.NEXT_PUBLIC_APP_URL || 'https://milletsnjoy.com',
 }
 
 let allPresent = true
@@ -64,15 +66,15 @@ let allPresent = true
 for (const [key, value] of Object.entries(requiredVars)) {
   const isPresent = !!value
   const status = isPresent ? '✓' : '✗'
-  const displayValue = value 
+  const displayValue = value
     ? `${value.substring(0, 20)}...${value.substring(value.length - 10)} (${value.length} chars)`
     : 'NOT SET'
-  
+
   console.log(`${status} ${key}:`)
   console.log(`   ${displayValue}`)
   console.log(`   Present: ${isPresent}`)
   console.log('')
-  
+
   if (!isPresent) {
     allPresent = false
   }

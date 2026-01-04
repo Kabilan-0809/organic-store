@@ -10,12 +10,39 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://milletsnjoy.com'), // Replace with actual domain
   title: {
     default: 'Millets N Joy | Traditional Millet Products',
     template: '%s | Millets N Joy',
   },
   description:
-    'Discover premium malt, saadha podi, and traditional millet products made with quality ingredients and authentic preparation.',
+    'Discover premium malt, saadha podi, and traditional millet products made with quality ingredients and authentic preparation. Natural, healthy, and delicious.',
+  keywords: ['millets', 'organic food', 'health mix', 'millet malt', 'traditional food', 'healthy snacks', 'millets n joy'],
+  authors: [{ name: 'Millets N Joy' }],
+  openGraph: {
+    title: 'Millets N Joy | Traditional Millet Products',
+    description: 'Discover premium malt, saadha podi, and traditional millet products. 100% natural and homemade style.',
+    url: 'https://milletsnjoy.com',
+    siteName: 'Millets N Joy',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Millets N Joy | Traditional Millet Products',
+    description: 'Premium organic millet products for a healthy lifestyle.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({
