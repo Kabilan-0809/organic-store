@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import GoogleMapEmbed from './ui/GoogleMapEmbed'
 
 /**
  * Global Footer Component
@@ -16,7 +17,7 @@ export default function Footer() {
   return (
     <footer className="bg-neutral-900 text-neutral-300 border-t border-neutral-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand & Description */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-white">Millets N Joy</h3>
@@ -47,6 +48,14 @@ export default function Footer() {
                   +91 80721 01964
                 </a>
               </div>
+            </div>
+          </div>
+
+          {/* Map & Social Combined for spacing */}
+          <div className="space-y-6">
+            <h4 className="text-lg font-semibold text-white">Find Us</h4>
+            <div className="h-48 w-full rounded-xl overflow-hidden px-0">
+              <GoogleMapEmbed height="100%" className="opacity-90 hover:opacity-100 transition-opacity" />
             </div>
           </div>
 
@@ -99,7 +108,7 @@ export default function Footer() {
                 </svg>
                 <span>@milletsnjoy</span>
               </a>
-              
+
               <div className="pt-2 border-t border-neutral-800">
                 <p className="text-xs text-neutral-500 mb-2">FSSAI Registration</p>
                 <p className="text-xs text-neutral-400">

@@ -7,7 +7,7 @@ import HeroSection from '@/components/sections/HeroSection'
 import TrustSection from '@/components/sections/TrustSection'
 import VideoPlaceholderSection from '@/components/sections/VideoPlaceholderSection'
 import WhyChooseUsSection from '@/components/sections/WhyChooseUsSection'
-import CustomerFeedbackSection from '@/components/sections/CustomerFeedbackSection'
+import TestimonialsSection from '@/components/sections/TestimonialsSection'
 
 export default function Home() {
   return (
@@ -27,8 +27,8 @@ export default function Home() {
         <VideoPlaceholderSection />
         <WhyChooseUsSection />
         <FeaturedProductsSection />
+        <TestimonialsSection />
         <TrustSection />
-        <CustomerFeedbackSection />
       </div>
     </AnimatedPage>
   )

@@ -4,6 +4,7 @@ import { useState, FormEvent, Suspense } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import AnimatedPage from '@/components/AnimatedPage'
+import AuthLayout from '@/components/auth/AuthLayout'
 
 /**
  * ForgotPasswordFormContent - Core form component
@@ -45,7 +46,7 @@ function ForgotPasswordFormContent() {
     try {
       // Get the current URL to construct the redirect URL
       const redirectUrl = `${window.location.origin}/auth/reset-password`
-      
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
       })
@@ -95,86 +96,80 @@ function ForgotPasswordFormContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-            Forgot Password
-          </h1>
-          <p className="mt-4 text-base text-neutral-600">
-            Enter your email address and we&apos;ll send you a link to reset your password.
-          </p>
-        </div>
+    <AuthLayout
+      title="Forgot Password"
+      subtitle="Enter your email address and we'll send you a link to reset your password."
+      imageSrc="/image3.png"
+    >
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
-          {errors.general && (
-            <div
-              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-              role="alert"
-            >
-              {errors.general}
-            </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-neutral-700"
-            >
-              Email address
-            </label>
-            <div className="mt-1.5">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (errors.email) {
-                    setErrors((prev) => ({ ...prev, email: undefined }))
-                  }
-                }}
-                aria-invalid={errors.email ? 'true' : 'false'}
-                aria-describedby={errors.email ? 'email-error' : undefined}
-                className="block w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-base"
-                placeholder="Enter your email"
-              />
-              {errors.email && (
-                <p
-                  id="email-error"
-                  className="mt-1.5 text-sm text-red-600"
-                  role="alert"
-                >
-                  {errors.email}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all duration-200 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
-            >
-              {isSubmitting ? 'Sending...' : 'Send Reset Link'}
-            </button>
-          </div>
-        </form>
-
-        <div className="text-center text-sm text-neutral-600">
-          <Link
-            href="/auth/login"
-            className="font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
+        {errors.general && (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            role="alert"
           >
-            Back to Sign In
-          </Link>
+            {errors.general}
+          </div>
+        )}
+
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-neutral-700"
+          >
+            Email address
+          </label>
+          <div className="mt-1.5">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (errors.email) {
+                  setErrors((prev) => ({ ...prev, email: undefined }))
+                }
+              }}
+              aria-invalid={errors.email ? 'true' : 'false'}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              className="block w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-base"
+              placeholder="Enter your email"
+            />
+            {errors.email && (
+              <p
+                id="email-error"
+                className="mt-1.5 text-sm text-red-600"
+                role="alert"
+              >
+                {errors.email}
+              </p>
+            )}
+          </div>
         </div>
+
+        <div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all duration-200 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
+          >
+            {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+          </button>
+        </div>
+      </form>
+
+      <div className="text-center text-sm text-neutral-600">
+        <Link
+          href="/auth/login"
+          className="font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+        >
+          Back to Sign In
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 
@@ -183,21 +178,15 @@ function ForgotPasswordFormContent() {
  */
 function ForgotPasswordFormFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-            Forgot Password
-          </h1>
-          <p className="mt-4 text-base text-neutral-600">
-            Enter your email address and we&apos;ll send you a link to reset your password.
-          </p>
-        </div>
-        <div className="mt-8">
-          <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-200" />
-        </div>
+    <AuthLayout
+      title="Forgot Password"
+      subtitle="Enter your email address and we'll send you a link to reset your password."
+      imageSrc="/image3.png"
+    >
+      <div className="mt-8">
+        <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-200" />
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 
