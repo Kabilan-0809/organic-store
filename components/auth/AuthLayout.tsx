@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 
 interface AuthLayoutProps {
     children: React.ReactNode
+    brandingTitle?: string
     title: string
     subtitle: string
     imageSrc?: string
@@ -14,6 +15,7 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({
     children,
+    brandingTitle = 'Millets N Joy',
     title,
     subtitle,
     imageSrc = '/auth-bg-login.png',
@@ -45,7 +47,7 @@ export default function AuthLayout({
                     {/* Branding */}
                     <div className="flex justify-center mb-6 sm:mb-8">
                         <Link href="/" className="flex flex-col items-center group">
-                            <span className="text-xl font-bold text-white tracking-widest uppercase opacity-90">Millets N Joy</span>
+                            <span className="text-xl font-bold text-white tracking-widest uppercase opacity-90">{brandingTitle}</span>
                         </Link>
                     </div>
 

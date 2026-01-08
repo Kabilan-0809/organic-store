@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createErrorResponse } from '@/lib/auth/api-auth'
+import { getProductImages } from '@/lib/products-server'
 
 // Node runtime is more stable for Supabase calls here
 // export const runtime = 'edge'
@@ -99,9 +100,7 @@ export async function GET(_req: NextRequest) {
       // Discover images resilience
       let allImages: string[] = []
       try {
-        // We use the server-side discovery logic
-        // Since we are in the API route (server-side), we can import it
-        const { getProductImages } = require('@/lib/products-server')
+        // Use staticly imported getProductImages
         allImages = getProductImages(p.category, p.name, p.imageUrl)
       } catch (e) {
         console.error('Error discovering images for', p.name, e)

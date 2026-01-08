@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AnimatedPage from '@/components/AnimatedPage'
+import AuthLayout from '@/components/auth/AuthLayout'
 
 /**
  * ResetPasswordFormContent - Core form component
@@ -28,7 +29,7 @@ function ResetPasswordFormContent() {
     const checkAuthState = async () => {
       // Check for hash in URL (Supabase uses hash fragments for auth tokens)
       const hash = window.location.hash
-      
+
       // If there's a hash, Supabase will process it automatically
       // If no hash and no session, redirect to forgot password
       if (!hash) {
@@ -77,7 +78,7 @@ function ResetPasswordFormContent() {
     try {
       // Check if we have a valid session first (Supabase creates session when user clicks reset link)
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
+
       if (sessionError || !session) {
         setErrors({
           general: 'Invalid or expired reset link. Please request a new password reset link.',
@@ -100,10 +101,10 @@ function ResetPasswordFormContent() {
       }
 
       setIsSuccess(true)
-      
+
       // Sign out after password reset (security best practice)
       await supabase.auth.signOut()
-      
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
         router.push('/auth/login')
@@ -159,124 +160,118 @@ function ResetPasswordFormContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-            Reset Password
-          </h1>
-          <p className="mt-4 text-base text-neutral-600">
-            Enter your new password below.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
-          {errors.general && (
-            <div
-              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
-              role="alert"
-            >
-              {errors.general}
-            </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-neutral-700"
-            >
-              New Password
-            </label>
-            <div className="mt-1.5">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (errors.password) {
-                    setErrors((prev) => ({ ...prev, password: undefined }))
-                  }
-                }}
-                aria-invalid={errors.password ? 'true' : 'false'}
-                aria-describedby={errors.password ? 'password-error' : undefined}
-                className="block w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-base"
-                placeholder="Enter your new password"
-              />
-              {errors.password && (
-                <p
-                  id="password-error"
-                  className="mt-1.5 text-sm text-red-600"
-                  role="alert"
-                >
-                  {errors.password}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-neutral-700"
-            >
-              Confirm New Password
-            </label>
-            <div className="mt-1.5">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value)
-                  if (errors.confirmPassword) {
-                    setErrors((prev) => ({ ...prev, confirmPassword: undefined }))
-                  }
-                }}
-                aria-invalid={errors.confirmPassword ? 'true' : 'false'}
-                aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
-                className="block w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-base"
-                placeholder="Confirm your new password"
-              />
-              {errors.confirmPassword && (
-                <p
-                  id="confirm-password-error"
-                  className="mt-1.5 text-sm text-red-600"
-                  role="alert"
-                >
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all duration-200 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
-            >
-              {isSubmitting ? 'Resetting Password...' : 'Reset Password'}
-            </button>
-          </div>
-        </form>
-
-        <div className="text-center text-sm text-neutral-600">
-          <Link
-            href="/auth/login"
-            className="font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+    <AuthLayout
+      brandingTitle="Fresh Start, New Password"
+      title="Reset Password"
+      subtitle="Choose a strong password to keep your health journey secure."
+      imageSrc="/auth-bg-reset.png"
+    >
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
+        {errors.general && (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            role="alert"
           >
-            Back to Sign In
-          </Link>
+            {errors.general}
+          </div>
+        )}
+
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-neutral-700"
+          >
+            New Password
+          </label>
+          <div className="mt-1.5">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                if (errors.password) {
+                  setErrors((prev) => ({ ...prev, password: undefined }))
+                }
+              }}
+              aria-invalid={errors.password ? 'true' : 'false'}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              className="block w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-base"
+              placeholder="Enter your new password"
+            />
+            {errors.password && (
+              <p
+                id="password-error"
+                className="mt-1.5 text-sm text-red-600"
+                role="alert"
+              >
+                {errors.password}
+              </p>
+            )}
+          </div>
         </div>
+
+        <div>
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium text-neutral-700"
+          >
+            Confirm New Password
+          </label>
+          <div className="mt-1.5">
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value)
+                if (errors.confirmPassword) {
+                  setErrors((prev) => ({ ...prev, confirmPassword: undefined }))
+                }
+              }}
+              aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+              aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
+              className="block w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:text-base"
+              placeholder="Confirm your new password"
+            />
+            {errors.confirmPassword && (
+              <p
+                id="confirm-password-error"
+                className="mt-1.5 text-sm text-red-600"
+                role="alert"
+              >
+                {errors.confirmPassword}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all duration-200 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
+          >
+            {isSubmitting ? 'Resetting Password...' : 'Reset Password'}
+          </button>
+        </div>
+      </form>
+
+      <div className="text-center text-sm text-neutral-600 mt-6">
+        <Link
+          href="/auth/login"
+          className="font-medium text-primary-600 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+        >
+          Back to Sign In
+        </Link>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 
@@ -285,22 +280,17 @@ function ResetPasswordFormContent() {
  */
 function ResetPasswordFormFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-            Reset Password
-          </h1>
-          <p className="mt-4 text-base text-neutral-600">
-            Enter your new password below.
-          </p>
-        </div>
-        <div className="mt-8 space-y-4">
-          <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-200" />
-          <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-200" />
-        </div>
+    <AuthLayout
+      brandingTitle="Fresh Start, New Password"
+      title="Reset Password"
+      subtitle="Choose a strong password to keep your health journey secure."
+      imageSrc="/auth-bg-reset.png"
+    >
+      <div className="mt-8 space-y-4">
+        <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-200" />
+        <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-200" />
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 

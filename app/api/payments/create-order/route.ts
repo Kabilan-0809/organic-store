@@ -3,7 +3,7 @@ import { createSupabaseServer } from '@/lib/supabase/server'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateArray, validateString, validateCartItemId } from '@/lib/auth/validate-input'
 import { createRazorpayOrder } from '@/lib/payments/razorpay'
-import { calculateDiscountedPrice } from '@/lib/pricing'
+import { calculateDiscountedPrice, calculateShippingFee } from '@/lib/pricing'
 import { hasVariants } from '@/lib/products'
 
 export const runtime = 'nodejs'
@@ -246,15 +246,12 @@ export async function POST(req: NextRequest) {
       totalAmount += finalPriceInPaise
     }
 
-    // Calculate shipping fee
-    // Free shipping for orders above ₹499
-    // Current logic uses paise, so 499 * 100 = 49900
-    const SHIPPING_THRESHOLD = 49900
-    const SHIPPING_FEE = 4000 // ₹40 in paise
+    // Calculate shipping fee (Dynamic based on state and subtotal)
+    // subtotalInRupees = totalAmount / 100
+    const shippingFeeInRupees = calculateShippingFee(totalAmount / 100, state)
+    const shippingFee = shippingFeeInRupees * 100 // Convert to paise
 
-    let shippingFee = 0
-    if (totalAmount < SHIPPING_THRESHOLD) {
-      shippingFee = SHIPPING_FEE
+    if (shippingFee > 0) {
       totalAmount += shippingFee
     }
 

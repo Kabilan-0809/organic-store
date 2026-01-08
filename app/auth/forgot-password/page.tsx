@@ -97,8 +97,9 @@ function ForgotPasswordFormContent() {
 
   return (
     <AuthLayout
-      title="Forgot Password"
-      subtitle="Enter your email address and we'll send you a link to reset your password."
+      brandingTitle="Breathe. We've Got You."
+      title="Forgot Password?"
+      subtitle="Don't worry, we'll help you get back to your favorites."
       imageSrc="/auth-bg-forgot.png"
     >
 
@@ -179,8 +180,9 @@ function ForgotPasswordFormContent() {
 function ForgotPasswordFormFallback() {
   return (
     <AuthLayout
-      title="Forgot Password"
-      subtitle="Enter your email address and we'll send you a link to reset your password."
+      brandingTitle="Breathe. We've Got You."
+      title="Forgot Password?"
+      subtitle="Don't worry, we'll help you get back to your favorites."
       imageSrc="/auth-bg-forgot.png"
     >
       <div className="mt-8">

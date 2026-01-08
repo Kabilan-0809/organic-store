@@ -49,49 +49,59 @@ const TESTIMONIALS = [
 
 export default function TestimonialsSection() {
     return (
-        <section id="feedback" className="relative py-20 sm:py-28 overflow-hidden bg-neutral-50/50">
+        <section id="feedback" className="relative py-20 sm:py-28 overflow-hidden bg-stone-50/80">
+            {/* Background Accent Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-100/20 rounded-full blur-[120px] pointer-events-none -z-10" />
+
             <div className="mx-auto max-w-7xl px-6 lg:px-8 mb-16">
                 <div className="mx-auto max-w-2xl text-center">
-                    <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+                    <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
                         Loved by Families
                     </h2>
                     <p className="mt-4 text-base sm:text-lg text-neutral-600">
-                        Don&apos;t just take our word for it. Here&apos;s what our community says about bringing tradition back to their tables.
+                        Join thousands of happy families who have brought authentic tradition back to their modern tables.
                     </p>
                 </div>
             </div>
 
             {/* Infinite Marquee Container */}
             <div className="relative flex overflow-hidden">
-                <div className="flex animate-marquee hover:[animation-play-state:paused] whitespace-nowrap py-4">
+                <div className="flex animate-marquee hover:[animation-play-state:paused] whitespace-nowrap py-10">
                     {/* First set of testimonials */}
                     {[...TESTIMONIALS, ...TESTIMONIALS].map((testimonial, index) => (
                         <div
                             key={`${testimonial.id}-${index}`}
-                            className="inline-block w-[300px] sm:w-[400px] mx-4 sm:mx-6 whitespace-normal"
+                            className="inline-block w-[320px] sm:w-[420px] mx-4 sm:mx-8 whitespace-normal"
                         >
-                            <div className="h-full flex flex-col justify-between rounded-3xl bg-white p-8 sm:p-10 shadow-sm ring-1 ring-neutral-200/50 transition-all duration-500 hover:shadow-xl hover:shadow-primary-600/5 hover:ring-primary-100">
-                                <div>
-                                    <div className="flex gap-x-1 text-amber-400 mb-6">
+                            <div className="h-full flex flex-col justify-between rounded-[2.5rem] bg-white/50 backdrop-blur-xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-white/40 transition-all duration-700 hover:shadow-[0_20px_50px_rgba(34,197,94,0.12)] hover:bg-white/80 hover:-translate-y-3 group relative overflow-hidden">
+                                {/* Decorative Background Quote */}
+                                <div className="absolute top-8 right-10 text-primary-500/5 scale-[5] opacity-0 group-hover:opacity-100 transition-all duration-700 -rotate-12 pointer-events-none">
+                                    <svg fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
+                                        <path d="M14.017 21L14.017 18C14.017 16.899 15.011 15 16.011 15H19.011C19.563 15 20.011 14.552 20.011 14V11H15.011C14.459 11 14.011 10.552 14.011 10V5C14.011 4.448 14.459 4 15.011 4H20.011C20.563 4 21.011 4.448 21.011 5V14C21.011 16.761 18.772 21 15.011 21H14.017ZM3.011 21L3.011 18C3.011 16.899 4.005 15 5.005 15H8.005C8.557 15 9.005 14.552 9.005 14V11H4.005C3.453 11 3.005 10.552 3.005 10V5C3.005 4.448 3.453 4 4.005 4H9.005C9.557 4 10.005 4.448 10.005 5V14C10.005 16.761 7.766 21 4.005 21H3.011Z" />
+                                    </svg>
+                                </div>
+
+                                <div className="relative z-10">
+                                    <div className="flex gap-x-1.5 text-amber-400 mb-8">
                                         {[...Array(5)].map((_, i) => (
                                             <svg key={i} className="h-5 w-5 flex-none" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.453 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clipRule="evenodd" />
                                             </svg>
                                         ))}
                                     </div>
-                                    <div className="text-base sm:text-lg text-neutral-700 leading-relaxed italic">
+                                    <div className="text-lg sm:text-xl text-neutral-800 leading-relaxed font-medium">
                                         &ldquo;{testimonial.text}&rdquo;
                                     </div>
                                 </div>
-                                <div className="mt-10 pt-6 border-t border-neutral-100">
-                                    <div className="flex items-center gap-x-4">
-                                        <div className="h-12 w-12 flex-none rounded-2xl bg-primary-50 flex items-center justify-center text-primary-700 font-bold text-base shadow-inner">
+                                <div className="mt-12 pt-8 border-t border-neutral-100/50 relative z-10">
+                                    <div className="flex items-center gap-x-5">
+                                        <div className="h-14 w-14 flex-none rounded-[1.2rem] bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center text-primary-700 font-bold text-lg shadow-sm border border-primary-200/50">
                                             {testimonial.name?.charAt(0) || 'U'}
                                             {testimonial.name?.split(' ')?.[1]?.charAt(0) || ''}
                                         </div>
                                         <div>
-                                            <div className="font-bold text-neutral-900 text-base">{testimonial.name}</div>
-                                            <div className="text-sm font-medium text-primary-600/80">{testimonial.city}</div>
+                                            <div className="font-bold text-neutral-900 text-lg tracking-tight">{testimonial.name}</div>
+                                            <div className="text-sm font-semibold text-primary-600/80 uppercase tracking-widest">{testimonial.city}</div>
                                         </div>
                                     </div>
                                 </div>

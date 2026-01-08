@@ -88,8 +88,8 @@ export default function CartDrawer() {
       return sum + discountedPriceInRupees * item.quantity
     }, 0)
 
-  // Calculate shipping fee logic
-  const SHIPPING_THRESHOLD = 499
+  // Calculate shipping fee logic (Minimum base fee ₹40)
+  const SHIPPING_THRESHOLD = 1000
   const SHIPPING_FEE = 40
 
   const isFreeShipping = selectedSubtotal >= SHIPPING_THRESHOLD

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase/server'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateArray, validateString, validateCartItemId } from '@/lib/auth/validate-input'
-import { calculateDiscountedPrice } from '@/lib/pricing'
+import { calculateDiscountedPrice, calculateShippingFee } from '@/lib/pricing'
 import { hasVariants } from '@/lib/products'
 
 export const runtime = 'nodejs'
@@ -109,11 +109,11 @@ export async function POST(req: NextRequest) {
     }) || 'IN'
     const addressLine2 = rawAddressLine2
       ? validateString(rawAddressLine2, {
-          minLength: 1,
-          maxLength: 200,
-          required: false,
-          trim: true,
-        })
+        minLength: 1,
+        maxLength: 200,
+        required: false,
+        trim: true,
+      })
       : null
 
     if (!addressLine1 || !city || !state || !postalCode) {
@@ -163,14 +163,14 @@ export async function POST(req: NextRequest) {
     const variantIds = cartItems
       .map((item: any) => item.variantId)
       .filter((id: string | null): id is string => id !== null && id !== undefined)
-    
+
     let variants: any[] = []
     if (variantIds.length > 0) {
       const { data: variantsData } = await supabase
         .from('ProductVariant')
         .select('id, productId, sizeGrams, price, stock')
         .in('id', variantIds)
-      
+
       variants = variantsData || []
     }
 
@@ -245,7 +245,15 @@ export async function POST(req: NextRequest) {
       totalAmount += finalPriceInPaise
     }
 
-    if (totalAmount <= 0) {
+    // Calculate shipping fee (Dynamic based on state and subtotal)
+    // subtotalInRupees = totalAmount / 100
+    const shippingFeeInRupees = calculateShippingFee(totalAmount / 100, state)
+    const shippingFeePaise = shippingFeeInRupees * 100
+
+    // Add shipping to total amount for database entry
+    const finalTotalAmount = totalAmount + shippingFeePaise
+
+    if (finalTotalAmount <= 0) {
       return createErrorResponse('Invalid order amount', 400)
     }
 
@@ -266,7 +274,7 @@ export async function POST(req: NextRequest) {
       }
 
       const usesVariants = hasVariants(product.category)
-      
+
       // For variant-based products with sizeGrams, check variant stock
       if (usesVariants && orderItem.sizeGrams) {
         const { data: variant } = await supabase
@@ -303,7 +311,8 @@ export async function POST(req: NextRequest) {
       .insert({
         userId: user.id,
         status: 'ORDER_CONFIRMED', // Directly to ORDER_CONFIRMED for COD
-        totalAmount: totalAmount,
+        totalAmount: finalTotalAmount,
+        shippingFee: shippingFeePaise,
         currency: 'INR',
         addressLine1: addressLine1,
         addressLine2: addressLine2 ?? undefined,
@@ -363,7 +372,7 @@ export async function POST(req: NextRequest) {
       }
 
       const usesVariants = hasVariants(product.category)
-      
+
       if (usesVariants && orderItem.sizeGrams) {
         // Reduce stock from ProductVariant for variant-based products
         const { data: variant, error: fetchVariantError } = await supabase

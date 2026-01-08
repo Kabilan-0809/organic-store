@@ -4,6 +4,7 @@ import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 import { validateString } from '@/lib/auth/validate-input'
 import { verifyRazorpaySignature, getRazorpayPayment } from '@/lib/payments/razorpay'
 import { hasVariants } from '@/lib/products'
+import { calculateShippingFee } from '@/lib/pricing'
 
 export const runtime = 'nodejs'
 
@@ -141,21 +142,15 @@ export async function POST(_req: NextRequest) {
       return createErrorResponse('Payment amount mismatch', 400)
     }
 
-    // Step 3.5: Validate shipping fee calculation
-    const SHIPPING_THRESHOLD = 49900
-    const SHIPPING_FEE = 4000 // ₹40 in paise
-
+    // Step 3.5: Validate shipping fee calculation (Dynamic based on state and subtotal)
     // Calculate expected total from items
     let expectedItemsTotal = 0
     for (const item of orderData.orderItemsData) {
-      // Re-verify item price/discount logic if needed, but for now specific check on shipping
       expectedItemsTotal += item.finalPrice
     }
 
-    let expectedShippingFee = 0
-    if (expectedItemsTotal < SHIPPING_THRESHOLD) {
-      expectedShippingFee = SHIPPING_FEE
-    }
+    const expectedShippingFeeInRupees = calculateShippingFee(expectedItemsTotal / 100, orderData.state)
+    const expectedShippingFee = expectedShippingFeeInRupees * 100
 
     // Allow for minor floating point diffs if any, but logic is integer based (paise)
     const calculatedTotal = expectedItemsTotal + expectedShippingFee

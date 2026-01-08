@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthContext'
 import { useCart } from '@/components/cart/CartContext'
 import AnimatedPage from '@/components/AnimatedPage'
-import { calculateDiscountedPrice } from '@/lib/pricing'
+import { calculateDiscountedPrice, calculateShippingFee } from '@/lib/pricing'
 import Image from 'next/image'
 import Script from 'next/script'
 
@@ -107,11 +107,10 @@ export default function CheckoutReviewContent() {
     return sum + discountedPriceInRupees * item.quantity
   }, 0)
 
-  // Calculate Shipping (Logic duplicated from util/cart for consistency)
-  const SHIPPING_THRESHOLD = 499
-  const SHIPPING_FEE = 40
-  const isFreeShipping = subtotal >= SHIPPING_THRESHOLD
-  const shippingFee = isFreeShipping ? 0 : SHIPPING_FEE
+  // Calculate Shipping (Dynamic based on state and subtotal)
+  const SHIPPING_THRESHOLD = 1000
+  const shippingFee = calculateShippingFee(subtotal, address.state)
+  const isFreeShipping = shippingFee === 0 && subtotal >= SHIPPING_THRESHOLD
 
   const finalTotal = subtotal + shippingFee
 

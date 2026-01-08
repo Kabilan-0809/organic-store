@@ -60,7 +60,7 @@ export function getProductImages(category: string, name: string, mainImageUrl?: 
 
     // 3. Fallback to category folder if still nothing found
     if (!bestBaseDir) {
-        let normalizedCategory = category.toLowerCase().trim().replace(/\s+/g, '_')
+        const normalizedCategory = category.toLowerCase().trim().replace(/\s+/g, '_')
         const match = availableCategories.find(f => f.toLowerCase() === normalizedCategory.toLowerCase() || f.toLowerCase() === normalizedCategory.toLowerCase() + 's')
         bestBaseDir = path.join(productsRoot, match || availableCategories[0] || 'malt')
         bestFileNameBase = name.trim()

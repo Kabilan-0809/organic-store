@@ -135,8 +135,9 @@ function LoginFormContent() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to your account to continue shopping."
+      brandingTitle="Pure Nutrition Awaits"
+      title="Welcome Back"
+      subtitle="The journey to wellness continues here."
       imageSrc="/auth-bg-login.png"
     >
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -266,8 +267,9 @@ function LoginFormContent() {
 function LoginFormFallback() {
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to your account to continue shopping."
+      brandingTitle="Pure Nutrition Awaits"
+      title="Welcome Back"
+      subtitle="The journey to wellness continues here."
       imageSrc="/auth-bg-login.png"
     >
       <div className="space-y-6">

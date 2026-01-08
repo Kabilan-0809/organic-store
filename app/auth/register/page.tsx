@@ -167,8 +167,9 @@ function RegisterFormContent() {
 
   return (
     <AuthLayout
-      title="Create account"
-      subtitle="Start shopping organic products today."
+      brandingTitle="The First Step is Always Green"
+      title="Start Your Healthy Journey"
+      subtitle="Join our community of organic lovers."
       imageSrc="/auth-bg-register.png"
     >
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -346,8 +347,9 @@ function RegisterFormContent() {
 function RegisterFormFallback() {
   return (
     <AuthLayout
-      title="Create account"
-      subtitle="Start shopping organic products today."
+      brandingTitle="The First Step is Always Green"
+      title="Start Your Healthy Journey"
+      subtitle="Join our community of organic lovers."
       imageSrc="/auth-bg-register.png"
     >
       <div className="space-y-6">
