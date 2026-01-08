@@ -5,7 +5,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion
 export default function HeroSection() {
   const shouldReduceMotion = useReducedMotion()
   const { scrollY } = useScroll()
-  
+
   // Fade in as user scrolls down (starts at 100px, fully visible at 300px)
   const opacity = useTransform(scrollY, [100, 300], [0, 1])
   const y = useTransform(scrollY, [100, 300], [30, 0])
@@ -46,7 +46,7 @@ export default function HeroSection() {
               delay: shouldReduceMotion ? 0 : 0.3,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className="mb-6 text-5xl font-bold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl"
+            className="mb-8 text-3xl font-bold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl"
           >
             Nutritious malt and millet products
             <span className="block mt-2 text-primary-600">
@@ -65,7 +65,7 @@ export default function HeroSection() {
             }}
             className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-neutral-600 sm:text-xl"
           >
-            Carefully crafted malt, saadha podi, and other traditional millet products. 
+            Carefully crafted malt, saadha podi, and other traditional millet products.
             Quality ingredients, authentic preparation, and delivered with complete transparency. Food you can trust.
           </motion.p>
 

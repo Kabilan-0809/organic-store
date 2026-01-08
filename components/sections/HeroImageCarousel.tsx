@@ -6,24 +6,16 @@ import Link from 'next/link'
 
 const HERO_IMAGES = [
   {
-    src: '/image0.png',
-    alt: 'Millet products showcase - Traditional millets and grains',
+    src: '/hero_nano_banana_1_1767888234224.png',
+    alt: 'Vibrant organic nano bananas with premium millet products',
   },
   {
-    src: '/image1.png',
-    alt: 'Millet products showcase - Premium quality millet foods',
+    src: '/hero_nano_banana_2_1767888303312.png',
+    alt: 'Healthy millet malt bowl garnished with fresh nano bananas',
   },
   {
-    src: '/image2.png',
-    alt: 'Millet products showcase - Nutritious and healthy options',
-  },
-  {
-    src: '/image3.png',
-    alt: 'Millet products showcase - Authentic millet collection',
-  },
-  {
-    src: '/image4.png',
-    alt: 'Millet products showcase - Trusted millet products',
+    src: '/hero_nano_banana_3_1767888330454.png',
+    alt: 'Traditional South Indian millet snacks and sweet nano bananas',
   },
 ]
 
@@ -93,7 +85,7 @@ export default function HeroImageCarousel() {
               <div
                 className="absolute inset-0"
                 style={{
-                  filter: 'brightness(0.98) contrast(1.02) saturate(1.02)',
+                  filter: 'brightness(1.05) contrast(1.1) saturate(1.2)',
                 }}
               >
                 <Image
