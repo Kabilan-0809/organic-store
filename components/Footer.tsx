@@ -70,16 +70,16 @@ export default function Footer() {
                 Shop
               </Link>
               <Link
+                href="/blog"
+                className="text-neutral-400 hover:text-primary-400 transition-colors"
+              >
+                Blog
+              </Link>
+              <Link
                 href="/orders"
                 className="text-neutral-400 hover:text-primary-400 transition-colors"
               >
                 My Orders
-              </Link>
-              <Link
-                href="/profile"
-                className="text-neutral-400 hover:text-primary-400 transition-colors"
-              >
-                My Account
               </Link>
             </nav>
           </div>

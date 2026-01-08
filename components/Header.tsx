@@ -211,6 +211,16 @@ export default function Header() {
                 >
                   Shop
                 </Link>
+                <Link
+                  href="/blog"
+                  aria-label="Read health and nutrition articles"
+                  className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${pathname?.startsWith('/blog')
+                    ? 'text-primary-600'
+                    : 'text-neutral-700 hover:text-primary-600'
+                    }`}
+                >
+                  Blog
+                </Link>
                 {/* Orders link - only for authenticated users, not admins */}
                 {isAuthenticated && !isAdmin && (
                   <Link
@@ -442,6 +452,17 @@ export default function Header() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Shop
+                </Link>
+                <Link
+                  href="/blog"
+                  aria-label="Read health and nutrition articles"
+                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${pathname?.startsWith('/blog')
+                    ? 'bg-primary-50 text-primary-600'
+                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
+                    }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Blog
                 </Link>
                 {/* Orders link - only for authenticated users, not admins */}
                 {isAuthenticated && !isAdmin && (
