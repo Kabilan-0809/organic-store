@@ -46,10 +46,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.jpg', // Placeholder, implies standard Next.js OG file support
+        url: '/Logo.jpeg',
         width: 1200,
         height: 630,
-        alt: 'Millets N Joy - Traditional Millet Products',
+        alt: 'Millets N Joy - Premium Organic Millet Products',
       },
     ],
   },
@@ -58,6 +58,7 @@ export const metadata: Metadata = {
     title: 'Millets N Joy | Premium Organic Millet & Malt Products',
     description: 'Premium organic millet products for a healthy lifestyle. 100% natural and preservative-free.',
     creator: '@milletsnjoy',
+    images: ['/Logo.jpeg'],
   },
   robots: {
     index: true,
