@@ -33,19 +33,39 @@ export function calculateDiscountedPrice(
  * Central logic for shipping fee calculation based on subtotal and state.
  * 
  * Rules:
- * - Free Shipping: Order >= ₹1000
- * - All States: ₹40 (uniform base shipping fee)
+ * - Free Shipping: Order >= ₹1000 (all states)
+ * - Tamil Nadu: ₹40 shipping fee
+ * - Kerala, Andhra Pradesh, Karnataka: ₹70 shipping fee
+ * - All other states: ₹100 shipping fee
  * 
  * @param subtotalInRupees - Order subtotal in rupees
- * @param stateName - Shipping state name (currently unused, kept for future location-based pricing)
+ * @param stateName - Shipping state name for location-based pricing
  * @returns Shipping fee in rupees
  */
-export function calculateShippingFee(subtotalInRupees: number, _stateName: string): number {
+export function calculateShippingFee(subtotalInRupees: number, stateName: string): number {
+  // Free shipping for orders >= ₹1000
   if (subtotalInRupees >= 1000) {
     return 0
   }
 
-  // Uniform base shipping fee for all of India
-  return 40
+  // Normalize state name for comparison (case-insensitive, trimmed)
+  const normalizedState = stateName.trim().toLowerCase()
+
+  // Tamil Nadu: ₹40
+  if (normalizedState === 'tamil nadu') {
+    return 40
+  }
+
+  // Kerala, Andhra Pradesh, Karnataka: ₹70
+  if (
+    normalizedState === 'kerala' ||
+    normalizedState === 'andhra pradesh' ||
+    normalizedState === 'karnataka'
+  ) {
+    return 70
+  }
+
+  // All other states: ₹100
+  return 100
 }
 

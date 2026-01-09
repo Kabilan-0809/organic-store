@@ -88,15 +88,15 @@ export default function CartDrawer() {
       return sum + discountedPriceInRupees * item.quantity
     }, 0)
 
-  // Calculate shipping fee logic (Minimum base fee ₹40)
+  // Calculate shipping fee logic
   const SHIPPING_THRESHOLD = 1000
-  const SHIPPING_FEE = 40
 
   const isFreeShipping = selectedSubtotal >= SHIPPING_THRESHOLD
-  const shippingFee = isFreeShipping ? 0 : SHIPPING_FEE
   const amountToFreeShipping = Math.max(0, SHIPPING_THRESHOLD - selectedSubtotal)
 
-  const finalTotal = selectedSubtotal + (hasItems && isAuthenticated && selectedCartItemIds.length > 0 ? shippingFee : 0)
+  // Note: Actual shipping fee depends on state, which is only known at checkout
+  // We'll show "Calculated at checkout" in the cart drawer
+  const finalTotal = selectedSubtotal
 
   return (
     <div
@@ -360,7 +360,7 @@ export default function CartDrawer() {
               {isFreeShipping ? (
                 <span className="font-medium text-green-600">Free</span>
               ) : (
-                <span className="font-medium text-neutral-900">₹{SHIPPING_FEE.toFixed(2)}</span>
+                <span className="text-xs text-neutral-500">Calculated at checkout</span>
               )}
             </div>
           )}

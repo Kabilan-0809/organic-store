@@ -684,8 +684,10 @@ export default function CheckoutReviewContent() {
                       <div className="text-xs text-blue-900">
                         <p className="font-semibold mb-1">Shipping Information</p>
                         <p>• <strong>Free Shipping</strong> on orders ≥ ₹1,000</p>
-                        <p>• <strong>₹40 Shipping Fee</strong> for orders below ₹1,000</p>
-                        <p className="mt-1 text-blue-700">Shipping fee updates automatically based on your order total.</p>
+                        <p>• <strong>Tamil Nadu:</strong> ₹40 shipping fee</p>
+                        <p>• <strong>Kerala, Andhra Pradesh, Karnataka:</strong> ₹70 shipping fee</p>
+                        <p>• <strong>Other states:</strong> ₹100 shipping fee</p>
+                        <p className="mt-1 text-blue-700">Shipping fee updates automatically based on your state and order total.</p>
                       </div>
                     </div>
                   </div>
