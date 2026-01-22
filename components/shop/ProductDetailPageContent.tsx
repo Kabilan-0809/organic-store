@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Image from 'next/image'
 import { calculateDiscountedPrice } from '@/lib/pricing'
+import { getCinematicImage } from '@/lib/product-images'
 import { hasVariants } from '@/lib/products'
 
 interface ProductDetailPageContentProps {
@@ -29,7 +30,10 @@ export default function ProductDetailPageContent({
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const { addItem } = useCart()
 
-  const images = product.images && product.images.length > 0 ? product.images : [product.image]
+  const cinematicImage = getCinematicImage(product)
+  const mainImage = cinematicImage || product.image
+  const images = product.images && product.images.length > 0 ? [mainImage, ...product.images.slice(1)] : [mainImage]
+
   const usesVariants = hasVariants(product.category)
   const variants = product.variants || []
 

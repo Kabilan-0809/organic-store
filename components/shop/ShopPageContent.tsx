@@ -5,6 +5,7 @@ import ProductCard from '@/components/products/ProductCard'
 import ShopFilters from '@/components/shop/ShopFilters'
 import { useMemo, useState, useEffect } from 'react'
 import type { Product, ProductVariant } from '@/types'
+import { getCinematicImage } from '@/lib/product-images'
 
 export default function ShopPageContent() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -51,7 +52,13 @@ export default function ShopPageContent() {
           stock: p.stock, // Include stock for low stock warnings
           variants: p.variants,
         }))
-        setProducts(mappedProducts)
+
+        const productsWithCinematicImages = mappedProducts.map(product => ({
+          ...product,
+          image: getCinematicImage(product)
+        }))
+
+        setProducts(productsWithCinematicImages)
       } catch (err) {
         console.error('[Shop] Failed to load products:', err)
         setError(err instanceof Error ? err.message : 'Failed to load products')
