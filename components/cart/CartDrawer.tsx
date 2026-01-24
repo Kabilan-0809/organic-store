@@ -210,7 +210,7 @@ export default function CartDrawer() {
                       </div>
                     )}
                     <Link
-                      href={`/shop/${slugOrId}`}
+                      href={`/shop/${slugOrId.toString().replace(/-/g, '_')}`} // Ensure underscores in link
                       onClick={close}
                       className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-100 via-neutral-50 to-neutral-200 transition-transform hover:scale-105 focus:outline-none focus:outline-none"
                       aria-label={`View ${item.product.name} details`}

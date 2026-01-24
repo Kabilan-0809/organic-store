@@ -80,10 +80,18 @@ export default async function ProductSlugPage({ params }: ProductSlugPageProps) 
   }
 
   // Find product by slug (case-insensitive comparison to handle slug variations)
+  // Helper to normalize slugs for comparison (handle hyphen/underscore interchangeably)
+  const normalizeSlug = (s: string) => s.toLowerCase().trim().replace(/_/g, '-')
+
+  // Find product by slug (resilient matching)
   const product = products.find(
-    (p) => p.slug?.toLowerCase().trim() === decodedSlug.toLowerCase().trim() ||
-      p.slug === decodedSlug ||
-      p.name?.toLowerCase().trim() === decodedSlug.toLowerCase().trim()
+    (p) => {
+      const dbSlug = p.slug ? normalizeSlug(p.slug) : ''
+      const urlSlug = normalizeSlug(decodedSlug)
+      const dbName = p.name ? normalizeSlug(p.name) : ''
+
+      return dbSlug === urlSlug || dbName === urlSlug
+    }
   )
 
   interface DBVariant {

@@ -36,7 +36,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       : 'hover:-translate-y-1 hover:shadow-organic hover:ring-2 hover:ring-primary-soft'
       }`}>
       <Link
-        href={`/shop/${slugOrId}`} // Use filtered slug from props
+        href={`/shop/${slugOrId.toString().replace(/-/g, '_')}`} // Use filtered slug from props, ensuring underscores
         aria-label={`View details for ${product.name}, price ₹${discountedPriceInRupees}`}
         className="flex flex-1 flex-col"
         draggable="false"

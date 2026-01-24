@@ -15,7 +15,7 @@ const SLIDES = [
         subtitle: 'Nature\'s Sweetness, Pure Energy',
         description: 'Experience the unique nutritional benefits of red banana in a delicious, energizing malt.',
         color: 'from-amber-900/80 to-amber-600/40',
-        link: '/shop/red-banana-malt'
+        link: '/shop/red_banana_malt'
     },
     {
         id: 2,
@@ -24,7 +24,7 @@ const SLIDES = [
         subtitle: 'Healthy Meets Delicious',
         description: 'The perfect blend of nutritious finger millet and rich cocoa. Kids love it, moms trust it.',
         color: 'from-amber-950/80 to-stone-800/40',
-        link: '/shop/choco-ragi-millet'
+        link: '/shop/choco_ragi_millet'
     },
     {
         id: 3,
@@ -33,7 +33,7 @@ const SLIDES = [
         subtitle: 'Apple, Beetroot, Carrot',
         description: 'A powerhouse of vitamins and minerals in one convenient, tasty mix for the whole family.',
         color: 'from-red-900/80 to-rose-700/40',
-        link: '/shop/abc-nutri-mix'
+        link: '/shop/abc_nutri_mix'
     },
     {
         id: 4,
@@ -42,7 +42,7 @@ const SLIDES = [
         subtitle: 'Spicy Millet Crackle',
         description: 'Spice up your day with the fiery crunch of millet and chili. The perfect guilt-free snack.',
         color: 'from-orange-800/80 to-red-600/40',
-        link: '/shop/chilli-chatag'
+        link: '/shop/chilli_chatag'
     },
     {
         id: 5,
@@ -51,7 +51,7 @@ const SLIDES = [
         subtitle: 'Savory Spice Burst',
         description: 'Authentic Indian spices blended with wholesome millets. A savory treat for every palate.',
         color: 'from-yellow-800/80 to-amber-600/40',
-        link: '/shop/masala-stick'
+        link: '/shop/masala_stick'
     },
     {
         id: 6,
@@ -60,7 +60,7 @@ const SLIDES = [
         subtitle: 'Zesty Garden Fresh',
         description: 'Bursting with the fresh taste of ripe tomatoes and herbs. A tangy twist on healthy snacking.',
         color: 'from-red-800/80 to-rose-600/40',
-        link: '/shop/tangy-tomato'
+        link: '/shop/tangy_tomato'
     }
 ]
 
