@@ -7,6 +7,7 @@ import { useCart } from '@/components/cart/CartContext'
 import { useAuth } from '@/components/auth/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { calculateDiscountedPrice } from '@/lib/pricing'
+import { getCinematicImage } from '@/lib/product-images'
 
 export default function CartDrawer() {
   const { items, isOpen, close, setQuantity, removeItem, subtotal } = useCart()
@@ -216,7 +217,7 @@ export default function CartDrawer() {
                     >
                       {item.product.image ? (
                         <Image
-                          src={item.product.image}
+                          src={getCinematicImage(item.product)}
                           alt={item.product.name}
                           width={64}
                           height={64}

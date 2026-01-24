@@ -5,7 +5,7 @@ export const productImageMap: Record<string, string> = {
     'abc nutri mix': '/hero-images/abc-mix-v2.png',
     'red banana malt': '/hero-images/red-banana-v2.png',
     'chilli chatag': '/hero-images/chilli-chatag-v2.png',
-    'choco ragi millet': '/hero-images/choco-ragi-v2.png',
+    'choco ragi': '/hero-images/choco-ragi-v2.png',
     'masala stick': '/hero-images/masala-stick-v2.png',
     'tangy tomato': '/hero-images/tangy-tomato-v2.png',
 
@@ -15,6 +15,9 @@ export const productImageMap: Record<string, string> = {
     'mudavaattu kizhangu saadha podi': '/hero-images/mudavaattu-kizhangu-cinematic.png',
     'almond elephant': '/hero-images/almond-elephant-cinematic.png',
     'choco coated monkey': '/hero-images/choco-monkey-cinematic.png',
+    'multi millet choco coated balls': '/hero-images/choco-monkey-cinematic.png', // Added specific mapping
+    'monkey': '/hero-images/choco-monkey-cinematic.png', // Fallback for shortened name
+    'choco monkey': '/hero-images/choco-monkey-cinematic.png', // Fallback for user-style name
     'coconut hearts': '/hero-images/coconut-hearts-cinematic.png', // This will be the new bottle version
     'premium peanut balls': '/hero-images/peanut-balls-cinematic.png',
     'peanut balls': '/hero-images/peanut-balls-cinematic.png', // Fallback

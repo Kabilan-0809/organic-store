@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useCart } from '@/components/cart/CartContext'
 import AnimatedPage from '@/components/AnimatedPage'
 import { calculateDiscountedPrice, calculateShippingFee } from '@/lib/pricing'
+import { getCinematicImage } from '@/lib/product-images'
 import Image from 'next/image'
 import Script from 'next/script'
 
@@ -453,7 +454,7 @@ export default function CheckoutReviewContent() {
                       <div key={item.cartItemId} className="flex gap-4 border-b border-neutral-100 pb-4 last:border-0">
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                           <Image
-                            src={item.product.image}
+                            src={getCinematicImage(item.product)}
                             alt={item.product.name}
                             fill
                             className="object-contain"
