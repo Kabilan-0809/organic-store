@@ -13,6 +13,12 @@ export const dynamic = 'force-dynamic'
  * Fetch all active products for the shop page.
  * Uses the same direct Supabase query pattern as cart routes to ensure consistency.
  * 
+ * Query Parameters:
+ * - excludeOutOfStock: Filter out products with no stock
+ * - includeOutOfStock: Include out-of-stock products
+ * - category: Filter by category name (case-insensitive)
+ * - q or search: Search products by name (case-insensitive partial match)
+ * 
  * SECURITY:
  * - Public endpoint (no auth required)
  * - Only returns active products (isActive = true)
@@ -22,10 +28,12 @@ export async function GET(_req: NextRequest) {
     const searchParams = _req.nextUrl.searchParams
     const excludeOutOfStock = searchParams.get('excludeOutOfStock') === 'true'
     const includeOutOfStock = searchParams.get('includeOutOfStock') === 'true'
+    const categoryFilter = searchParams.get('category')
+    const searchQuery = searchParams.get('q') || searchParams.get('search')
 
     // Build query - join with ProductVariant for malt products
     // Explicit columns to reduce payload size
-    const query = supabase
+    let query = supabase
       .from('Product')
       .select(`
         id,
@@ -47,6 +55,16 @@ export async function GET(_req: NextRequest) {
       `)
       .eq('isActive', true)
       .order('createdAt', { ascending: false })
+
+    // Apply category filter if provided
+    if (categoryFilter) {
+      query = query.ilike('category', categoryFilter)
+    }
+
+    // Apply search filter if provided (case-insensitive partial match)
+    if (searchQuery) {
+      query = query.ilike('name', `%${searchQuery}%`)
+    }
 
     // Filter out of stock if requested (but allow out of stock if includeOutOfStock is true)
     // For non-malt products, check Product.stock
