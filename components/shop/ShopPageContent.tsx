@@ -4,7 +4,7 @@ import AnimatedPage from '@/components/AnimatedPage'
 import ProductCard from '@/components/products/ProductCard'
 import ShopFilters from '@/components/shop/ShopFilters'
 import { useMemo, useState, useEffect } from 'react'
-import type { Product, ProductVariant } from '@/types'
+import type { Product } from '@/types'
 import { getCinematicImage } from '@/lib/product-images'
 
 export default function ShopPageContent() {
@@ -28,32 +28,45 @@ export default function ShopPageContent() {
         const data = await response.json()
         // Map database products to Product type
         const mappedProducts: Product[] = (data.products || []).map((p: {
-          id: string
-          slug: string
-          name: string
+          product_id: string
+          title: string
           description: string
-          price: number
-          discountPercent?: number | null
+          original_price: number
+          sale_price: number
           category: string
-          imageUrl: string
-          stock: number
-          inStock: boolean
-          variants?: ProductVariant[]
-        }) => ({
-          id: p.id,
-          slug: p.slug,
-          name: p.name,
-          description: p.description,
-          price: p.price,
-          discountPercent: p.discountPercent,
-          category: p.category,
-          image: p.imageUrl,
-          inStock: p.inStock,
-          stock: p.stock, // Include stock for low stock warnings
-          variants: p.variants,
-        }))
+          primary_image: string
+          additional_images: string[]
+          availability: number
+          link: string
+        }) => {
+          // Remove weight suffix from title (e.g., "Red Banana Malt - 80g" -> "Red Banana Malt")
+          const cleanTitle = p.title.replace(/\s*-\s*\d+g\s*$/i, '').trim()
 
-        const productsWithCinematicImages = mappedProducts.map(product => ({
+          return {
+            id: p.product_id,
+            slug: p.link ? p.link.split('/').pop() || '' : '',
+            name: cleanTitle,
+            description: p.description,
+            price: p.sale_price,
+            discountPercent: null,
+            category: p.category || 'Uncategorized',
+            image: p.primary_image,
+            images: p.additional_images,
+            inStock: p.availability > 0,
+            stock: p.availability,
+          }
+        })
+
+        // Deduplicate products by name (keep only first occurrence of each base product)
+        const uniqueProducts = mappedProducts.reduce((acc: Product[], product) => {
+          const exists = acc.some(p => p.name === product.name)
+          if (!exists) {
+            acc.push(product)
+          }
+          return acc
+        }, [])
+
+        const productsWithCinematicImages = uniqueProducts.map(product => ({
           ...product,
           image: getCinematicImage(product)
         }))

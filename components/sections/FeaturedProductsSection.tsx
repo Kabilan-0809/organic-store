@@ -49,21 +49,35 @@ export default function FeaturedProductsSection() {
           primary_image: string
           additional_images: string[]
           availability: number
-        }) => ({
-          id: p.product_id,
-          slug: '', // Not needed for featured section
-          name: p.title,
-          description: p.description,
-          price: p.sale_price, // Use sale_price for display
-          discountPercent: null,
-          category: p.category,
-          image: p.primary_image,
-          images: p.additional_images,
-          inStock: p.availability > 0,
-          stock: p.availability,
-        }))
+        }) => {
+          // Remove weight suffix from title (e.g., "Red Banana Malt - 80g" -> "Red Banana Malt")
+          const cleanTitle = p.title.replace(/\s*-\s*\d+g\s*$/i, '').trim()
 
-        const productsWithCinematicImages = mappedProducts.map(product => ({
+          return {
+            id: p.product_id,
+            slug: '', // Not needed for featured section
+            name: cleanTitle,
+            description: p.description,
+            price: p.sale_price, // Use sale_price for display
+            discountPercent: null,
+            category: p.category,
+            image: p.primary_image,
+            images: p.additional_images,
+            inStock: p.availability > 0,
+            stock: p.availability,
+          }
+        })
+
+        // Deduplicate products by name (keep only first occurrence of each base product)
+        const uniqueProducts = mappedProducts.reduce((acc: Product[], product) => {
+          const exists = acc.some(p => p.name === product.name)
+          if (!exists) {
+            acc.push(product)
+          }
+          return acc
+        }, [])
+
+        const productsWithCinematicImages = uniqueProducts.map(product => ({
           ...product,
           image: getCinematicImage(product)
         }))
