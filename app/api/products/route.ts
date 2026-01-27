@@ -121,14 +121,13 @@ export async function GET(_req: NextRequest) {
       }
 
       // Convert fallback image to GitHub URL if needed
-      // const githubBase = 'https://raw.githubusercontent.com/Kabilan-0809/organic-store/main/public'
+      const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
       let fallbackImage = p.imageUrl
 
-      // Reverted to local paths for images as per user request
-      // if (p.imageUrl && p.imageUrl.startsWith('/')) {
-      //   const urlPath = p.imageUrl.split('/').map((part: string) => encodeURIComponent(part)).join('/')
-      //   fallbackImage = `${githubBase}${urlPath}`
-      // }
+      if (p.imageUrl && p.imageUrl.startsWith('/')) {
+        const urlPath = p.imageUrl.split('/').map((part: string) => encodeURIComponent(part)).join('/')
+        fallbackImage = `${githubBase}${urlPath}?raw=true`
+      }
 
       const primaryImage = allImages.length > 0 ? allImages[0] : fallbackImage
       const additionalImages = allImages.slice(1) // All images except the first one

@@ -31,11 +31,16 @@ export function getCinematicImage(product: { name: string; image: string } | und
     if (!product) return ''
 
     const normalizedName = product.name.toLowerCase().trim()
+    const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
 
     // Check for exact match or partial match for mapped images
     for (const [key, value] of Object.entries(productImageMap)) {
         if (normalizedName.includes(key)) {
-            return value
+            // Check if value already has the base
+            if (value.startsWith('http')) return value
+            // Ensure leading slash for joining
+            const path = value.startsWith('/') ? value : '/' + value
+            return `${githubBase}${path}?raw=true`
         }
     }
 
