@@ -40,27 +40,27 @@ export default function FeaturedProductsSection() {
         }
         const data = await response.json()
         const mappedProducts: Product[] = (data.products || []).map((p: {
-          id: string
-          slug: string
-          name: string
+          product_id: string
+          title: string
           description: string
-          price: number
-          discountPercent?: number | null
+          original_price: number
+          sale_price: number
           category: string
-          imageUrl: string
-          stock: number
-          inStock: boolean
+          primary_image: string
+          additional_images: string[]
+          availability: number
         }) => ({
-          id: p.id,
-          slug: p.slug,
-          name: p.name,
+          id: p.product_id,
+          slug: '', // Not needed for featured section
+          name: p.title,
           description: p.description,
-          price: p.price,
-          discountPercent: p.discountPercent,
+          price: p.sale_price, // Use sale_price for display
+          discountPercent: null,
           category: p.category,
-          image: p.imageUrl,
-          inStock: p.inStock,
-          stock: p.stock,
+          image: p.primary_image,
+          images: p.additional_images,
+          inStock: p.availability > 0,
+          stock: p.availability,
         }))
 
         const productsWithCinematicImages = mappedProducts.map(product => ({
