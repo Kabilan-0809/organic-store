@@ -130,7 +130,7 @@ export async function GET(_req: NextRequest) {
           const salePrice = p.discountPercent > 0
             ? variantPrice - (variantPrice * p.discountPercent / 100)
             : variantPrice
-          const availability = variant.stock > 0 ? 1 : 0
+          const availability = variant.stock // Actual stock count
 
           // Skip if excludeOutOfStock is true and variant is out of stock
           if (excludeOutOfStock && !includeOutOfStock && availability === 0) {
@@ -157,7 +157,7 @@ export async function GET(_req: NextRequest) {
         const salePrice = p.discountPercent > 0
           ? originalPrice - (originalPrice * p.discountPercent / 100)
           : originalPrice
-        const availability = p.stock > 0 ? 1 : 0
+        const availability = p.stock // Actual stock count
 
         // Skip if excludeOutOfStock is true and product is out of stock
         if (excludeOutOfStock && !includeOutOfStock && availability === 0) {
