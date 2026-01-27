@@ -79,7 +79,7 @@ export async function GET(_req: NextRequest) {
         }
 
         // Get base URL from environment
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://milletsnjoy.com'
 
         // Helper function for variant categories
         const hasVariants = (category: string) => {
@@ -112,7 +112,16 @@ export async function GET(_req: NextRequest) {
                 console.error('Error discovering images for', p.name, e)
             }
 
-            const primaryImage = allImages.length > 0 ? allImages[0] : p.imageUrl
+            // Convert fallback image to GitHub URL if needed
+            const githubBase = 'https://raw.githubusercontent.com/Kabilan-0809/organic-store/main/public'
+            let fallbackImage = p.imageUrl
+
+            if (p.imageUrl && p.imageUrl.startsWith('/')) {
+                const urlPath = p.imageUrl.split('/').map((part: string) => encodeURIComponent(part)).join('/')
+                fallbackImage = `${githubBase}${urlPath}`
+            }
+
+            const primaryImage = allImages.length > 0 ? allImages[0] : fallbackImage
             const additionalImages = allImages.slice(1)
 
             if (usesVariants && variants.length > 0) {
