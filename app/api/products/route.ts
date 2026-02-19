@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
 
     for (const p of products) {
       // Logic for determining image URL (using stored URL or GitHub fallback)
-      let primaryImage = p.imageUrl
+      const primaryImage = p.imageUrl
 
       // Fallback logic if image is missing/invalid
       if (!primaryImage || primaryImage.trim() === '') {
