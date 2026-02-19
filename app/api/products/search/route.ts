@@ -6,11 +6,13 @@ import { getProductImages } from '@/lib/products-server'
 // Node runtime for server-side image discovery
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /**
  * GET /api/products/search
  * 
  * Search products by name with optional category filtering.
+ * Uses explicit column selection to match Cart API logic.
  * 
  * Query Parameters:
  * - q or search: Search query for product name (required)

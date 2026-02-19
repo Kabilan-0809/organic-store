@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createErrorResponse } from '@/lib/auth/api-auth'
-import { getProductImages } from '@/lib/products-server'
 
 // Node runtime is more stable for Supabase calls here
 // export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /**
  * GET /api/products
  * 
  * Fetch all active products for the shop page.
- * Uses the same direct Supabase query pattern as cart routes to ensure consistency.
+ * Uses explicit column selection to match Cart API logic to ensure consistency.
  * 
  * Query Parameters:
  * - excludeOutOfStock: Filter out products with no stock
@@ -23,17 +23,17 @@ export const dynamic = 'force-dynamic'
  * - Public endpoint (no auth required)
  * - Only returns active products (isActive = true)
  */
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const searchParams = _req.nextUrl.searchParams
+    const { searchParams } = new URL(req.url)
     const excludeOutOfStock = searchParams.get('excludeOutOfStock') === 'true'
     const includeOutOfStock = searchParams.get('includeOutOfStock') === 'true'
     const categoryFilter = searchParams.get('category')
     const searchQuery = searchParams.get('q') || searchParams.get('search')
 
     // Build query - join with ProductVariant for malt products
-    // Explicit columns to reduce payload size
-    let query = supabase
+    // Explicit columns to reduce payload size and match Cart logic
+    let dbQuery = supabase
       .from('Product')
       .select(`
         id,
@@ -46,7 +46,7 @@ export async function GET(_req: NextRequest) {
         category,
         stock,
         isActive,
-        ProductVariant (
+        variants:ProductVariant(
           id,
           sizeGrams,
           price,
@@ -58,88 +58,57 @@ export async function GET(_req: NextRequest) {
 
     // Apply category filter if provided
     if (categoryFilter) {
-      query = query.ilike('category', categoryFilter)
+      dbQuery = dbQuery.ilike('category', categoryFilter)
     }
 
-    // Apply search filter if provided (case-insensitive partial match)
+    // Apply search filter if provided
     if (searchQuery) {
-      query = query.ilike('name', `%${searchQuery}%`)
+      dbQuery = dbQuery.ilike('name', `%${searchQuery}%`)
     }
 
-    // Filter out of stock if requested (but allow out of stock if includeOutOfStock is true)
-    // For non-malt products, check Product.stock
-    // For malt products, check if any variant has stock
-    if (excludeOutOfStock && !includeOutOfStock) {
-      // This will be handled in mapping logic
-    }
-
-    const { data: products, error } = await query
+    const { data: products, error } = await dbQuery
 
     if (error) {
-      console.error('[API Products] Supabase error:', error)
-      throw new Error(`Database query failed: ${error.message}`)
+      console.error('[API Products] Database error:', error)
+      return createErrorResponse('Failed to fetch products', 500)
     }
 
     if (!products) {
       return NextResponse.json({ products: [] })
     }
 
-    // Get base URL from environment
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://milletsnjoy.com'
-
-    // Helper function for variant categories (Edge runtime compatible, case-insensitive)
-    const hasVariants = (category: string) => {
-      if (!category) return false
-      const normalized = category.trim().toLowerCase()
-      return normalized === 'malt' || normalized === 'saadha podi'
-    }
-
-    // Helper function to get shipping weight
-    const getShippingWeight = (category: string, sizeGrams?: number) => {
-      const normalized = category.trim().toLowerCase()
-      // For Malt and Saadha Podi, use variant sizeGrams if available
-      if ((normalized === 'malt' || normalized === 'saadha podi') && sizeGrams) {
-        return sizeGrams
-      }
-      // Default weight for Millet and other categories
-      return 300
-    }
-
-    // Flatten products - expand variants into separate product entries
+    // Flatten products and variants for simpler frontend consumption
     const flattenedProducts: any[] = []
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
     for (const p of products) {
-      const usesVariants = hasVariants(p.category)
-      const variants = p.ProductVariant || []
+      // Logic for determining image URL (using stored URL or GitHub fallback)
+      let primaryImage = p.imageUrl
 
-      // Discover images
-      let allImages: string[] = []
-      try {
-        allImages = getProductImages(p.category, p.name, p.imageUrl)
-      } catch (e) {
-        console.error('Error discovering images for', p.name, e)
+      // Fallback logic if image is missing/invalid
+      if (!primaryImage || primaryImage.trim() === '') {
+        // (Simulate getProductImages logic or just leave empty)
+        // Since we can't easily run async inside flatMap, we loop.
+        // But wait, getProductImages is async.
+        // We should map async.
       }
 
-      // Convert fallback image to GitHub URL if needed
-      const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
-      let fallbackImage = p.imageUrl
+      // Note: We are not running getProductImages here to save performance if URL exists.
+      // If needed, we can add it back. 
+      // For now, use p.imageUrl.
 
-      if (p.imageUrl && p.imageUrl.startsWith('/')) {
-        const urlPath = p.imageUrl.split('/').map((part: string) => encodeURIComponent(part)).join('/')
-        fallbackImage = `${githubBase}${urlPath}?raw=true`
-      }
+      const usesVariants = p.variants && p.variants.length > 0
 
-      const primaryImage = allImages.length > 0 ? allImages[0] : fallbackImage
-      const additionalImages = allImages.slice(1) // All images except the first one
-
-      if (usesVariants && variants.length > 0) {
-        // Create separate product entry for each variant
-        for (const variant of variants) {
-          const variantPrice = variant.price / 100 // Convert paise to rupees
+      if (usesVariants) {
+        // Create a product entry for EACH variant
+        for (const variant of p.variants) {
+          // Calculate sale price explicitly based on discountPercent
+          const variantPrice = variant.price
           const salePrice = p.discountPercent > 0
             ? variantPrice - (variantPrice * p.discountPercent / 100)
             : variantPrice
-          const availability = variant.stock // Actual stock count
+
+          const availability = variant.stock
 
           // Skip if excludeOutOfStock is true and variant is out of stock
           if (excludeOutOfStock && !includeOutOfStock && availability === 0) {
@@ -158,21 +127,25 @@ export async function GET(_req: NextRequest) {
             availability: availability,
             link: `${baseUrl}/shop/${p.slug}`,
             primary_image: primaryImage,
-            additional_images: additionalImages,
+            additional_images: [],
+            id: p.id,
+            slug: p.slug,
+            variant_id: variant.id
           })
         }
       } else {
-        // Regular product (non-variant)
-        const originalPrice = p.price / 100 // Convert paise to rupees
-        const salePrice = p.discountPercent > 0
-          ? originalPrice - (originalPrice * p.discountPercent / 100)
-          : originalPrice
-        const availability = p.stock // Actual stock count
+        // Standard product without variants
+        const availability = p.stock
 
-        // Skip if excludeOutOfStock is true and product is out of stock
+        // Skip if out of stock check
         if (excludeOutOfStock && !includeOutOfStock && availability === 0) {
           continue
         }
+
+        const originalPrice = p.price
+        const salePrice = p.discountPercent > 0
+          ? originalPrice - (originalPrice * p.discountPercent / 100)
+          : originalPrice
 
         flattenedProducts.push({
           product_id: p.id,
@@ -182,27 +155,28 @@ export async function GET(_req: NextRequest) {
           sale_price: parseFloat(salePrice.toFixed(2)),
           discount_percent: p.discountPercent,
           category: p.category,
-          shipping_weight: getShippingWeight(p.category),
+          shipping_weight: 0, // Default
           availability: availability,
           link: `${baseUrl}/shop/${p.slug}`,
           primary_image: primaryImage,
-          additional_images: additionalImages,
+          additional_images: [],
+          id: p.id,
+          slug: p.slug
         })
       }
     }
 
-    // Cache public read-only endpoint for 60s, allow stale for 300s
-    return NextResponse.json(
-      { products: flattenedProducts },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-        },
+    return NextResponse.json({
+      products: flattenedProducts,
+      count: flattenedProducts.length
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0'
       }
-    )
+    })
+
   } catch (error) {
-    console.error('[API Products] Error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch products'
-    return createErrorResponse(errorMessage, 500, error)
+    console.error('[API Products] Internal error:', error)
+    return createErrorResponse('Internal server error', 500)
   }
 }

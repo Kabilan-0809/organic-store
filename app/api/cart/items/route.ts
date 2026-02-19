@@ -86,7 +86,7 @@ export async function POST(_req: NextRequest) {
       // Verify variant exists and has stock (use variant from joined query if available)
       const variants = products.ProductVariant || []
       variant = variants.find((v: any) => v.id === variantId)
-      
+
       if (!variant || variant.stock <= 0) {
         return createErrorResponse('Selected size is out of stock', 400)
       }
