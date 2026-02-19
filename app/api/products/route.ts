@@ -143,7 +143,8 @@ export async function GET(req: NextRequest) {
           continue
         }
 
-        const originalPrice = p.price
+        // Standard product price is in Paise, convert to Rupees for consistency
+        const originalPrice = p.price / 100
         const salePrice = p.discountPercent > 0
           ? originalPrice - (originalPrice * p.discountPercent / 100)
           : originalPrice

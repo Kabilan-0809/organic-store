@@ -160,16 +160,19 @@ export async function GET(_req: NextRequest) {
                     })
                 }
             } else {
-                // Regular product (non-variant)
+                // Standard product without variants
+                const availability = p.stock
+
+                // Skip if out of stock check
+                if (excludeOutOfStock && availability === 0) {
+                    continue
+                }
+
+                // Standard product price is in Paise
                 const originalPrice = p.price / 100
                 const salePrice = p.discountPercent > 0
                     ? originalPrice - (originalPrice * p.discountPercent / 100)
                     : originalPrice
-                const availability = p.stock // Actual stock count
-
-                if (excludeOutOfStock && availability === 0) {
-                    continue
-                }
 
                 flattenedProducts.push({
                     product_id: p.id,
