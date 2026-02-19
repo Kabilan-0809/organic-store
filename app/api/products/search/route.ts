@@ -127,8 +127,13 @@ export async function GET(_req: NextRequest) {
             const additionalImages = allImages.slice(1)
 
             if (usesVariants && variants.length > 0) {
-                // Create separate product entry for each variant
-                for (const variant of variants) {
+                // Create a product entry for EACH variant
+                // Filter out variants that don't match the search query (optional, but good for UX)
+                // If query matches Product Name, include ALL variants.
+                // But if query matches "500g", include specific variant? (Not implemented here, just name match).
+
+                for (const variant of p.ProductVariant) {
+                    // Variant price is in Paise
                     const variantPrice = variant.price / 100
                     const salePrice = p.discountPercent > 0
                         ? variantPrice - (variantPrice * p.discountPercent / 100)

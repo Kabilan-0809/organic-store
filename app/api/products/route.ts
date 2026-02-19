@@ -103,7 +103,8 @@ export async function GET(req: NextRequest) {
         // Create a product entry for EACH variant
         for (const variant of p.variants) {
           // Calculate sale price explicitly based on discountPercent
-          const variantPrice = variant.price
+          // Variant price is in Paise, convert to Rupees for consistency
+          const variantPrice = variant.price / 100
           const salePrice = p.discountPercent > 0
             ? variantPrice - (variantPrice * p.discountPercent / 100)
             : variantPrice
