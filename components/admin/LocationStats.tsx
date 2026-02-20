@@ -19,7 +19,7 @@ export default function LocationStats({ locations }: { locations: LocationStat[]
                     <p className="text-center text-neutral-500">No location data available</p>
                 ) : (
                     <div className="space-y-4">
-                        {topLocations.map((loc, index) => {
+                        {topLocations.map((loc) => {
                             const max = topLocations[0]?.value || 1
                             const percent = (loc.value / max) * 100
 

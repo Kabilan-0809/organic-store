@@ -34,8 +34,6 @@ export async function GET() {
         // Assuming table name is 'OrderItem' and related by 'orderId'
         const { data: orders, error: ordersError } = await supabase
             .from('Order')
-            // Using join to fetch items
-            // @ts-ignore - Supabase types might not infer deep join perfectly
             .select('id, totalAmount, status, createdAt, userId, addressLine1, city, state, items:OrderItem(*)')
             .order('createdAt', { ascending: false })
 
