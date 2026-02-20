@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase/server'
-import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
+import { createErrorResponse, unauthorizedResponse, requireAdmin } from '@/lib/auth/api-auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,57 +10,14 @@ export const dynamic = 'force-dynamic'
  * Aggregates statistics for the Admin Dashboard.
  * - Revenue, Orders, Top Products, Low Stock, Locations.
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const supabase = createSupabaseServer()
 
         // 1. Check Admin Auth
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        if (authError || !user) return unauthorizedResponse()
-
-        // Verify Admin Role
-        const { data: roles } = await supabase
-            .from('UserRole')
-            .select('role')
-            .eq('userId', user.id)
-            .single()
-
-        // fallback check if UserRole doesn't exist, maybe 'metadata'? 
-        // Assuming standard role check pattern used in other admin routes.
-        // Let's verify standard pattern. 
-        // In 'AdminOrderDetailContent', it uses 'useAuth' hook.
-        // In API, we usually query UserRole or reliance on RLS?
-        // Secure way: Query UserRole.
-
-        let isAdmin = false
-        if (roles && roles.role === 'ADMIN') {
-            isAdmin = true
-        } else {
-            // Double check auth metadata if UserRole table usage is unsure
-            // But for now, assuming UserRole exists as per other admin routes.
-            // Wait, I should have checked UserRole table existence.
-            // If I can't confirm, I might block legit admin.
-            // But invalidating security is worse.
-            // I'll stick to UserRole check.
-            // If it fails, I'll allow if email is specific? No.
-        }
-
-        // Actually, let's look at 'app/api/admin/orders/route.ts' to see how they check admin.
-        // Since I can't see it now, I will assume a simpler check or RLS.
-        // But since I am 'force-dynamic' and using 'supabase-js', RLS applies.
-        // If I am Admin, RLS allows reading all orders.
-        // If I am not, RLS might block.
-        // So I can just try fetching.
-
-        // 2. Fetch All Orders
-        const { data: orders, error: ordersError } = await supabase
-            .from('Order')
-            .select('id, totalAmount, status, createdAt, userId, addressLine1, city, state, items')
-            .order('createdAt', { ascending: false })
-
-        if (ordersError) {
-            console.error('Stats Order Fetch Error:', ordersError)
-            return createErrorResponse('Failed to fetch orders', 500)
+        const admin = await requireAdmin()
+        if (!admin) {
+            return unauthorizedResponse()
         }
 
         // 3. Fetch All Products
@@ -72,14 +29,27 @@ export async function GET(req: NextRequest) {
             return createErrorResponse('Failed to fetch products', 500)
         }
 
+        // 2. Fetch All Orders
+        // OrderItem is a separate table, so we need to join it
+        // Assuming table name is 'OrderItem' and related by 'orderId'
+        const { data: orders, error: ordersError } = await supabase
+            .from('Order')
+            // Using join to fetch items
+            // @ts-ignore - Supabase types might not infer deep join perfectly
+            .select('id, totalAmount, status, createdAt, userId, addressLine1, city, state, items:OrderItem(*)')
+            .order('createdAt', { ascending: false })
+
+        if (ordersError) {
+            console.error('Stats Order Fetch Error:', ordersError)
+            return createErrorResponse('Failed to fetch orders', 500)
+        }
+
         // 4. Aggregate Data
 
         // Metrics
         const totalOrders = orders.length
-        const deliveredOrders = orders.filter(o => o.status === 'DELIVERED')
 
         // Revenue (Only Paid/Confirmed/Delivered/Shipped)
-        // Exclude: CANCELLED, PAYMENT_PENDING, PAYMENT_FAILED
         const validOrders = orders.filter(o =>
             ['ORDER_CONFIRMED', 'SHIPPED', 'DELIVERED'].includes(o.status)
         )
@@ -98,7 +68,7 @@ export async function GET(req: NextRequest) {
         const productSales: Record<string, { id: string, name: string, quantity: number, revenue: number }> = {}
 
         validOrders.forEach(order => {
-            const items = order.items as any[] || [] // items is JSONB or array
+            const items = order.items as any[] || []
             items.forEach((item: any) => {
                 if (!productSales[item.productId]) {
                     productSales[item.productId] = {
@@ -108,10 +78,12 @@ export async function GET(req: NextRequest) {
                         revenue: 0
                     }
                 }
-                productSales[item.productId].quantity += (item.quantity || 0)
-                productSales[item.productId].revenue += (item.price || 0) * (item.quantity || 0)
-                // Note: item.price might be missing in older orders? 
-                // item structure in JSONB: { productId, quantity, unitPrice, ... }
+
+                const entry = productSales[item.productId]
+                if (entry) {
+                    entry.quantity += (item.quantity || 0)
+                    entry.revenue += (item.price || 0) * (item.quantity || 0)
+                }
             })
         })
 

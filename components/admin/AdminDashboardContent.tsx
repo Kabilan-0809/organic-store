@@ -6,11 +6,12 @@ import { useRouter } from 'next/navigation'
 import AnimatedPage from '@/components/AnimatedPage'
 import AdminProductsList from '@/components/admin/AdminProductsList'
 import AdminOrdersList from '@/components/admin/AdminOrdersList'
+import StatsDashboard from '@/components/admin/StatsDashboard'
 
 export default function AdminDashboardContent() {
   const { accessToken, isAuthenticated, user, role } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'products' | 'orders'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats'>('stats') // Default to stats for visibility
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -84,22 +85,29 @@ export default function AdminDashboardContent() {
           <div className="mb-6 border-b border-neutral-200">
             <nav className="-mb-px flex space-x-8">
               <button
+                onClick={() => setActiveTab('stats')}
+                className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${activeTab === 'stats'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
+                  }`}
+              >
+                Analytics
+              </button>
+              <button
                 onClick={() => setActiveTab('products')}
-                className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-                  activeTab === 'products'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
-                }`}
+                className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${activeTab === 'products'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
+                  }`}
               >
                 Products
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-                  activeTab === 'orders'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
-                }`}
+                className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${activeTab === 'orders'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
+                  }`}
               >
                 Orders
               </button>
@@ -107,6 +115,7 @@ export default function AdminDashboardContent() {
           </div>
 
           {/* Tab Content */}
+          {activeTab === 'stats' && <StatsDashboard />}
           {activeTab === 'products' && <AdminProductsList accessToken={accessToken} />}
           {activeTab === 'orders' && <AdminOrdersList accessToken={accessToken} />}
         </div>
