@@ -10,7 +10,7 @@ import { calculateDiscountedPrice } from '@/lib/pricing'
 import { getCinematicImage } from '@/lib/product-images'
 
 export default function CartDrawer() {
-  const { items, isOpen, close, setQuantity, removeItem, subtotal } = useCart()
+  const { items, comboItems, isOpen, close, setQuantity, removeItem, removeCombo, subtotal } = useCart()
   const { isAuthenticated, accessToken } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -23,7 +23,8 @@ export default function CartDrawer() {
     setMounted(true)
   }, [])
 
-  const hasItems = items.length > 0
+  const hasItems = items.length > 0 || comboItems.length > 0
+  const totalItemCount = items.length + comboItems.length
 
   // Reset checkout state when cart drawer opens or when not on checkout page
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function CartDrawer() {
           <div>
             <h2 className="text-base font-semibold text-neutral-900">Your Cart</h2>
             <p className="text-xs text-neutral-500">
-              {hasItems ? `${items.length} item(s)` : 'No items yet'}
+              {hasItems ? `${totalItemCount} item(s)` : 'No items yet'}
             </p>
           </div>
           <button
@@ -167,6 +168,49 @@ export default function CartDrawer() {
         <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {hasItems ? (
             <ul className="space-y-4">
+              {/* Combo items (rendered first) */}
+              {comboItems.map((ci) => (
+                <li
+                  key={ci.cartComboItemId}
+                  className="flex items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50/60 p-3"
+                >
+                  {/* Image */}
+                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-amber-100">
+                    {ci.combo?.imageUrl ? (
+                      <img
+                        src={ci.combo.imageUrl}
+                        alt={ci.combo.name}
+                        className="h-full w-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                      />
+                    ) : (
+                      <span className="text-lg">🎁</span>
+                    )}
+                  </div>
+                  <div className="flex flex-1 flex-col">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold text-neutral-900">{ci.combo?.name ?? 'Combo Deal'}</p>
+                        <span className="mt-0.5 inline-block rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-medium text-amber-800">COMBO</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeCombo(ci.cartComboItemId)}
+                        className="text-xs text-neutral-400 hover:text-neutral-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-xs text-neutral-500">Qty: {ci.quantity}</span>
+                      <span className="text-sm font-semibold text-neutral-900">
+                        ₹{((ci.combo?.price ?? 0) * ci.quantity).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+              {/* Regular product items */}
               {items.map((item) => {
                 const slugOrId = item.product.slug ?? item.product.id
                 // For authenticated users, items should have cartItemId

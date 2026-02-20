@@ -38,10 +38,24 @@ type CartAction =
   | { type: 'CLEAR' }
   | { type: 'REPLACE_ALL'; items: CartItem[] }
 
+export interface ComboCartItem {
+  cartComboItemId: string
+  comboId: string
+  quantity: number
+  combo: {
+    id: string
+    name: string
+    imageUrl: string
+    price: number
+  } | null
+}
+
 interface CartContextValue {
   items: CartItem[]
+  comboItems: ComboCartItem[]
   addItem: (product: Product, quantity?: number, variantId?: string) => Promise<void>
   removeItem: (productId: string, cartItemId?: string, sizeGrams?: number | null) => Promise<void>
+  removeCombo: (cartComboItemId: string) => Promise<void>
   setQuantity: (productId: string, quantity: number, cartItemId?: string, sizeGrams?: number | null) => Promise<void>
   clear: () => void
   reload: () => Promise<void>
@@ -70,7 +84,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         }
         return true
       })
-      
+
       if (existing) {
         return {
           items: state.items.map((item) => {
@@ -177,6 +191,7 @@ export function CartProvider({ children }: CartProviderProps) {
   // Track if component has mounted on the client
   const [hasMounted, setHasMounted] = useState(false)
   const [state, dispatch] = useReducer(cartReducer, { items: [] })
+  const [comboItems, setComboItems] = useState<ComboCartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [cartId, setCartId] = useState<string | null>(null)
@@ -226,6 +241,9 @@ export function CartProvider({ children }: CartProviderProps) {
             .filter((item: CartItem) => item.product && item.quantity > 0)
 
           dispatch({ type: 'REPLACE_ALL', items: cartItems })
+
+          // Load combo items from response
+          setComboItems((data.comboItems || []) as ComboCartItem[])
         } else {
           // If fetch fails, start with empty cart
           dispatch({ type: 'REPLACE_ALL', items: [] })
@@ -500,9 +518,9 @@ export function CartProvider({ children }: CartProviderProps) {
           const usesVariants = itemToRemove?.product.category ? hasVariants(itemToRemove.product.category) : false
           const updatedItems = usesVariants && sizeGrams !== undefined
             ? state.items.filter(
-                (item) =>
-                  !(item.product.id === productId && item.product.sizeGrams === sizeGrams)
-              )
+              (item) =>
+                !(item.product.id === productId && item.product.sizeGrams === sizeGrams)
+            )
             : state.items.filter((item) => item.product.id !== productId)
 
           // Update state
@@ -530,7 +548,7 @@ export function CartProvider({ children }: CartProviderProps) {
           const itemToRemove = cartItemId
             ? state.items.find((item) => item.cartItemId === cartItemId)
             : state.items.find((item) => item.product.id === productId && item.cartItemId)
-          
+
           if (isAuthenticated && accessToken && itemToRemove?.cartItemId) {
             try {
               const response = await fetch(
@@ -561,13 +579,13 @@ export function CartProvider({ children }: CartProviderProps) {
         const itemToUpdate = cartItemId
           ? state.items.find((item) => item.cartItemId === cartItemId)
           : state.items.find((item) => {
-              if (item.product.id !== productId) return false
-              const usesVariants = hasVariants(item.product.category)
-              if (usesVariants && sizeGrams !== undefined) {
-                return item.product.sizeGrams === sizeGrams
-              }
-              return true
-            })
+            if (item.product.id !== productId) return false
+            const usesVariants = hasVariants(item.product.category)
+            if (usesVariants && sizeGrams !== undefined) {
+              return item.product.sizeGrams === sizeGrams
+            }
+            return true
+          })
 
         if (!itemToUpdate) {
           console.error('[Cart] Item not found for quantity update:', productId)
@@ -641,6 +659,22 @@ export function CartProvider({ children }: CartProviderProps) {
       },
       clear: () => dispatch({ type: 'CLEAR' }),
       reload: loadCart,
+      comboItems,
+      removeCombo: async (cartComboItemId: string) => {
+        if (!isAuthenticated) return
+        try {
+          await fetch(`/api/cart/combo-items/${cartComboItemId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+          })
+          // Optimistically remove from local state
+          setComboItems((prev) => prev.filter((ci) => ci.cartComboItemId !== cartComboItemId))
+        } catch (err) {
+          console.error('[Cart] Error removing combo:', err)
+          // Reload to sync
+          await loadCart()
+        }
+      },
       subtotal: state.items.reduce((sum, item) => {
         // Exclude unavailable items from subtotal
         if (!item.product.inStock) {
@@ -662,7 +696,7 @@ export function CartProvider({ children }: CartProviderProps) {
       cartId,
       isLoading,
     }),
-    [state.items, isOpen, cartId, hasMounted, isLoading, loadCart, isAuthenticated, accessToken]
+    [state.items, comboItems, isOpen, cartId, hasMounted, isLoading, loadCart, isAuthenticated, accessToken, setComboItems]
   )
 
   return (

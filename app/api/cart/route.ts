@@ -65,9 +65,25 @@ export async function GET(_req: NextRequest) {
     }
 
     if (!cartItems || cartItems.length === 0) {
+      // Still check for combo items even if regular cart is empty
+      const { data: comboItems } = await supabase
+        .from('CartComboItem')
+        .select('id, comboId, quantity, price, combo:Combo(id, name, imageUrl, price)')
+        .eq('cartId', cartId)
+
       return NextResponse.json({
         cartId,
         items: [],
+        comboItems: (comboItems || []).map((ci) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const comboData = ci.combo as any
+          return {
+            cartComboItemId: ci.id,
+            comboId: ci.comboId,
+            quantity: ci.quantity,
+            combo: comboData ? { ...comboData, price: comboData.price / 100 } : null,
+          }
+        }),
       })
     }
 
@@ -163,9 +179,27 @@ export async function GET(_req: NextRequest) {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
 
+    // Fetch combo items for this cart
+    const { data: cartComboItems } = await supabase
+      .from('CartComboItem')
+      .select('id, comboId, quantity, price, combo:Combo(id, name, imageUrl, price)')
+      .eq('cartId', cartId)
+
+    const formattedComboItems = (cartComboItems || []).map((ci) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const comboData = ci.combo as any
+      return {
+        cartComboItemId: ci.id,
+        comboId: ci.comboId,
+        quantity: ci.quantity,
+        combo: comboData ? { ...comboData, price: comboData.price / 100 } : null,
+      }
+    })
+
     return NextResponse.json({
       cartId,
       items: itemsWithProducts,
+      comboItems: formattedComboItems,
     })
   } catch (error) {
     console.error('[API Cart] Error:', error)

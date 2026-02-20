@@ -8,6 +8,7 @@ import TrustSection from '@/components/sections/TrustSection'
 import VideoPlaceholderSection from '@/components/sections/VideoPlaceholderSection'
 import WhyChooseUsSection from '@/components/sections/WhyChooseUsSection'
 import TestimonialsSection from '@/components/sections/TestimonialsSection'
+import ComboDealsSection from '@/components/sections/ComboDealsSection'
 
 export default function Home() {
   return (
@@ -27,6 +28,7 @@ export default function Home() {
         <VideoPlaceholderSection />
         <WhyChooseUsSection />
         <FeaturedProductsSection />
+        <ComboDealsSection />
         <TestimonialsSection />
         <TrustSection />
       </div>

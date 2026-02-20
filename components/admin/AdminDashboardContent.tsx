@@ -7,11 +7,12 @@ import AnimatedPage from '@/components/AnimatedPage'
 import AdminProductsList from '@/components/admin/AdminProductsList'
 import AdminOrdersList from '@/components/admin/AdminOrdersList'
 import StatsDashboard from '@/components/admin/StatsDashboard'
+import AdminCombosList from '@/components/admin/AdminCombosList'
 
 export default function AdminDashboardContent() {
   const { accessToken, isAuthenticated, user, role } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats'>('stats') // Default to stats for visibility
+  const [activeTab, setActiveTab] = useState<'products' | 'orders' | 'stats' | 'combos'>('stats')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -111,6 +112,15 @@ export default function AdminDashboardContent() {
               >
                 Orders
               </button>
+              <button
+                onClick={() => setActiveTab('combos')}
+                className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors ${activeTab === 'combos'
+                  ? 'border-primary-600 text-primary-600'
+                  : 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700'
+                  }`}
+              >
+                Combos
+              </button>
             </nav>
           </div>
 
@@ -118,6 +128,7 @@ export default function AdminDashboardContent() {
           {activeTab === 'stats' && <StatsDashboard />}
           {activeTab === 'products' && <AdminProductsList accessToken={accessToken} />}
           {activeTab === 'orders' && <AdminOrdersList accessToken={accessToken} />}
+          {activeTab === 'combos' && <AdminCombosList accessToken={accessToken} />}
         </div>
       </section>
     </AnimatedPage>
