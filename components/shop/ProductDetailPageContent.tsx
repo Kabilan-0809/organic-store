@@ -31,7 +31,7 @@ export default function ProductDetailPageContent({
   const { addItem } = useCart()
 
   const cinematicImage = getCinematicImage(product)
-  const mainImage = cinematicImage || product.image
+  const mainImage = product.image || cinematicImage
   const images = product.images && product.images.length > 0 ? [mainImage, ...product.images.slice(1)] : [mainImage]
 
   const usesVariants = hasVariants(product.category)

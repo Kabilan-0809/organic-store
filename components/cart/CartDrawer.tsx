@@ -261,7 +261,7 @@ export default function CartDrawer() {
                     >
                       {item.product.image ? (
                         <Image
-                          src={getCinematicImage(item.product)}
+                          src={item.product.image || getCinematicImage(item.product)}
                           alt={item.product.name}
                           width={64}
                           height={64}

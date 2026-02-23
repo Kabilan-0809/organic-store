@@ -80,7 +80,7 @@ export default function FeaturedProductsSection() {
 
         const productsWithCinematicImages = uniqueProducts.map(product => ({
           ...product,
-          image: getCinematicImage(product)
+          image: product.image || getCinematicImage(product)
         }))
 
         setProducts(productsWithCinematicImages)
