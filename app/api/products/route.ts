@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     // Flatten products and variants for simpler frontend consumption
     const flattenedProducts: any[] = []
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://milletsnjoy.com'
 
     for (const p of products) {
       // Logic for determining image URL (using stored URL or GitHub fallback)
