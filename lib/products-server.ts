@@ -25,13 +25,19 @@ export function getProductImages(category: string, name: string, mainImageUrl?: 
     let bestFileNameBase: string | null = null
 
     // 1. Validate DB URL
-    if (mainImageUrl && mainImageUrl.startsWith('/')) {
-        const absPath = path.join(publicDir, mainImageUrl.substring(1))
+    let localMainImage = mainImageUrl
+    const domainPrefix = 'https://milletsnjoy.com'
+    if (localMainImage && localMainImage.startsWith(domainPrefix)) {
+        localMainImage = localMainImage.substring(domainPrefix.length)
+    }
+
+    if (localMainImage && localMainImage.startsWith('/')) {
+        const absPath = path.join(publicDir, localMainImage.substring(1))
         if (fs.existsSync(absPath) && !fs.statSync(absPath).isDirectory()) {
-            bestMainImage = mainImageUrl
+            bestMainImage = localMainImage
             bestBaseDir = path.dirname(absPath)
-            const ext = path.extname(mainImageUrl)
-            bestFileNameBase = path.basename(mainImageUrl, ext).trim()
+            const ext = path.extname(localMainImage)
+            bestFileNameBase = path.basename(localMainImage, ext).trim()
         }
     }
 
@@ -68,10 +74,10 @@ export function getProductImages(category: string, name: string, mainImageUrl?: 
 
     // Add the discovered main image
     if (bestMainImage) images.push(bestMainImage)
-    else if (mainImageUrl) {
+    else if (localMainImage) {
         // Check if broken placeholder worth keeping
-        const abs = path.join(publicDir, mainImageUrl.substring(1))
-        if (fs.existsSync(abs)) images.push(mainImageUrl)
+        const abs = path.join(publicDir, localMainImage.substring(1))
+        if (fs.existsSync(abs)) images.push(localMainImage)
     }
 
     // 4. Find Gallery Folder (Token Based)
@@ -111,7 +117,7 @@ export function getProductImages(category: string, name: string, mainImageUrl?: 
                 galleryFiles.forEach(file => {
                     const ext = path.extname(file).toLowerCase()
                     if (['.png', '.jpg', '.jpeg', '.webp'].includes(ext)) {
-                        const relPath = path.relative(publicDir, path.join(galleryDir, file)).replace(/\\/g, '/')
+                        const relPath = path.relative(publicDir, path.join(galleryDir!, file)).replace(/\\/g, '/')
                         images.push('/' + relPath)
                     }
                 })
@@ -121,13 +127,11 @@ export function getProductImages(category: string, name: string, mainImageUrl?: 
         }
     }
 
-    // Final cleanup: path normalization, deduplication, and conversion to GitHub URLs
-    const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
-
+    // Final cleanup: path normalization, deduplication, and conversion to absolute URLs
     return Array.from(new Set(images.map(img => {
         const normalized = img.startsWith('/') ? img : '/' + img
         // Encode URI components but preserve slashes
         const urlPath = normalized.split('/').map(part => encodeURIComponent(part)).join('/')
-        return `${githubBase}${urlPath}?raw=true`
+        return `${domainPrefix}${urlPath}`
     })))
 }
