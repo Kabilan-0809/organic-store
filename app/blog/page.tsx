@@ -1,17 +1,26 @@
-'use client'
-
 import Link from 'next/link'
-import { getAllBlogPosts } from '@/lib/blog-data'
 import BlogCard from '@/components/blog/BlogCard'
+import { supabase } from '@/lib/supabase'
 
 /**
- * Blog Listing Page
- * 
- * Displays all blog posts in a responsive grid layout with attractive category filtering.
- * SEO-optimized with proper metadata and structured content.
+ * Blog Listing Page — fetches from Supabase (sorted by sortOrder, visible only)
  */
-export default function BlogPage() {
-    const posts = getAllBlogPosts()
+async function getVisibleBlogPosts() {
+    const { data, error } = await supabase
+        .from('BlogPost')
+        .select('id, slug, title, tagline, excerpt, author, publishedDate, readingTime, heroImage, category, keywords, metaDescription')
+        .eq('isVisible', true)
+        .order('sortOrder', { ascending: true })
+
+    if (error) {
+        console.error('Blog page fetch error:', error)
+        return []
+    }
+    return data ?? []
+}
+
+export default async function BlogPage() {
+    const posts = await getVisibleBlogPosts()
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-background to-primary-50/30 py-12">
@@ -19,25 +28,30 @@ export default function BlogPage() {
                 {/* Page Header */}
                 <div className="mb-12 text-center">
                     <h1 className="mb-4 text-4xl font-bold text-neutral-900 md:text-5xl lg:text-6xl">
-                        Millet Health & Nutrition Blog
+                        Millet Health &amp; Nutrition Blog
                     </h1>
                     <p className="mx-auto max-w-3xl text-lg text-neutral-600 md:text-xl">
                         Discover the power of ancient grains for modern wellness. Expert insights on millet nutrition, health benefits, recipes, and lifestyle tips.
                     </p>
                 </div>
 
-                {/* Blog Posts Grid with Animation */}
-                <div className="grid gap-4 grid-cols-2 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                    {posts.map((post, index) => (
-                        <div
-                            key={post.slug}
-                            className="animate-fade-in"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                            <BlogCard post={post} />
-                        </div>
-                    ))}
-                </div>
+                {posts.length === 0 ? (
+                    <div className="py-20 text-center text-neutral-500">
+                        <p className="text-lg">No blog posts available yet. Check back soon!</p>
+                    </div>
+                ) : (
+                    <div className="grid gap-4 grid-cols-2 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                        {posts.map((post, index) => (
+                            <div
+                                key={post.slug}
+                                className="animate-fade-in"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <BlogCard post={post} />
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* Call to Action */}
                 <div className="mt-8 sm:mt-16 rounded-xl bg-green-100 border border-green-200 p-6 text-center shadow-sm md:p-12">

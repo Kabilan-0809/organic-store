@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getBlogPost, getAllBlogPosts } from '@/lib/blog-data'
 import BlogContent from '@/components/blog/BlogContent'
+import { supabase } from '@/lib/supabase'
 
 interface BlogPostPageProps {
     params: {
@@ -11,26 +11,42 @@ interface BlogPostPageProps {
     }
 }
 
-/**
- * Generate static params for all blog posts (SSG)
- */
-export async function generateStaticParams() {
-    const posts = getAllBlogPosts()
-    return posts.map((post) => ({
-        slug: post.slug,
-    }))
+interface BlogPost {
+    id: string
+    slug: string
+    title: string
+    tagline: string
+    excerpt: string
+    content: string
+    author: string
+    publishedDate: string
+    readingTime: number
+    heroImage: string
+    category: string
+    keywords: string[]
+    metaDescription: string
+}
+
+async function getBlogPost(slug: string): Promise<BlogPost | null> {
+    const { data, error } = await supabase
+        .from('BlogPost')
+        .select('*')
+        .eq('slug', slug)
+        .eq('isVisible', true)
+        .single()
+
+    if (error || !data) return null
+    return data as BlogPost
 }
 
 /**
  * Generate metadata for each blog post (SEO)
  */
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-    const post = getBlogPost(params.slug)
+    const post = await getBlogPost(params.slug)
 
     if (!post) {
-        return {
-            title: 'Blog Post Not Found',
-        }
+        return { title: 'Blog Post Not Found' }
     }
 
     return {
@@ -64,13 +80,10 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 /**
- * Individual Blog Post Page
- * 
- * Displays full blog post content with hero image, metadata, and navigation.
- * SEO-optimized with structured data and proper metadata.
+ * Individual Blog Post Page — fetches from Supabase by slug
  */
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-    const post = getBlogPost(params.slug)
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+    const post = await getBlogPost(params.slug)
 
     if (!post) {
         notFound()

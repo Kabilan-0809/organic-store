@@ -1,9 +1,22 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BlogPost } from '@/lib/blog-data'
+
+interface BlogCardPost {
+    slug: string
+    title: string
+    tagline: string
+    excerpt: string
+    author: string
+    publishedDate: string
+    readingTime: number
+    heroImage: string
+    category: string
+    keywords: string[]
+    metaDescription: string
+}
 
 interface BlogCardProps {
-    post: BlogPost
+    post: BlogCardPost
 }
 
 /**
