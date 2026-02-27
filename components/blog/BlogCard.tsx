@@ -65,13 +65,12 @@ export default function BlogCard({ post }: BlogCardProps) {
                     </p>
                 </Link>
 
-                {/* Excerpt — fixed 3-line excerpt, no card growth */}
-                <p className="hidden sm:block mb-4 text-sm text-neutral-600 line-clamp-3 overflow-hidden">
-                    {post.excerpt}
-                </p>
-
-                {/* Spacer to push metadata to bottom */}
-                <div className="flex-1" />
+                {/* Excerpt — always exactly 4 lines, clips overflow with ... */}
+                <div className="hidden sm:block mb-4 h-[5.5rem] overflow-hidden">
+                    <p className="text-sm leading-[1.375rem] text-neutral-600 line-clamp-4">
+                        {post.excerpt}
+                    </p>
+                </div>
 
                 {/* Metadata */}
                 <div className="flex items-center justify-between border-t border-neutral-100 pt-2 sm:pt-4 text-[10px] sm:text-xs text-neutral-500">
