@@ -166,9 +166,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         <h1 className="mb-4 text-4xl font-bold text-neutral-900 md:text-5xl lg:text-6xl">
                             {post.title}
                         </h1>
-                        <p className="mb-6 text-xl font-medium text-primary-600 md:text-2xl">
+                        <p className="mb-4 text-xl font-medium text-primary-600 md:text-2xl">
                             {post.tagline}
                         </p>
+
+                        {/* Full excerpt / summary */}
+                        {post.excerpt && (
+                            <p className="mb-6 text-lg leading-relaxed text-neutral-600">
+                                {post.excerpt}
+                            </p>
+                        )}
 
                         {/* Metadata */}
                         <div className="flex flex-wrap items-center gap-4 border-b border-neutral-200 pb-6 text-sm text-neutral-600">

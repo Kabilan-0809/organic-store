@@ -33,9 +33,9 @@ export default function BlogCard({ post }: BlogCardProps) {
     })
 
     return (
-        <article className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary-300">
+        <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary-300">
             {/* Hero Image - Clickable */}
-            <Link href={`/blog/${post.slug}`} className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-100">
+            <Link href={`/blog/${post.slug}`} className="relative aspect-[16/9] w-full flex-shrink-0 overflow-hidden bg-neutral-100">
                 <Image
                     src={post.heroImage}
                     alt={post.title}
@@ -60,15 +60,18 @@ export default function BlogCard({ post }: BlogCardProps) {
 
                 {/* Tagline - Clickable */}
                 <Link href={`/blog/${post.slug}`} className="group/tagline">
-                    <p className="mb-2 sm:mb-4 text-xs sm:text-sm font-medium text-primary-600 transition-colors duration-200 group-hover/tagline:text-primary-700">
+                    <p className="mb-2 sm:mb-3 text-xs sm:text-sm font-medium text-primary-600 transition-colors duration-200 group-hover/tagline:text-primary-700 line-clamp-1">
                         {post.tagline}
                     </p>
                 </Link>
 
-                {/* Excerpt - Hidden on mobile to save space, visible on tablet+ */}
-                <p className="hidden sm:block mb-4 flex-1 text-sm text-neutral-600 line-clamp-3">
+                {/* Excerpt — fixed 3-line excerpt, no card growth */}
+                <p className="hidden sm:block mb-4 text-sm text-neutral-600 line-clamp-3 overflow-hidden">
                     {post.excerpt}
                 </p>
+
+                {/* Spacer to push metadata to bottom */}
+                <div className="flex-1" />
 
                 {/* Metadata */}
                 <div className="flex items-center justify-between border-t border-neutral-100 pt-2 sm:pt-4 text-[10px] sm:text-xs text-neutral-500">

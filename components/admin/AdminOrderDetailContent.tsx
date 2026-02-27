@@ -273,6 +273,8 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
 
   // totalAmount from API is already in rupees (converted from paise)
   const totalInRupees = order.totalAmount
+  const itemsSubtotal = order.items.reduce((sum, item) => sum + (item.finalPrice || 0), 0)
+  const shippingFee = Math.round((totalInRupees - itemsSubtotal) * 100) / 100
   const nextStatusOptions = getNextStatusOptions(order.status)
 
   return (
@@ -364,12 +366,14 @@ export default function AdminOrderDetailContent({ orderId }: AdminOrderDetailCon
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-600">Subtotal</span>
                     <span className="font-medium text-neutral-900">
-                      ₹{totalInRupees.toFixed(2)}
+                      ₹{itemsSubtotal.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-600">Shipping</span>
-                    <span className="font-medium text-neutral-900">Free</span>
+                    <span className="font-medium text-neutral-900">
+                      {shippingFee > 0 ? `₹${shippingFee.toFixed(2)}` : 'Free'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between border-t border-neutral-200 pt-3">
                     <span className="text-lg font-semibold text-neutral-900">Total</span>
