@@ -5,6 +5,8 @@ import Image from 'next/image'
 import BlogContent from '@/components/blog/BlogContent'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 interface BlogPostPageProps {
     params: {
         slug: string

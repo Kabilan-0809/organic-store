@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 interface BlogPost {
     id: string
@@ -49,6 +49,7 @@ export default function AdminBlogsList({ accessToken }: { accessToken: string | 
     const [togglingId, setTogglingId] = useState<string | null>(null)
     const [reorderingId, setReorderingId] = useState<string | null>(null)
     const [formError, setFormError] = useState<string | null>(null)
+    const contentRef = useRef<HTMLTextAreaElement>(null)
 
     const headers = {
         'Content-Type': 'application/json',
@@ -107,6 +108,34 @@ export default function AdminBlogsList({ accessToken }: { accessToken: string | 
         setView('list')
         setEditingPost(null)
         setFormError(null)
+    }
+
+    function insertLink() {
+        const text = prompt('Link text (label):')
+        if (!text) return
+        const url = prompt('URL (e.g. https://milletsnjoy.com/shop):')
+        if (!url) return
+        const markdown = `[${text}](${url})`
+
+        const textarea = contentRef.current
+        if (!textarea) {
+            setForm((f) => ({ ...f, content: f.content + markdown }))
+            return
+        }
+
+        const start = textarea.selectionStart
+        const end = textarea.selectionEnd
+        const before = textarea.value.substring(0, start)
+        const after = textarea.value.substring(end)
+        const newContent = before + markdown + after
+        setForm((f) => ({ ...f, content: newContent }))
+
+        // Restore focus and move cursor after inserted link
+        requestAnimationFrame(() => {
+            textarea.focus()
+            const newCursor = start + markdown.length
+            textarea.setSelectionRange(newCursor, newCursor)
+        })
     }
 
     async function handleSubmit(e: React.FormEvent) {
@@ -310,14 +339,32 @@ export default function AdminBlogsList({ accessToken }: { accessToken: string | 
                     </Field>
 
                     <Field label="Content (Markdown) *" required>
+                        {/* Toolbar */}
+                        <div className="mb-1.5 flex gap-2">
+                            <button
+                                type="button"
+                                onClick={insertLink}
+                                className="inline-flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                                title="Insert a markdown link at current cursor position"
+                            >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                Insert Link
+                            </button>
+                        </div>
                         <textarea
+                            ref={contentRef}
                             required
                             rows={14}
                             value={form.content}
                             onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                             className={`${inputCls} font-mono text-sm`}
-                            placeholder="# Your Blog Post Title&#10;&#10;Write your content in Markdown..."
+                            placeholder={`# Your Blog Post Title\n\nWrite your content in Markdown...\n\nAdd links like: [Shop Now](https://milletsnjoy.com/shop)`}
                         />
+                        <p className="mt-1 text-xs text-neutral-400">
+                            Use <code className="rounded bg-neutral-100 px-1 py-0.5 font-mono">[label](https://url.com)</code> to add clickable links in your content.
+                        </p>
                     </Field>
 
                     <Field label="Meta Description">

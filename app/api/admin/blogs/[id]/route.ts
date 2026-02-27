@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { supabase } from '@/lib/supabase'
 import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth/api-auth'
 
@@ -44,6 +45,10 @@ export async function PATCH(
             return createErrorResponse('Blog post not found', 404)
         }
 
+        // Invalidate public blog pages
+        revalidatePath('/blog')
+        revalidatePath(`/blog/${data.slug}`)
+
         return NextResponse.json({ post: data })
     } catch (err) {
         console.error('[Admin Blogs PATCH] Unexpected:', err)
@@ -62,6 +67,13 @@ export async function DELETE(
 
         const { id } = params
 
+        // Fetch slug before deletion so we can revalidate the specific page
+        const { data: existingPost } = await supabase
+            .from('BlogPost')
+            .select('slug')
+            .eq('id', id)
+            .maybeSingle()
+
         const { error } = await supabase
             .from('BlogPost')
             .delete()
@@ -70,6 +82,12 @@ export async function DELETE(
         if (error) {
             console.error('[Admin Blogs DELETE] Error:', error)
             return createErrorResponse('Failed to delete blog post', 500)
+        }
+
+        // Invalidate public blog pages
+        revalidatePath('/blog')
+        if (existingPost?.slug) {
+            revalidatePath(`/blog/${existingPost.slug}`)
         }
 
         return NextResponse.json({ success: true })

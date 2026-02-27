@@ -67,13 +67,37 @@ export default function BlogContent({ content }: BlogContentProps) {
         )
     }
 
-    // Format inline text (bold, italic, etc.)
-    const formatInlineText = (text: string) => {
-        // Split by ** for bold
-        const parts = text.split('**')
+    // Format inline text: supports **bold** and [label](url) links
+    const formatInlineText = (text: string): React.ReactNode[] => {
+        // Tokenise by **bold** and [label](url) patterns
+        const tokenRegex = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g
+        const parts = text.split(tokenRegex)
+
         return parts.map((part, i) => {
-            if (i % 2 === 1) {
-                return <strong key={i} className="font-semibold text-neutral-900">{part}</strong>
+            // Bold: **text**
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return (
+                    <strong key={i} className="font-semibold text-neutral-900">
+                        {part.slice(2, -2)}
+                    </strong>
+                )
+            }
+            // Link: [label](url)
+            const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+            if (linkMatch) {
+                const label = linkMatch[1] ?? ''
+                const href = linkMatch[2] ?? '#'
+                const isExternal = href.startsWith('http')
+                return (
+                    <a
+                        key={i}
+                        href={href}
+                        className="font-medium text-primary-600 underline underline-offset-2 hover:text-primary-700"
+                        {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    >
+                        {label}
+                    </a>
+                )
             }
             return part
         })

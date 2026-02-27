@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { supabase } from '@/lib/supabase'
 import { requireAdmin, createErrorResponse, forbiddenResponse } from '@/lib/auth/api-auth'
 
@@ -82,6 +83,9 @@ export async function POST(req: NextRequest) {
             }
             return createErrorResponse('Failed to create blog post', 500)
         }
+
+        // Invalidate public blog listing page
+        revalidatePath('/blog')
 
         return NextResponse.json({ post: data }, { status: 201 })
     } catch (err) {

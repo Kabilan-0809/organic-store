@@ -2,6 +2,8 @@ import Link from 'next/link'
 import BlogCard from '@/components/blog/BlogCard'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Blog Listing Page — fetches from Supabase (sorted by sortOrder, visible only)
  */
