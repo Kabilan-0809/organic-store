@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { calculateDiscountedPrice } from '@/lib/pricing'
+import { getCinematicImage } from '@/lib/product-images'
 import type { Product } from '@/types'
 
 interface ProductCardProps {
@@ -43,9 +44,9 @@ export default function ProductCard({ product }: ProductCardProps) {
       >
         {/* Product Image */}
         <div className="relative flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50/30 via-neutral-50 to-primary-100/20 sm:min-h-[240px] select-none">
-          {!imageError && product.image ? (
+          {!imageError && (product.image || getCinematicImage(product)) ? (
             <Image
-              src={product.image}
+              src={getCinematicImage(product) || product.image || ""}
               alt={product.name}
               width={400}
               height={600}

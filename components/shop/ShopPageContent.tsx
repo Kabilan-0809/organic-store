@@ -82,7 +82,7 @@ export default function ShopPageContent() {
 
         const productsWithCinematicImages = uniqueProducts.map(product => ({
           ...product,
-          image: product.image || getCinematicImage(product)
+          image: getCinematicImage(product)
         }))
 
         setProducts(productsWithCinematicImages)

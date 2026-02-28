@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthContext'
 import { useCart } from '@/components/cart/CartContext'
 
@@ -28,7 +28,9 @@ export default function Header() {
   // Only access auth state after client-side mount
   const [mounted, setMounted] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
+  const router = useRouter()
 
   // Always call hooks unconditionally (React rules)
   // But guard usage of auth state until after mount
@@ -84,6 +86,14 @@ export default function Header() {
     setIsMobileMenuOpen(false)
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/shop?q=${encodeURIComponent(searchQuery.trim())}`)
+      setIsMobileMenuOpen(false)
+    }
+  }
+
   const isActive = (href: string) => pathname === href
 
   // Safe fallback header during SSR and initial render
@@ -118,9 +128,14 @@ export default function Header() {
           </div>
 
           <nav
-            className="flex-1 flex items-center justify-end gap-6 pr-6 py-5 sm:pr-8 lg:pr-10"
+            className="flex-1 flex items-center justify-between gap-6 pr-6 py-5 sm:pr-8 lg:pr-10"
             aria-label="Main navigation"
           >
+            {/* Search Bar Placeholder (SSR) */}
+            <div className="hidden md:flex flex-1 max-w-md mx-4 opacity-60">
+              <div className="w-full h-10 rounded-full bg-neutral-200 animate-pulse" />
+            </div>
+
             <div className="hidden items-center gap-6 md:flex">
               {/* Shop link - safe to show during SSR */}
               <Link
@@ -192,9 +207,33 @@ export default function Header() {
         </div>
 
         <nav
-          className="flex-1 flex items-center justify-end gap-2 pr-2 py-5 sm:gap-4 sm:pr-4 md:gap-6 md:pr-6 lg:pr-10"
+          className="flex-1 flex items-center justify-between gap-2 pr-2 py-5 sm:gap-4 sm:pr-4 md:gap-6 md:pr-6 lg:pr-10"
           aria-label="Main navigation"
         >
+
+          {/* Desktop Search Bar */}
+          {!isAdminPage && (
+            <div className="hidden md:flex flex-1 max-w-md mx-4 lg:mx-8">
+              <form onSubmit={handleSearch} className="w-full relative group">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-full border border-neutral-300 bg-white/50 px-4 py-2 pl-10 text-sm outline-none transition-all focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20 group-hover:border-neutral-400"
+                />
+                <button
+                  type="submit"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-600 transition-colors"
+                  aria-label="Submit search"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          )}
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-6 md:flex">
@@ -439,6 +478,30 @@ export default function Header() {
           aria-label="Mobile navigation menu"
         >
           <div className="px-4 py-4 space-y-1">
+            {/* Mobile Search Bar */}
+            {!isAdminPage && (
+              <div className="mb-4">
+                <form onSubmit={handleSearch} className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 pl-10 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-600"
+                    aria-label="Submit search"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            )}
+
             {/* Shop link - hidden on admin pages */}
             {!isAdminPage && (
               <>
