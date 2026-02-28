@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { createErrorResponse } from '@/lib/auth/api-auth'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /**
  * GET /api/combos
@@ -41,7 +42,14 @@ export async function GET() {
             price: c.price / 100,
         }))
 
-        return NextResponse.json({ combos: formatted })
+        return NextResponse.json(
+            { combos: formatted },
+            {
+                headers: {
+                    'Cache-Control': 'no-store, max-age=0, must-revalidate'
+                }
+            }
+        )
     } catch (err) {
         console.error('[API Combos] Unexpected error:', err)
         return createErrorResponse('Internal Server Error', 500)

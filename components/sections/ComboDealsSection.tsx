@@ -31,7 +31,7 @@ export default function ComboDealsSection() {
     useEffect(() => {
         const fetchCombos = async () => {
             try {
-                const res = await fetch('/api/combos', { cache: 'no-store' })
+                const res = await fetch(`/api/combos?t=${Date.now()}`, { cache: 'no-store' })
                 if (!res.ok) return
                 const data = await res.json()
                 setCombos(data.combos || [])
