@@ -30,9 +30,12 @@ export default function ProductDetailPageContent({
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const { addItem } = useCart()
 
-  const cinematicImage = getCinematicImage(product)
-  const mainImage = product.image || cinematicImage
-  const images = product.images && product.images.length > 0 ? [mainImage, ...product.images.slice(1)] : [mainImage]
+  // getCinematicImage already prioritizes the local mapping, falling back to product.image
+  const mainImage = getCinematicImage(product)
+
+  // deduplicate the main image from the images array to prevent double display
+  const addlImages = product.images ? product.images.filter((img) => img !== product.image && img !== mainImage) : []
+  const images = [mainImage, ...addlImages]
 
   const usesVariants = hasVariants(product.category)
   const variants = product.variants || []

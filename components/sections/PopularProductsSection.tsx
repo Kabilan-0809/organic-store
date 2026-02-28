@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { Product } from '@/types'
 import { useCart } from '@/components/cart/CartContext'
 import { calculateDiscountedPrice } from '@/lib/pricing'
+import { getCinematicImage } from '@/lib/product-images'
 
 export default function PopularProductsSection() {
     const [products, setProducts] = useState<Product[]>([])
@@ -43,7 +44,7 @@ export default function PopularProductsSection() {
                     price: p.original_price,
                     discountPercent: p.discount_percent,
                     category: p.category,
-                    image: p.primary_image,
+                    image: getCinematicImage({ name: p.title.replace(/\s*-\s*\d+g\s*$/i, '').trim(), image: p.primary_image }),
                     images: p.additional_images,
                     inStock: p.availability > 0,
                     stock: p.availability,
