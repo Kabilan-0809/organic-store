@@ -1,20 +1,39 @@
+import Image from 'next/image'
+
 export default function TrustSection() {
   return (
-    <section className="py-16 sm:py-20 lg:py-28">
-      <div className="mx-auto max-w-4xl px-4">
-        <div className="rounded-2xl border border-neutral-200/80 bg-gradient-to-br from-primary-50/60 via-white to-neutral-50/50 p-8 shadow-sm sm:p-14">
-          <div className="text-center">
-            <h2 className="mb-6 text-3xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
+    <section className="py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div
+          className="relative flex flex-col items-center overflow-hidden rounded-[2rem] md:flex-row shadow-sm"
+          style={{ backgroundColor: '#deefe3' }}
+        >
+          {/* Text Content */}
+          <div className="relative z-10 flex-1 p-8 sm:p-12 lg:p-16">
+            <h2 className="mb-6 text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl lg:text-5xl">
               Quality You Can Trust
             </h2>
-            <div className="mx-auto max-w-2xl text-center text-base leading-relaxed text-neutral-700 sm:text-lg">
+            <div className="text-base leading-relaxed text-slate-700 sm:text-lg max-w-2xl">
               <p>
                 At Millets N Joy, we believe that what you put into your body
                 matters. That&apos;s why we&apos;ve built our entire business around
                 crafting the highest quality malt and millet products using authentic methods
                 and quality ingredients. Every product is carefully prepared, tested, and
-                made to meet our strict quality standards to ensure you get the best taste and nutritional value.
+                made to meet our strict quality standards to ensure you get the best taste and
+                nutritional value.
               </p>
+            </div>
+          </div>
+
+          {/* Leaf Image wrapper */}
+          <div className="relative h-64 w-full md:h-auto md:flex-1 md:w-1/2 flex justify-end items-stretch pointer-events-none">
+            <div className="absolute right-0 top-0 bottom-0 w-full md:w-[120%] h-[120%] -mr-10 -mt-10 pt-4">
+              <Image
+                src="/auth-bg-forgot.png"
+                alt="Quality leaf background"
+                fill
+                className="object-cover md:object-contain object-right"
+              />
             </div>
           </div>
         </div>

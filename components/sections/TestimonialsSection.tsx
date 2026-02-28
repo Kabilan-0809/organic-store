@@ -1,7 +1,5 @@
 'use client'
 
-import Image from 'next/image'
-
 const TESTIMONIALS = [
     {
         id: 1,
@@ -111,30 +109,6 @@ export default function TestimonialsSection() {
                 </div>
             </div>
 
-            {/* Video Testimonials Placeholder - More integrated styling */}
-            <div className="mt-12 sm:mt-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-[2rem] bg-neutral-900 shadow-2xl lg:aspect-video aspect-[16/10] group">
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 sm:p-8 z-10">
-                        <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 ring-1 ring-white/20 transition-all duration-500 group-hover:scale-110 group-hover:bg-primary-600 group-hover:ring-primary-400 cursor-pointer">
-                            <svg className="h-8 w-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-white font-bold text-xl sm:text-3xl mb-3">Customer Video Stories</h3>
-                        <p className="text-neutral-400 text-sm sm:text-lg max-w-lg leading-relaxed">
-                            Authentic moments from our community bringing tradition back to their modern tables. Coming soon!
-                        </p>
-                    </div>
-                    {/* Abstract design elements */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/40 to-transparent"></div>
-                    <Image
-                        src="/millet.png"
-                        alt="Background pattern"
-                        fill
-                        className="object-cover opacity-20 scale-110 group-hover:scale-100 transition-transform duration-[2s]"
-                    />
-                </div>
-            </div>
         </section>
     )
 }
