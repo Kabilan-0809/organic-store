@@ -9,7 +9,7 @@ export default function TrustSection() {
           style={{ backgroundColor: '#deefe3' }}
         >
           {/* Text Content */}
-          <div className="relative z-10 flex-1 p-8 sm:p-12 lg:p-16">
+          <div className="relative z-10 w-full md:w-3/5 p-8 sm:p-12 lg:p-16">
             <h2 className="mb-6 text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl lg:text-5xl">
               Quality You Can Trust
             </h2>
@@ -26,15 +26,14 @@ export default function TrustSection() {
           </div>
 
           {/* Leaf Image wrapper */}
-          <div className="relative h-64 w-full md:h-auto md:flex-1 md:w-1/2 flex justify-end items-stretch pointer-events-none">
-            <div className="absolute right-0 top-0 bottom-0 w-full md:w-[120%] h-[120%] -mr-10 -mt-10 pt-4">
-              <Image
-                src="/auth-bg-forgot.png"
-                alt="Quality leaf background"
-                fill
-                className="object-cover md:object-contain object-right"
-              />
-            </div>
+          <div className="relative h-64 w-full md:absolute md:inset-y-0 md:right-0 md:w-2/5 md:h-full pointer-events-none">
+            <Image
+              src="/auth-bg-forgot.png"
+              alt="Quality leaf background"
+              fill
+              className="object-cover object-right md:object-left scale-110"
+              priority
+            />
           </div>
         </div>
       </div>
