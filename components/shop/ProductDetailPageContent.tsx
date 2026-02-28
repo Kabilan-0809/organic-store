@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import Image from 'next/image'
 import { calculateDiscountedPrice } from '@/lib/pricing'
-import { getCinematicImage } from '@/lib/product-images'
+import { getCinematicImage, getMilletImages } from '@/lib/product-images'
 import { hasVariants } from '@/lib/products'
 
 interface ProductDetailPageContentProps {
@@ -30,12 +30,21 @@ export default function ProductDetailPageContent({
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const { addItem } = useCart()
 
-  // getCinematicImage already prioritizes the local mapping, falling back to product.image
+  // getCinematicImage prioritizes the local mapping (millet or older cinematic), falling back to product.image
   const mainImage = getCinematicImage(product)
 
-  // deduplicate the main image from the images array to prevent double display
-  const addlImages = product.images ? product.images.filter((img) => img !== product.image && img !== mainImage) : []
-  const images = [mainImage, ...addlImages]
+  let images = [mainImage]
+
+  // Check if it's a Millet product with the new dedicated 3 images
+  const milletImages = getMilletImages(product.name)
+  if (milletImages) {
+    // If it's a millet item, completely override the gallery with the 3 dedicated images
+    images = milletImages.gallery
+  } else {
+    // Standard fallback behavior for non-millet items
+    const addlImages = product.images ? product.images.filter((img) => img !== product.image && img !== mainImage) : []
+    images = [mainImage, ...addlImages]
+  }
 
   const usesVariants = hasVariants(product.category)
   const variants = product.variants || []

@@ -6,11 +6,11 @@ export default function AncientGrainsSection() {
         <section className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
                 <div
-                    className="relative flex min-h-[260px] overflow-hidden rounded-2xl sm:min-h-[300px] sm:rounded-3xl"
+                    className="relative flex flex-col sm:flex-row min-h-[400px] sm:min-h-[300px] overflow-hidden rounded-2xl sm:rounded-3xl"
                     style={{ backgroundColor: '#EBE5DF' }}
                 >
                     {/* Text content */}
-                    <div className="relative z-10 flex flex-col justify-center p-7 sm:p-10 lg:p-14 max-w-[50%]">
+                    <div className="relative z-10 flex flex-col justify-center p-7 sm:p-10 lg:p-14 w-full sm:max-w-[50%]">
                         <h2 className="mb-3 text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
                             Ancient Grains.
                             <br />
@@ -28,15 +28,14 @@ export default function AncientGrainsSection() {
                     </div>
 
                     {/* Product images — positioned to the right, overlapping bottom */}
-                    <div className="absolute right-0 bottom-0 top-0 w-[55%] flex items-end justify-end">
-                        {/* Use several product images stacked to mimic jar row */}
+                    <div className="relative sm:absolute right-0 bottom-0 h-56 sm:h-full w-full sm:w-[55%] flex items-end justify-center sm:justify-end pointer-events-none mt-4 sm:mt-0">
                         <div className="relative h-full w-full">
                             <Image
-                                src="/hero-images/almond-elephant-cinematic.png"
+                                src="/New_Millet_Images/Almond_Elaphant_1.jpg"
                                 alt="Millet products"
                                 fill
-                                className="object-contain object-right-bottom"
-                                sizes="(max-width: 640px) 50vw, 35vw"
+                                className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-[1.15] origin-bottom sm:origin-bottom-right"
+                                sizes="(max-width: 640px) 90vw, 35vw"
                                 priority
                             />
                         </div>

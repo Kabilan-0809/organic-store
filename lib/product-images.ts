@@ -23,6 +23,46 @@ export const productImageMap: Record<string, string> = {
     'peanut balls': '/hero-images/peanut-balls-cinematic.png', // Fallback
 }
 
+// Map of millet product names to their new dedicated image folders
+const milletImagesMap: Record<string, string> = {
+    'achari masala stick': '/New_Millet_Images/Achara_Masala_Stick',
+    'masala stick': '/New_Millet_Images/Achara_Masala_Stick',
+    'almond elephant': '/New_Millet_Images/Almond_Elaphant',
+    'chilli chatag': '/New_Millet_Images/Chili_Chatag',
+    'choco coated monkey': '/New_Millet_Images/Choco_Coated_Monkey',
+    'multi millet choco coated balls': '/New_Millet_Images/Choco_Coated_Monkey',
+    'monkey': '/New_Millet_Images/Choco_Coated_Monkey',
+    'choco monkey': '/New_Millet_Images/Choco_Coated_Monkey',
+    'coconut hearts': '/New_Millet_Images/Coconut_Hearts',
+    'premium peanut balls': '/New_Millet_Images/Peanut_Balls',
+    'peanut balls': '/New_Millet_Images/Peanut_Balls',
+    'tangy tomato': '/New_Millet_Images/Tangy_Tomato'
+}
+
+/**
+ * Returns the primary and gallery images for Millet products, or null if not a millet product.
+ */
+export function getMilletImages(productName: string): { primary: string; gallery: string[] } | null {
+    if (!productName) return null
+
+    const normalizedName = productName.toLowerCase().trim()
+    const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
+
+    for (const [key, basePath] of Object.entries(milletImagesMap)) {
+        if (normalizedName.includes(key)) {
+            return {
+                primary: `${githubBase}${basePath}_1.jpg?raw=true`,
+                gallery: [
+                    `${githubBase}${basePath}_1.jpg?raw=true`,
+                    `${githubBase}${basePath}_2.jpg?raw=true`,
+                    `${githubBase}${basePath}_3.jpg?raw=true`
+                ]
+            }
+        }
+    }
+    return null
+}
+
 /**
  * Helper to get the cinematic image for a product if available,
  * otherwise returns the original product image.
@@ -33,7 +73,13 @@ export function getCinematicImage(product: { name: string; image: string } | und
     const normalizedName = product.name.toLowerCase().trim()
     const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
 
-    // Check for exact match or partial match for mapped images
+    // 1. Prioritize New Millet Images first
+    const milletImages = getMilletImages(normalizedName)
+    if (milletImages) {
+        return milletImages.primary
+    }
+
+    // 2. Fallback to older Cinematic Images
     for (const [key, value] of Object.entries(productImageMap)) {
         if (normalizedName.includes(key)) {
             // Check if value already has the base

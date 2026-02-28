@@ -9,10 +9,10 @@ export default function HomeHeroSection() {
 
                     {/* Left Panel — Main hero */}
                     <div
-                        className="relative flex min-h-[280px] sm:min-h-[340px] overflow-hidden rounded-2xl sm:rounded-3xl"
+                        className="relative flex flex-col sm:flex-row min-h-[380px] sm:min-h-[340px] overflow-hidden rounded-2xl sm:rounded-3xl"
                         style={{ backgroundColor: '#EBE5DF' }}
                     >
-                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 max-w-[55%]">
+                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 w-full sm:max-w-[55%]">
                             <h1 className="mb-3 text-2xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl">
                                 Real Nutrition Your Family Will Love.
                             </h1>
@@ -27,13 +27,13 @@ export default function HomeHeroSection() {
                             </Link>
                         </div>
                         {/* Product image cluster */}
-                        <div className="absolute right-0 bottom-0 h-full w-[52%] flex items-end justify-end">
+                        <div className="relative sm:absolute right-0 bottom-0 h-48 sm:h-full w-full sm:w-[52%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
                             <Image
-                                src="/hero-images/chilli-chatag-v2.png"
+                                src="/New_Millet_Images/Chili_Chatag_1.jpg"
                                 alt="Millet snack products"
                                 fill
-                                className="object-contain object-right-bottom"
-                                sizes="(max-width: 640px) 40vw, 28vw"
+                                className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-100"
+                                sizes="(max-width: 640px) 90vw, 28vw"
                                 priority
                             />
                         </div>
@@ -41,10 +41,10 @@ export default function HomeHeroSection() {
 
                     {/* Right Panel — Feature product */}
                     <div
-                        className="relative flex min-h-[280px] sm:min-h-[340px] overflow-hidden rounded-2xl sm:rounded-3xl"
+                        className="relative flex flex-col sm:flex-row min-h-[380px] sm:min-h-[340px] overflow-hidden rounded-2xl sm:rounded-3xl"
                         style={{ backgroundColor: '#F3EEE7' }}
                     >
-                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 max-w-[55%]">
+                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 w-full sm:max-w-[55%]">
                             <h2 className="mb-2 text-xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-3xl">
                                 The Tangy Twist Your Tastebuds Crave.
                             </h2>
@@ -59,13 +59,13 @@ export default function HomeHeroSection() {
                             </Link>
                         </div>
                         {/* Product image */}
-                        <div className="absolute right-0 bottom-0 h-full w-[52%] flex items-end justify-end">
+                        <div className="relative sm:absolute right-0 bottom-0 h-48 sm:h-full w-full sm:w-[52%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
                             <Image
-                                src="/hero-images/masala-stick-v2.png"
+                                src="/New_Millet_Images/Achara_Masala_Stick_1.jpg"
                                 alt="Achari Masala Stick"
                                 fill
-                                className="object-contain object-right-bottom"
-                                sizes="(max-width: 640px) 40vw, 28vw"
+                                className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-100"
+                                sizes="(max-width: 640px) 90vw, 28vw"
                                 priority
                             />
                         </div>
