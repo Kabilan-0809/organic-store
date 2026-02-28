@@ -3,9 +3,9 @@
 import { useReducedMotion } from 'framer-motion'
 
 const MARQUEE_TEXT = [
-    { text: "Happy Pongal! 🌾", emoji: "☀️" },
-    { text: "Celebrate Tradition", emoji: "🍯" },
-    { text: "Harvest Festival Special", emoji: "✨" },
+    { text: "Fuel Your Day with Millets 🌾", emoji: "☀️" },
+    { text: "Wholesome. Natural. Delicious. 🥣", emoji: "🍯" },
+    { text: "Smart Choices Start Here ✨", emoji: "🌱" },
 ]
 
 export default function MarqueeBanner() {

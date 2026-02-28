@@ -42,16 +42,7 @@ export default function AncientGrainsSection() {
                         </div>
                     </div>
 
-                    {/* Scattered nuts decoration — left side */}
-                    <div className="absolute left-[42%] top-0 h-16 w-16 opacity-30 pointer-events-none sm:h-24 sm:w-24">
-                        <Image
-                            src="/hero-images/peanut-balls-cinematic.png"
-                            alt=""
-                            fill
-                            className="object-contain"
-                            aria-hidden="true"
-                        />
-                    </div>
+
                 </div>
             </div>
         </section>
