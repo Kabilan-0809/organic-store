@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import SearchBar from '@/components/ui/SearchBar'
 import { useAuth } from '@/components/auth/AuthContext'
 import { useCart } from '@/components/cart/CartContext'
 
@@ -25,12 +26,9 @@ import { useCart } from '@/components/cart/CartContext'
 
 export default function Header() {
   // Mounted state to prevent hydration mismatches
-  // Only access auth state after client-side mount
   const [mounted, setMounted] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
-  const router = useRouter()
 
   // Always call hooks unconditionally (React rules)
   // But guard usage of auth state until after mount
@@ -84,14 +82,6 @@ export default function Header() {
       logout()
     }
     setIsMobileMenuOpen(false)
-  }
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      router.push(`/shop?q=${encodeURIComponent(searchQuery.trim())}`)
-      setIsMobileMenuOpen(false)
-    }
   }
 
   const isActive = (href: string) => pathname === href
@@ -214,24 +204,7 @@ export default function Header() {
           {/* Desktop Search Bar */}
           {!isAdminPage && (
             <div className="hidden md:flex flex-1 max-w-md mx-4 lg:mx-8">
-              <form onSubmit={handleSearch} className="w-full relative group">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-full border border-neutral-300 bg-white/50 px-4 py-2 pl-10 text-sm outline-none transition-all focus:border-primary-500 focus:bg-white focus:ring-2 focus:ring-primary-500/20 group-hover:border-neutral-400"
-                />
-                <button
-                  type="submit"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-600 transition-colors"
-                  aria-label="Submit search"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-              </form>
+              <SearchBar onSelectCallback={() => setIsMobileMenuOpen(false)} />
             </div>
           )}
 
@@ -481,24 +454,7 @@ export default function Header() {
             {/* Mobile Search Bar */}
             {!isAdminPage && (
               <div className="mb-4">
-                <form onSubmit={handleSearch} className="relative w-full">
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 pl-10 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  />
-                  <button
-                    type="submit"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-primary-600"
-                    aria-label="Submit search"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </button>
-                </form>
+                <SearchBar onSelectCallback={() => setIsMobileMenuOpen(false)} />
               </div>
             )}
 
