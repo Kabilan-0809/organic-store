@@ -3,11 +3,10 @@ import Link from 'next/link'
 
 export default function AncientGrainsSection() {
     return (
-        <section className="px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">
+        <section id="ancient-grains" className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+            <div className="mx-auto max-w-[1600px]">
                 <div
-                    className="relative flex flex-col sm:flex-row min-h-[400px] sm:min-h-[300px] overflow-hidden rounded-2xl sm:rounded-3xl"
-                    style={{ backgroundColor: '#EBE5DF' }}
+                    className="relative overflow-hidden rounded-[2rem] sm:rounded-[3rem] bg-[#E2EEF1] p-8 sm:p-12 lg:p-16"
                 >
                     {/* Text content */}
                     <div className="relative z-10 flex flex-col justify-center p-7 sm:p-10 lg:p-14 w-full sm:max-w-[50%]">

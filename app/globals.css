@@ -41,8 +41,8 @@
 @layer base {
   :root {
     /* Base Colors - Warm & Organic */
-    --color-background: 252 250 248;
-    /* #FCFAF8 */
+    --color-background: 241 252 252;
+    /* #F1FCFC */
     --color-surface: 255 255 255;
     /* #FFFFFF */
     --color-surface-soft: 248 250 245;
@@ -95,17 +95,11 @@
   body {
     @apply text-neutral-900 antialiased;
     color: rgb(var(--color-text-primary));
-    background:
-      radial-gradient(circle at 50% 0%,
-        rgb(var(--color-primary) / 0.08) 0%,
-        rgba(255, 255, 255, 0) 50%),
-      linear-gradient(180deg,
-        rgb(var(--color-background)) 0%,
-        rgb(var(--color-surface-soft)) 100%);
+    background-color: rgb(var(--color-background));
     background-attachment: fixed;
     font-feature-settings: 'kern' 1, 'liga' 1;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -moz-osx-osx-font-smoothing: grayscale;
     position: relative;
   }
 

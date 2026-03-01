@@ -1,6 +1,5 @@
 import AnimatedPage from '@/components/AnimatedPage'
 import FloatingMillets from '@/components/sections/FloatingMillets'
-import MarqueeBanner from '@/components/ui/MarqueeBanner'
 import HomeHeroSection from '@/components/sections/HomeHeroSection'
 import FeaturedProductsSection from '@/components/sections/FeaturedProductsSection'
 import PopularProductsSection from '@/components/sections/PopularProductsSection'
@@ -17,10 +16,7 @@ export default function Home() {
       <FloatingMillets />
 
       <div className="relative space-y-0" style={{ zIndex: 1 }}>
-        {/* Marquee flush with header */}
-        <div className="relative w-screen left-[50%] right-[50%] -ml-[50vw] mr-[-50vw] mt-0">
-          <MarqueeBanner />
-        </div>
+
 
         {/* 1. Hero — split banner */}
         <HomeHeroSection />

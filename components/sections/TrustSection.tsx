@@ -2,8 +2,8 @@ import Image from 'next/image'
 
 export default function TrustSection() {
   return (
-    <section className="py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section className="py-10 sm:py-12">
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
         <div
           className="relative flex flex-col items-center overflow-hidden rounded-[2rem] md:flex-row shadow-sm"
           style={{ backgroundColor: '#deefe3' }}

@@ -94,8 +94,8 @@ export default function Header() {
         className="sticky top-0 z-50 w-full backdrop-blur-md"
         style={{
           border: 'none',
-          boxShadow: 'none',
-          backgroundColor: 'rgba(246, 251, 247, 0.85)'
+          backgroundColor: 'rgb(241 252 252 / 0.85)',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)'
         }}
         role="banner"
       >
@@ -172,9 +172,9 @@ export default function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/85 border-b border-border/40"
+      className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/85 border-b border-border/10 shadow-sm"
       style={{
-        boxShadow: 'none',
+        backgroundColor: 'rgb(241 252 252 / 0.85)',
       }}
       role="banner"
     >
