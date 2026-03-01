@@ -13,8 +13,8 @@ export default function HomeHeroSection() {
                         style={{ backgroundColor: '#EBE5DF' }}
                     >
                         {/* Text top-left */}
-                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full sm:w-[60%]">
-                            <h1 className="mb-4 text-4xl font-black leading-[1.0] tracking-tight text-neutral-900 sm:text-5xl lg:text-5xl xl:text-6xl">
+                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full">
+                            <h1 className="mb-4 text-4xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl xl:text-8xl">
                                 Real Nutrition Your Family Will Love.
                             </h1>
                             <p className="mb-6 text-sm leading-snug text-neutral-600 sm:text-base lg:text-lg font-semibold">
@@ -46,8 +46,8 @@ export default function HomeHeroSection() {
                         style={{ backgroundColor: '#F3EEE7' }}
                     >
                         {/* Text top-left */}
-                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full sm:w-[60%]">
-                            <h2 className="mb-4 text-3xl font-black leading-[1.0] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl">
+                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full">
+                            <h2 className="mb-4 text-4xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl xl:text-8xl">
                                 The Tangy Twist Your Tastebuds Crave.
                             </h2>
                             <p className="mb-6 text-sm text-neutral-600 sm:text-base lg:text-lg font-semibold">
