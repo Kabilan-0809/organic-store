@@ -18,7 +18,7 @@ export default function HomeHeroSection() {
                                 Real Nutrition Your Family Will Love.
                             </h1>
                             <p className="mb-6 text-sm leading-snug text-neutral-600 sm:text-base lg:text-lg font-semibold">
-                                Premium millet &amp; malt products for everyday wellness
+                                Premium millet &amp; malt products<br />for everyday wellness
                             </p>
                             <Link
                                 href="/shop"
