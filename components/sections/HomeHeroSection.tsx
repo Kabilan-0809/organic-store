@@ -3,13 +3,13 @@ import Link from 'next/link'
 
 export default function HomeHeroSection() {
     return (
-        <section className="px-1 py-1 sm:px-2 sm:py-2">
+        <section className="px-1 pt-6 pb-2 sm:px-2 sm:pt-8 sm:pb-2">
             <div className="mx-auto w-full">
                 <div className="grid gap-1.5 sm:grid-cols-2">
 
                     {/* Left Panel — Main hero */}
                     <div
-                        className="relative flex flex-col min-h-[340px] sm:min-h-[55vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem]"
+                        className="relative flex flex-col min-h-[500px] sm:min-h-[85vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem]"
                         style={{ backgroundColor: '#EBE5DF' }}
                     >
                         {/* Text top-left */}
@@ -42,7 +42,7 @@ export default function HomeHeroSection() {
 
                     {/* Right Panel — Feature product */}
                     <div
-                        className="relative flex flex-col min-h-[340px] sm:min-h-[55vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem]"
+                        className="relative flex flex-col min-h-[500px] sm:min-h-[85vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem]"
                         style={{ backgroundColor: '#F3EEE7' }}
                     >
                         {/* Text top-left */}
