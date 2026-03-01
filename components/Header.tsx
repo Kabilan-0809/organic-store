@@ -99,12 +99,12 @@ export default function Header() {
         }}
         role="banner"
       >
-        <div className="flex items-center w-full">
-          {/* Brand/Logo - Absolute left */}
+        <div className="flex items-center w-full pl-2">
+          {/* Brand/Logo - tight to left edge */}
           <div className="flex items-center shrink-0">
             <Link
               href="/"
-              className="relative h-12 w-[200px] sm:h-14 sm:w-[300px] md:h-16 md:w-[400px] lg:w-[500px] transition-opacity hover:opacity-80 focus:outline-none overflow-hidden"
+              className="relative h-12 w-[140px] sm:h-14 sm:w-[160px] md:h-16 md:w-[180px] transition-opacity hover:opacity-80 focus:outline-none overflow-hidden"
               aria-label="Millets N Joy home"
             >
               <Image
@@ -145,7 +145,7 @@ export default function Header() {
             {/* Mobile menu button - safe to show during SSR */}
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none md:hidden"
+              className="ml-auto inline-flex items-center justify-center rounded-lg p-2 text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none md:hidden"
               aria-label="Open menu"
               disabled
             >
@@ -178,12 +178,12 @@ export default function Header() {
       }}
       role="banner"
     >
-      <div className="flex items-center w-full">
-        {/* Brand/Logo - Absolute left */}
+      <div className="flex items-center w-full pl-2">
+        {/* Brand/Logo - tight to left edge */}
         <div className="flex items-center shrink-0">
           <Link
             href="/"
-            className="relative h-12 w-[200px] sm:h-14 sm:w-[300px] md:h-16 md:w-[400px] lg:w-[500px] transition-opacity hover:opacity-80 focus:outline-none overflow-hidden"
+            className="relative h-12 w-[140px] sm:h-14 sm:w-[160px] md:h-16 md:w-[180px] transition-opacity hover:opacity-80 focus:outline-none overflow-hidden"
             aria-label="Millets N Joy home"
           >
             <Image
@@ -201,9 +201,9 @@ export default function Header() {
           aria-label="Main navigation"
         >
 
-          {/* Desktop Search Bar */}
+          {/* Desktop Search Bar — fills available space */}
           {!isAdminPage && (
-            <div className="hidden md:flex flex-1 max-w-md mx-4 lg:mx-8">
+            <div className="hidden md:flex flex-1 mx-4 lg:mx-8">
               <SearchBar onSelectCallback={() => setIsMobileMenuOpen(false)} />
             </div>
           )}
@@ -356,8 +356,8 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile: Cart Icon + Menu Button */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Mobile: Cart Icon + Menu Button — pushed to far right */}
+          <div className="flex items-center gap-2 md:hidden ml-auto">
             {/* Cart Icon for Mobile - hidden on admin pages */}
             {!isAdminPage && (
               <button
