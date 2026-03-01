@@ -88,5 +88,10 @@ export function getCinematicImage(product: { name: string; image: string } | und
         }
     }
 
-    return product.image
+    const fallback = product.image || ''
+    const domainPrefix = 'https://milletsnjoy.com'
+    if (fallback.startsWith(domainPrefix)) {
+        return fallback.substring(domainPrefix.length)
+    }
+    return fallback
 }

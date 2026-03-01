@@ -454,10 +454,10 @@ export default function CheckoutReviewContent() {
                       <div key={item.cartItemId} className="flex gap-4 border-b border-neutral-100 pb-4 last:border-0">
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                           <Image
-                            src={item.product.image || getCinematicImage(item.product)}
+                            src={getCinematicImage({ name: item.product.name, image: item.product.image })}
                             alt={item.product.name}
                             fill
-                            className="object-contain"
+                            className="h-full w-full object-contain"
                             sizes="80px"
                           />
                         </div>

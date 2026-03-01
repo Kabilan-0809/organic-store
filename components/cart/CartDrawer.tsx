@@ -177,11 +177,13 @@ export default function CartDrawer() {
                   {/* Image */}
                   <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-amber-100">
                     {ci.combo?.imageUrl ? (
-                      <img
-                        src={ci.combo.imageUrl}
+                      <Image
+                        src={getCinematicImage({ name: ci.combo.name, image: ci.combo.imageUrl })}
                         alt={ci.combo.name}
-                        className="h-full w-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        fill
+                        className="h-full w-full object-contain"
+                        sizes="64px"
+                        onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0' }}
                       />
                     ) : (
                       <span className="text-lg">🎁</span>
@@ -259,9 +261,9 @@ export default function CartDrawer() {
                       className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-neutral-100 via-neutral-50 to-neutral-200 transition-transform hover:scale-105 focus:outline-none focus:outline-none"
                       aria-label={`View ${item.product.name} details`}
                     >
-                      {item.product.image ? (
+                      {getCinematicImage(item.product) ? (
                         <Image
-                          src={item.product.image || getCinematicImage(item.product)}
+                          src={getCinematicImage(item.product)}
                           alt={item.product.name}
                           width={64}
                           height={64}

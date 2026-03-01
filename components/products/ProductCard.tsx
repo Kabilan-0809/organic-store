@@ -46,7 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="relative flex min-h-[150px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50/30 via-neutral-50 to-primary-100/20 sm:min-h-[240px] select-none">
           {!imageError && (product.image || getCinematicImage(product)) ? (
             <Image
-              src={getCinematicImage(product) || product.image || ""}
+              src={getCinematicImage(product)}
               alt={product.name}
               width={400}
               height={600}
