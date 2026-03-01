@@ -5,7 +5,7 @@ export default function HomeHeroSection() {
     return (
         <section className="px-1 pt-6 pb-2 sm:px-2 sm:pt-8 sm:pb-2">
             <div className="mx-auto w-full">
-                <div className="grid gap-1.5 sm:grid-cols-2">
+                <div className="grid gap-1.5 grid-cols-1 sm:grid-cols-[3fr_2fr]">
 
                     {/* Left Panel — Main hero */}
                     <div

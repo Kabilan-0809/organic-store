@@ -94,7 +94,7 @@ export default function Header() {
         className="sticky top-0 z-50 w-full backdrop-blur-md"
         style={{
           border: 'none',
-          backgroundColor: 'rgb(241 252 252 / 0.85)',
+          backgroundColor: '#ffffff',
           boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)'
         }}
         role="banner"
