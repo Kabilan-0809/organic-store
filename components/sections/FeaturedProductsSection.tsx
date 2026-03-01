@@ -4,7 +4,7 @@ import Link from 'next/link'
 export default function FeaturedProductsSection() {
   return (
     <section className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <div className="mx-auto max-w-[1600px]">
+      <div className="mx-auto w-full">
         <div className="flex flex-col items-center gap-8 sm:flex-row sm:gap-12 lg:gap-16">
 
           {/* Left — text content */}

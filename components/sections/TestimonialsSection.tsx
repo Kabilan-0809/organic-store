@@ -51,7 +51,7 @@ export default function TestimonialsSection() {
             {/* Background Accent Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-100/20 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-            <div className="mx-auto max-w-[1600px] px-6 lg:px-8 mb-10">
+            <div className="mx-auto w-full px-6 lg:px-8 mb-10">
                 <div className="mx-auto max-w-2xl text-center">
                     <h2 className="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
                         Loved by Families

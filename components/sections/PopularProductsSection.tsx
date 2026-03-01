@@ -93,7 +93,7 @@ export default function PopularProductsSection() {
 
     return (
         <section className="px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-[1600px]">
+            <div className="mx-auto w-full">
                 <div className="mb-6 flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Popular Products</h2>
                     <Link

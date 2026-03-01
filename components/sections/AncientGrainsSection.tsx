@@ -4,7 +4,7 @@ import Link from 'next/link'
 export default function AncientGrainsSection() {
     return (
         <section id="ancient-grains" className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-            <div className="mx-auto max-w-[1600px]">
+            <div className="mx-auto w-full">
                 <div
                     className="relative overflow-hidden rounded-[2rem] sm:rounded-[3rem] bg-[#E2EEF1] p-8 sm:p-12 lg:p-16"
                 >

@@ -3,7 +3,7 @@ import { valueCards } from '@/lib/data/values'
 export default function WhyChooseUsSection() {
   return (
     <section id="why-choose-us" className="py-10 sm:py-12 lg:py-16 px-4">
-      <div className="mx-auto max-w-[1600px]">
+      <div className="mx-auto w-full">
         <div className="mb-8 text-center">
           <h2 className="mb-4 text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
             Why Choose Us
