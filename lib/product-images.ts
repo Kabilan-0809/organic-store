@@ -46,16 +46,15 @@ export function getMilletImages(productName: string): { primary: string; gallery
     if (!productName) return null
 
     const normalizedName = productName.toLowerCase().trim()
-    const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
 
     for (const [key, basePath] of Object.entries(milletImagesMap)) {
         if (normalizedName.includes(key)) {
             return {
-                primary: `${githubBase}${basePath}_1.jpg?raw=true`,
+                primary: `${basePath}_1.jpg`,
                 gallery: [
-                    `${githubBase}${basePath}_1.jpg?raw=true`,
-                    `${githubBase}${basePath}_2.jpg?raw=true`,
-                    `${githubBase}${basePath}_3.jpg?raw=true`
+                    `${basePath}_1.jpg`,
+                    `${basePath}_2.jpg`,
+                    `${basePath}_3.jpg`
                 ]
             }
         }
@@ -71,7 +70,6 @@ export function getCinematicImage(product: { name: string; image: string } | und
     if (!product) return ''
 
     const normalizedName = product.name.toLowerCase().trim()
-    const githubBase = 'https://github.com/Kabilan-0809/organic-store/blob/main/public'
 
     // 1. Prioritize New Millet Images first
     const milletImages = getMilletImages(normalizedName)
@@ -82,11 +80,10 @@ export function getCinematicImage(product: { name: string; image: string } | und
     // 2. Fallback to older Cinematic Images
     for (const [key, value] of Object.entries(productImageMap)) {
         if (normalizedName.includes(key)) {
-            // Check if value already has the base
+            // Check if value already has a full URL
             if (value.startsWith('http')) return value
-            // Ensure leading slash for joining
-            const path = value.startsWith('/') ? value : '/' + value
-            return `${githubBase}${path}?raw=true`
+            // Ensure leading slash for local relative paths
+            return value.startsWith('/') ? value : '/' + value
         }
     }
 
