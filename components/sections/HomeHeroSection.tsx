@@ -14,7 +14,7 @@ export default function HomeHeroSection() {
                     >
                         {/* Text top-left */}
                         <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full">
-                            <h1 className="mb-4 text-4xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl">
+                            <h1 className="mb-4 text-4xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-7xl xl:text-8xl">
                                 Real Nutrition Your Family Will Love.
                             </h1>
                             <p className="mb-6 text-sm leading-snug text-neutral-600 sm:text-base lg:text-lg font-semibold">
@@ -28,7 +28,7 @@ export default function HomeHeroSection() {
                             </Link>
                         </div>
                         {/* Product image cluster — bottom-right */}
-                        <div className="absolute right-0 bottom-0 h-[65%] w-[55%] pointer-events-none">
+                        <div className="absolute right-0 bottom-0 h-[75%] w-[60%] pointer-events-none">
                             <Image
                                 src="/Common_Images/DSS_8532-removebg-preview.png"
                                 alt="Millet snack products"
@@ -51,7 +51,7 @@ export default function HomeHeroSection() {
                                 The Tangy Twist Your Tastebuds Crave.
                             </h2>
                             <p className="mb-6 text-sm text-neutral-600 sm:text-base lg:text-lg font-semibold">
-                                Achari Masala meets crunchy millet goodness.
+                                Achari Masala meets crunchy<br />millet goodness.
                             </p>
                             <Link
                                 href="/shop"
