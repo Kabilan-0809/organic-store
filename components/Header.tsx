@@ -91,7 +91,7 @@ export default function Header() {
   if (!mounted || isLoading) {
     return (
       <header
-        className="sticky top-0 z-50 w-full backdrop-blur-md"
+        className="sticky top-0 z-50 w-full"
         style={{
           border: 'none',
           backgroundColor: '#ffffff',
@@ -172,9 +172,9 @@ export default function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/85 border-b border-border/10 shadow-sm"
+      className="sticky top-0 z-50 w-full border-b border-border/10 shadow-sm"
       style={{
-        backgroundColor: 'rgb(241 252 252 / 0.85)',
+        backgroundColor: '#ffffff',
       }}
       role="banner"
     >
