@@ -12,10 +12,10 @@ export default function AncientGrainsSection() {
                     <div className="relative flex flex-row sm:block min-h-[180px] sm:min-h-[380px] lg:min-h-[480px]">
                         {/* Text */}
                         <div className="relative z-10 flex flex-col justify-center p-5 sm:p-12 lg:p-16 w-[55%] sm:w-[50%]">
-                            <h2 className="mb-2 text-2xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
+                            <h2 className="mb-2 font-quicksand text-2xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
                                 Ancient Grains.<br />Modern Health.
                             </h2>
-                            <p className="mb-4 text-xs leading-relaxed text-neutral-600 sm:text-base">
+                            <p className="mb-4 font-lato text-xs leading-relaxed text-neutral-600 sm:text-base">
                                 Explore best-selling malt &amp; millet products
                             </p>
                             <Link
@@ -29,7 +29,7 @@ export default function AncientGrainsSection() {
                         {/* Image — fills full height of right 45% on mobile */}
                         <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                             <Image
-                                src="/Common_Images/DSS_8534-removebg-preview.png"
+                                src="/Common_Images/DSS_8532-removebg-preview.png"
                                 alt="Millet products"
                                 fill
                                 className="object-contain object-bottom"

@@ -12,10 +12,10 @@ export default function FeaturedProductsSection() {
             <span className="mb-4 inline-block rounded-full border border-neutral-300 bg-neutral-900 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
               Premium Malt &amp; Traditional Foods
             </span>
-            <h2 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
+            <h2 className="mb-4 font-quicksand text-3xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
               Nutritious malt and millet products
             </h2>
-            <p className="mb-6 max-w-md text-base leading-relaxed text-neutral-600">
+            <p className="mb-6 font-lato max-w-md text-base leading-relaxed text-neutral-600">
               Carefully crafted malt, saadha podi, and other traditional millet
               products. Quality ingredients, authentic preparation, and delivered with
               complete transparency. Food you can trust.

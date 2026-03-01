@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Quicksand, Lato } from 'next/font/google'
 import './globals.css'
 import Providers from './providers'
 
@@ -7,6 +7,20 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+})
+
+const quicksand = Quicksand({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-quicksand',
+  weight: ['400', '500', '600', '700'],
+})
+
+const lato = Lato({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-lato',
+  weight: ['400', '700'],
 })
 
 export const metadata: Metadata = {
@@ -111,7 +125,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${quicksand.variable} ${lato.variable}`}>
       <head>
         {/* Google Tag Manager */}
         <script

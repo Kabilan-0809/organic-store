@@ -76,6 +76,8 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+        quicksand: ['var(--font-quicksand)', 'sans-serif'],
+        lato: ['var(--font-lato)', 'sans-serif'],
       },
       transitionProperty: {
         'height': 'height',

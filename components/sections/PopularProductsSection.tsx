@@ -95,7 +95,7 @@ export default function PopularProductsSection() {
         <section className="px-4 py-6 sm:px-6 lg:px-8">
             <div className="mx-auto w-full">
                 <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl">Popular Products</h2>
+                    <h2 className="font-quicksand text-2xl font-bold text-neutral-900 sm:text-3xl">Popular Products</h2>
                     <Link
                         href="/shop"
                         className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
