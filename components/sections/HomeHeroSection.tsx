@@ -9,69 +9,67 @@ export default function HomeHeroSection() {
 
                     {/* Left Panel — Main hero */}
                     <div
-                        className="relative flex flex-col min-h-[550px] sm:min-h-[85vh] lg:min-h-[90vh] overflow-hidden rounded-[2.5rem] sm:rounded-[4rem]"
+                        className="relative flex flex-col min-h-[340px] sm:min-h-[55vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem]"
                         style={{ backgroundColor: '#EBE5DF' }}
                     >
-                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-16 w-full">
-                            <h1 className="mb-8 text-6xl font-black leading-[0.8] tracking-tighter text-neutral-900 sm:text-8xl lg:text-[11rem] uppercase">
-                                Real<br />Nutrition<br />Your<br />Family<br />Will<br />Love.
+                        {/* Text top-left */}
+                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full sm:w-[60%]">
+                            <h1 className="mb-4 text-4xl font-black leading-[1.0] tracking-tight text-neutral-900 sm:text-5xl lg:text-5xl xl:text-6xl">
+                                Real Nutrition Your Family Will Love.
                             </h1>
-                            <p className="mb-10 text-xl leading-relaxed text-neutral-600 sm:text-2xl lg:text-3xl font-extrabold max-w-3xl">
+                            <p className="mb-6 text-sm leading-snug text-neutral-600 sm:text-base lg:text-lg font-semibold">
                                 Premium millet &amp; malt products for everyday wellness
                             </p>
                             <Link
                                 href="/shop"
-                                className="inline-flex w-fit items-center gap-4 rounded-full bg-[#4CAF50] px-14 py-6 text-2xl font-black text-white shadow-2xl transition-all duration-300 hover:bg-[#43A047] hover:scale-110 active:scale-95"
+                                className="inline-flex w-fit items-center rounded-full bg-[#4CAF50] px-6 py-3 text-base font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#43A047] hover:scale-105 active:scale-95"
                             >
                                 Shop Now
                             </Link>
                         </div>
-                        {/* Product image cluster — scaled even more to cover empty space */}
-                        <div className="absolute right-0 bottom-0 h-[40%] sm:h-[45%] w-full flex items-end justify-center sm:justify-center pointer-events-none p-4 overflow-visible">
-                            <div className="relative h-full w-[140%] sm:w-full">
-                                <Image
-                                    src="/Common_Images/DSS_8532-removebg-preview.png"
-                                    alt="Millet snack products"
-                                    fill
-                                    className="object-contain object-bottom scale-150 sm:scale-135 translate-y-8"
-                                    sizes="100vw"
-                                    priority
-                                />
-                            </div>
+                        {/* Product image cluster — bottom-right */}
+                        <div className="absolute right-0 bottom-0 h-[65%] w-[55%] pointer-events-none">
+                            <Image
+                                src="/Common_Images/DSS_8532-removebg-preview.png"
+                                alt="Millet snack products"
+                                fill
+                                className="object-contain object-bottom object-right"
+                                sizes="55vw"
+                                priority
+                            />
                         </div>
                     </div>
 
                     {/* Right Panel — Feature product */}
                     <div
-                        className="relative flex flex-col min-h-[550px] sm:min-h-[85vh] lg:min-h-[90vh] overflow-hidden rounded-[2.5rem] sm:rounded-[4rem]"
+                        className="relative flex flex-col min-h-[340px] sm:min-h-[55vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem]"
                         style={{ backgroundColor: '#F3EEE7' }}
                     >
-                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-16 w-full">
-                            <h2 className="mb-8 text-5xl font-black leading-[0.8] tracking-tighter text-neutral-900 sm:text-7xl lg:text-[10rem] uppercase">
-                                The<br />Tangy<br />Twist<br />Your<br />Tastebuds<br />Crave.
+                        {/* Text top-left */}
+                        <div className="relative z-10 flex flex-col justify-start p-6 sm:p-10 lg:p-14 w-full sm:w-[60%]">
+                            <h2 className="mb-4 text-3xl font-black leading-[1.0] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl">
+                                The Tangy Twist Your Tastebuds Crave.
                             </h2>
-                            <p className="mb-10 text-xl text-neutral-600 sm:text-2xl lg:text-3xl font-extrabold max-w-3xl">
+                            <p className="mb-6 text-sm text-neutral-600 sm:text-base lg:text-lg font-semibold">
                                 Achari Masala meets crunchy millet goodness.
                             </p>
                             <Link
                                 href="/shop"
-                                className="inline-flex w-fit items-center gap-4 rounded-full bg-[#4CAF50] px-14 py-6 text-2xl font-black text-white shadow-2xl transition-all duration-300 hover:bg-[#43A047] hover:scale-110 active:scale-95"
+                                className="inline-flex w-fit items-center rounded-full bg-[#4CAF50] px-6 py-3 text-base font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#43A047] hover:scale-105 active:scale-95"
                             >
                                 Shop Now
                             </Link>
                         </div>
-                        {/* Product image — scaled to fill its space */}
-                        <div className="absolute right-0 bottom-0 h-[50%] sm:h-[60%] w-full sm:w-[50%] flex items-end justify-end pointer-events-none p-4">
-                            <div className="relative h-full w-full">
-                                <Image
-                                    src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.png"
-                                    alt="Achari Masala Stick"
-                                    fill
-                                    className="object-contain object-bottom object-right scale-[1.75] sm:scale-[1.85] translate-x-12 translate-y-8"
-                                    sizes="60vw"
-                                    priority
-                                />
-                            </div>
+                        {/* Product image — bottom-right */}
+                        <div className="absolute right-0 bottom-0 h-[75%] w-[55%] pointer-events-none">
+                            <Image
+                                src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.png"
+                                alt="Achari Masala Stick"
+                                fill
+                                className="object-contain object-bottom object-right"
+                                sizes="55vw"
+                                priority
+                            />
                         </div>
                     </div>
 
