@@ -15,7 +15,7 @@ export default function HomeHeroSection() {
                         <div className="relative flex flex-row sm:block min-h-[220px] sm:min-h-[85vh]">
                             {/* Text — left 55% */}
                             <div className="relative z-10 flex flex-col justify-center p-5 sm:p-10 lg:p-14 w-[55%] sm:w-full">
-                                <h1 className="mb-3 font-quicksand text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-7xl xl:text-8xl">
+                                <h1 className="mb-3 font-quicksand text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl">
                                     Real Nutrition Your Family Will Love
                                 </h1>
                                 <p className="mb-4 font-lato text-xs leading-snug text-neutral-600 sm:text-base lg:text-lg font-semibold">
@@ -61,7 +61,7 @@ export default function HomeHeroSection() {
                         <div className="relative flex flex-row sm:block min-h-[220px] sm:min-h-[85vh]">
                             {/* Text — left 55% */}
                             <div className="relative z-10 flex flex-col justify-center p-5 sm:p-10 lg:p-14 w-[55%] sm:w-full">
-                                <h2 className="mb-3 font-quicksand text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl">
+                                <h2 className="mb-3 font-quicksand text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl">
                                     The Tangy Twist Your Tastebuds Crave
                                 </h2>
                                 <p className="mb-4 font-lato text-xs text-neutral-600 sm:text-base lg:text-lg font-semibold">
