@@ -24,19 +24,20 @@ export const productImageMap: Record<string, string> = {
 }
 
 // Map of millet product names to their new dedicated image folders
-const milletImagesMap: Record<string, string> = {
-    'achari masala stick': '/New_Millet_Images/Achara_Masala_Stick',
-    'masala stick': '/New_Millet_Images/Achara_Masala_Stick',
-    'almond elephant': '/New_Millet_Images/Almond_Elaphant',
-    'chilli chatag': '/New_Millet_Images/Chili_Chatag',
-    'choco coated monkey': '/New_Millet_Images/Choco_Coated_Monkey',
-    'multi millet choco coated balls': '/New_Millet_Images/Choco_Coated_Monkey',
-    'monkey': '/New_Millet_Images/Choco_Coated_Monkey',
-    'choco monkey': '/New_Millet_Images/Choco_Coated_Monkey',
-    'coconut hearts': '/New_Millet_Images/Coconut_Hearts',
-    'premium peanut balls': '/New_Millet_Images/Peanut_Balls',
-    'peanut balls': '/New_Millet_Images/Peanut_Balls',
-    'tangy tomato': '/New_Millet_Images/Tangy_Tomato'
+type MilletImageData = { basePath: string, primaryExt: string }
+const milletImagesMap: Record<string, MilletImageData> = {
+    'achari masala stick': { basePath: '/New_Millet_Images/Achari_Masala_Stick', primaryExt: 'png' },
+    'masala stick': { basePath: '/New_Millet_Images/Achari_Masala_Stick', primaryExt: 'png' },
+    'almond elephant': { basePath: '/New_Millet_Images/Almond_Elaphant', primaryExt: 'jpg' },
+    'chilli chatag': { basePath: '/New_Millet_Images/Chili_Chatag', primaryExt: 'png' },
+    'choco coated monkey': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
+    'multi millet choco coated balls': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
+    'monkey': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
+    'choco monkey': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
+    'coconut hearts': { basePath: '/New_Millet_Images/Coconut_Hearts', primaryExt: 'jpg' },
+    'premium peanut balls': { basePath: '/New_Millet_Images/Peanut_Balls', primaryExt: 'jpg' },
+    'peanut balls': { basePath: '/New_Millet_Images/Peanut_Balls', primaryExt: 'jpg' },
+    'tangy tomato': { basePath: '/New_Millet_Images/Tangy_Tomato', primaryExt: 'jpg' }
 }
 
 /**
@@ -47,14 +48,14 @@ export function getMilletImages(productName: string): { primary: string; gallery
 
     const normalizedName = productName.toLowerCase().trim()
 
-    for (const [key, basePath] of Object.entries(milletImagesMap)) {
+    for (const [key, data] of Object.entries(milletImagesMap)) {
         if (normalizedName.includes(key)) {
             return {
-                primary: `${basePath}_1.jpg`,
+                primary: `${data.basePath}_1.${data.primaryExt}`,
                 gallery: [
-                    `${basePath}_1.jpg`,
-                    `${basePath}_2.jpg`,
-                    `${basePath}_3.jpg`
+                    `${data.basePath}_1.${data.primaryExt}`,
+                    `${data.basePath}_2.jpg`,
+                    `${data.basePath}_3.jpg`
                 ]
             }
         }

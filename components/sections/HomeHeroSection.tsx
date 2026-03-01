@@ -29,7 +29,7 @@ export default function HomeHeroSection() {
                         {/* Product image cluster */}
                         <div className="relative sm:absolute right-0 bottom-0 h-48 sm:h-full w-full sm:w-[52%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
                             <Image
-                                src="/New_Millet_Images/Chili_Chatag_1.jpg"
+                                src="/New_Millet_Images/Chili_Chatag_1.png"
                                 alt="Millet snack products"
                                 fill
                                 className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-100"
@@ -61,7 +61,7 @@ export default function HomeHeroSection() {
                         {/* Product image */}
                         <div className="relative sm:absolute right-0 bottom-0 h-48 sm:h-full w-full sm:w-[52%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
                             <Image
-                                src="/New_Millet_Images/Achara_Masala_Stick_1.jpg"
+                                src="/New_Millet_Images/Achari_Masala_Stick_1.png"
                                 alt="Achari Masala Stick"
                                 fill
                                 className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-100"
