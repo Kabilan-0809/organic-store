@@ -9,7 +9,7 @@ export default function AncientGrainsSection() {
                     className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-[#E2EEF1]"
                 >
                     {/* Mobile: row layout; Desktop: absolute-positioned image */}
-                    <div className="flex flex-row sm:block min-h-[180px] sm:min-h-[380px] lg:min-h-[480px]">
+                    <div className="relative flex flex-row sm:block min-h-[180px] sm:min-h-[380px] lg:min-h-[480px]">
                         {/* Text */}
                         <div className="relative z-10 flex flex-col justify-center p-5 sm:p-12 lg:p-16 w-[55%] sm:w-[50%]">
                             <h2 className="mb-2 text-2xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl">
@@ -26,14 +26,13 @@ export default function AncientGrainsSection() {
                             </Link>
                         </div>
 
-                        {/* Image — right on mobile (natural flow), absolute on desktop */}
-                        <div className="relative w-[45%] self-end sm:hidden overflow-visible">
+                        {/* Image — fills full height of right 45% on mobile */}
+                        <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                             <Image
                                 src="/Common_Images/DSS_8534-removebg-preview.png"
                                 alt="Millet products"
-                                width={300}
-                                height={200}
-                                className="object-contain object-bottom w-full h-auto scale-110 translate-y-1"
+                                fill
+                                className="object-contain object-bottom"
                                 sizes="45vw"
                                 priority
                             />

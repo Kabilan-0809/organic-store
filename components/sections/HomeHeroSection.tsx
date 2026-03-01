@@ -12,9 +12,8 @@ export default function HomeHeroSection() {
                         className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem]"
                         style={{ backgroundColor: '#EBE5DF' }}
                     >
-                        {/* Mobile: row layout (text left, image right) */}
-                        <div className="flex flex-row sm:block min-h-[200px] sm:min-h-[85vh]">
-                            {/* Text */}
+                        <div className="relative flex flex-row sm:block min-h-[220px] sm:min-h-[85vh]">
+                            {/* Text — left 55% */}
                             <div className="relative z-10 flex flex-col justify-center p-5 sm:p-10 lg:p-14 w-[55%] sm:w-full">
                                 <h1 className="mb-3 text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-7xl xl:text-8xl">
                                     Real Nutrition Your Family Will Love.
@@ -29,14 +28,13 @@ export default function HomeHeroSection() {
                                     Shop Now
                                 </Link>
                             </div>
-                            {/* Image — right side on mobile, absolute bottom-right on desktop */}
-                            <div className="relative w-[45%] sm:hidden flex-shrink-0 self-end overflow-visible">
+                            {/* Image — fills full height of right 45% on mobile */}
+                            <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                                 <Image
                                     src="/Common_Images/DSS_8532-removebg-preview.png"
                                     alt="Millet snack products"
-                                    width={300}
-                                    height={200}
-                                    className="object-contain object-bottom w-full h-auto scale-110 translate-y-2"
+                                    fill
+                                    className="object-contain object-bottom"
                                     sizes="45vw"
                                     priority
                                 />
@@ -60,9 +58,8 @@ export default function HomeHeroSection() {
                         className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem]"
                         style={{ backgroundColor: '#F3EEE7' }}
                     >
-                        {/* Mobile: row layout */}
-                        <div className="flex flex-row sm:block min-h-[200px] sm:min-h-[85vh]">
-                            {/* Text */}
+                        <div className="relative flex flex-row sm:block min-h-[220px] sm:min-h-[85vh]">
+                            {/* Text — left 55% */}
                             <div className="relative z-10 flex flex-col justify-center p-5 sm:p-10 lg:p-14 w-[55%] sm:w-full">
                                 <h2 className="mb-3 text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl">
                                     The Tangy Twist Your Tastebuds Crave.
@@ -77,14 +74,13 @@ export default function HomeHeroSection() {
                                     Shop Now
                                 </Link>
                             </div>
-                            {/* Image — right side on mobile */}
-                            <div className="relative w-[45%] sm:hidden flex-shrink-0 self-end overflow-visible">
+                            {/* Image — fills full height of right 45% on mobile */}
+                            <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                                 <Image
                                     src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.png"
                                     alt="Achari Masala Stick"
-                                    width={200}
-                                    height={200}
-                                    className="object-contain object-bottom object-right w-full h-auto scale-110 translate-y-2"
+                                    fill
+                                    className="object-contain object-bottom"
                                     sizes="45vw"
                                     priority
                                 />
