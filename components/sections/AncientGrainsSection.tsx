@@ -31,7 +31,7 @@ export default function AncientGrainsSection() {
                     <div className="relative sm:absolute right-0 bottom-0 h-56 sm:h-full w-full sm:w-[55%] flex items-end justify-center sm:justify-end pointer-events-none mt-4 sm:mt-0">
                         <div className="relative h-full w-full">
                             <Image
-                                src="/New_Millet_Images/Almond_Elaphant_1.jpg"
+                                src="/Common_Images/DSS_8534-removebg-preview.png"
                                 alt="Millet products"
                                 fill
                                 className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-[1.15] origin-bottom sm:origin-bottom-right"

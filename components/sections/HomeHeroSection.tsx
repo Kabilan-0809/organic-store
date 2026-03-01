@@ -9,10 +9,10 @@ export default function HomeHeroSection() {
 
                     {/* Left Panel — Main hero */}
                     <div
-                        className="relative flex flex-col min-h-[460px] sm:min-h-[440px] overflow-hidden rounded-2xl sm:rounded-3xl justify-between"
+                        className="relative flex flex-col sm:flex-row min-h-[380px] sm:min-h-[340px] overflow-hidden rounded-2xl sm:rounded-3xl"
                         style={{ backgroundColor: '#EBE5DF' }}
                     >
-                        <div className="relative z-10 flex flex-col p-6 sm:p-8 lg:p-10 w-full">
+                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 w-full sm:max-w-[55%]">
                             <h1 className="mb-3 text-2xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl">
                                 Real Nutrition Your Family Will Love.
                             </h1>
@@ -27,13 +27,13 @@ export default function HomeHeroSection() {
                             </Link>
                         </div>
                         {/* Product image cluster */}
-                        <div className="relative mt-auto h-52 sm:h-64 w-full flex items-end justify-center pointer-events-none px-4 sm:px-8 mb-4 sm:mb-6">
+                        <div className="relative sm:absolute right-0 bottom-0 h-48 sm:h-full w-full sm:w-[52%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
                             <Image
                                 src="/Common_Images/DSS_8532-removebg-preview.png"
                                 alt="Millet snack products"
                                 fill
-                                className="object-contain object-bottom scale-[1.1] sm:scale-100"
-                                sizes="(max-width: 640px) 90vw, 45vw"
+                                className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-100"
+                                sizes="(max-width: 640px) 90vw, 28vw"
                                 priority
                             />
                         </div>
@@ -44,11 +44,11 @@ export default function HomeHeroSection() {
                         className="relative flex flex-col sm:flex-row min-h-[380px] sm:min-h-[340px] overflow-hidden rounded-2xl sm:rounded-3xl"
                         style={{ backgroundColor: '#F3EEE7' }}
                     >
-                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 w-full sm:max-w-[60%]">
+                        <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8 lg:p-10 w-full sm:max-w-[55%]">
                             <h2 className="mb-2 text-xl font-extrabold leading-tight tracking-tight text-neutral-900 sm:text-2xl lg:text-3xl">
                                 The Tangy Twist Your Tastebuds Crave.
                             </h2>
-                            <p className="mb-5 pr-4 sm:pr-0 text-sm text-neutral-600 sm:text-base">
+                            <p className="mb-5 text-sm text-neutral-600 sm:text-base">
                                 Achari Masala meets crunchy millet goodness.
                             </p>
                             <Link
@@ -59,12 +59,12 @@ export default function HomeHeroSection() {
                             </Link>
                         </div>
                         {/* Product image */}
-                        <div className="relative sm:absolute right-0 bottom-0 h-56 sm:h-full w-full sm:w-[50%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
+                        <div className="relative sm:absolute right-0 bottom-0 h-48 sm:h-full w-full sm:w-[52%] flex items-end justify-center sm:justify-end mt-4 sm:mt-0 pointer-events-none">
                             <Image
                                 src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.png"
                                 alt="Achari Masala Stick"
                                 fill
-                                className="object-contain object-bottom sm:object-right-bottom scale-125 sm:scale-[1.3] origin-bottom sm:origin-bottom-right sm:pr-4"
+                                className="object-contain object-bottom sm:object-right-bottom scale-110 sm:scale-100"
                                 sizes="(max-width: 640px) 90vw, 28vw"
                                 priority
                             />
