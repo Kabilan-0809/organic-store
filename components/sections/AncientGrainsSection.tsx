@@ -45,7 +45,7 @@ export default function AncientGrainsSection() {
                             src="/Common_Images/DSS_8534-removebg-preview.png"
                             alt="Millet products"
                             fill
-                            className="object-contain object-bottom object-right scale-[1.15] origin-bottom-right"
+                            className="object-contain object-bottom object-right scale-[1.15] origin-bottom-right translate-y-8"
                             sizes="35vw"
                             priority
                         />

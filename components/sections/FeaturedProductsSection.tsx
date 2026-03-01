@@ -31,18 +31,33 @@ export default function FeaturedProductsSection() {
             </Link>
           </div>
 
-          {/* Right — product image */}
+          {/* Right — two product images side by side */}
           <div
-            className="relative flex-shrink-0 w-full sm:w-[360px] lg:w-[420px] aspect-[4/3] rounded-2xl sm:rounded-3xl overflow-hidden"
-            style={{ backgroundColor: '#F5EFE6' }}
+            className="relative flex-shrink-0 w-full sm:w-[360px] lg:w-[460px] rounded-2xl sm:rounded-3xl overflow-hidden flex items-end justify-center gap-3 px-4 pt-6 pb-0"
+            style={{ backgroundColor: '#F5EFE6', minHeight: '260px' }}
           >
-            <Image
-              src="/hero-images/nuts-boost-cinematic.png"
-              alt="Nuts Boost and Choco Ragi Millet pouches"
-              fill
-              className="object-contain p-4 sm:p-6"
-              sizes="(max-width: 640px) 90vw, 420px"
-            />
+            {/* Left image — slightly lower (sits at bottom) */}
+            <div className="relative w-[47%] flex-shrink-0 self-end">
+              <Image
+                src="/New_Millet_Images/IMG_1543.png"
+                alt="Nuts Boost millet product"
+                width={220}
+                height={280}
+                className="w-full h-auto object-contain drop-shadow-md"
+                sizes="(max-width: 640px) 44vw, 220px"
+              />
+            </div>
+            {/* Right image — slightly higher (sits a bit above bottom) */}
+            <div className="relative w-[47%] flex-shrink-0 self-end mb-4">
+              <Image
+                src="/New_Millet_Images/IMG_1548.png"
+                alt="Choco Ragi Millet product"
+                width={220}
+                height={280}
+                className="w-full h-auto object-contain drop-shadow-md"
+                sizes="(max-width: 640px) 44vw, 220px"
+              />
+            </div>
           </div>
 
         </div>
