@@ -39,7 +39,7 @@ export default function FeaturedProductsSection() {
             {/* Left image — slightly lower (sits at bottom) */}
             <div className="relative w-[47%] flex-shrink-0 self-end">
               <Image
-                src="/New_Millet_Images/IMG_1543.png"
+                src="/New_Millet_Images/IMG_1543.webp"
                 alt="Nuts Boost millet product"
                 width={220}
                 height={280}
@@ -50,7 +50,7 @@ export default function FeaturedProductsSection() {
             {/* Right image — slightly higher (sits a bit above bottom) */}
             <div className="relative w-[47%] flex-shrink-0 self-end mb-4">
               <Image
-                src="/New_Millet_Images/IMG_1548.png"
+                src="/New_Millet_Images/IMG_1548.webp"
                 alt="Choco Ragi Millet product"
                 width={220}
                 height={280}

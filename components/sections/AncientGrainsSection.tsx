@@ -29,7 +29,7 @@ export default function AncientGrainsSection() {
                         {/* Image — fills full height of right 45% on mobile */}
                         <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                             <Image
-                                src="/Common_Images/DSS_8534-removebg-preview.png"
+                                src="/Common_Images/DSS_8534-removebg-preview.webp"
                                 alt="Millet products"
                                 fill
                                 className="object-contain object-bottom"
@@ -42,7 +42,7 @@ export default function AncientGrainsSection() {
                     {/* Desktop-only image */}
                     <div className="hidden sm:block absolute right-0 bottom-0 h-full w-[55%] pointer-events-none">
                         <Image
-                            src="/Common_Images/DSS_8534-removebg-preview.png"
+                            src="/Common_Images/DSS_8534-removebg-preview.webp"
                             alt="Millet products"
                             fill
                             className="object-contain object-bottom object-right scale-[1.15] origin-bottom-right translate-y-8"

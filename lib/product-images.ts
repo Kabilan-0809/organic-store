@@ -2,25 +2,25 @@
 // Map of product names/slugs to cinematic images
 export const productImageMap: Record<string, string> = {
     // Existing Hero Images
-    'abc nutri mix': '/hero-images/abc-mix-v2.png',
-    'red banana malt': '/hero-images/red-banana-v2.png',
-    'chilli chatag': '/hero-images/chilli-chatag-v2.png',
-    'choco ragi': '/hero-images/choco-ragi-v2.png',
-    'masala stick': '/hero-images/masala-stick-v2.png',
-    'tangy tomato': '/hero-images/tangy-tomato-v2.png',
+    'abc nutri mix': '/hero-images/abc-mix-v2.webp',
+    'red banana malt': '/hero-images/red-banana-v2.webp',
+    'chilli chatag': '/hero-images/chilli-chatag-v2.webp',
+    'choco ragi': '/hero-images/choco-ragi-v2.webp',
+    'masala stick': '/hero-images/masala-stick-v2.webp',
+    'tangy tomato': '/hero-images/tangy-tomato-v2.webp',
 
     // New Cinematic Images
-    'nuts boost': '/hero-images/nuts-boost-cinematic.png',
-    'nutty beets': '/hero-images/nutty-beets-cinematic.png',
-    'mudavaattu kizhangu saadha podi': '/hero-images/mudavaattu-kizhangu-cinematic.png',
-    'almond elephant': '/hero-images/almond-elephant-cinematic.png',
-    'choco coated monkey': '/hero-images/choco-monkey-cinematic.png',
-    'multi millet choco coated balls': '/hero-images/choco-monkey-cinematic.png', // Added specific mapping
-    'monkey': '/hero-images/choco-monkey-cinematic.png', // Fallback for shortened name
-    'choco monkey': '/hero-images/choco-monkey-cinematic.png', // Fallback for user-style name
-    'coconut hearts': '/hero-images/coconut-hearts-cinematic.png', // This will be the new bottle version
-    'premium peanut balls': '/hero-images/peanut-balls-cinematic.png',
-    'peanut balls': '/hero-images/peanut-balls-cinematic.png', // Fallback
+    'nuts boost': '/hero-images/nuts-boost-cinematic.webp',
+    'nutty beets': '/hero-images/nutty-beets-cinematic.webp',
+    'mudavaattu kizhangu saadha podi': '/hero-images/mudavaattu-kizhangu-cinematic.webp',
+    'almond elephant': '/hero-images/almond-elephant-cinematic.webp',
+    'choco coated monkey': '/hero-images/choco-monkey-cinematic.webp',
+    'multi millet choco coated balls': '/hero-images/choco-monkey-cinematic.webp', // Added specific mapping
+    'monkey': '/hero-images/choco-monkey-cinematic.webp', // Fallback for shortened name
+    'choco monkey': '/hero-images/choco-monkey-cinematic.webp', // Fallback for user-style name
+    'coconut hearts': '/hero-images/coconut-hearts-cinematic.webp', // This will be the new bottle version
+    'premium peanut balls': '/hero-images/peanut-balls-cinematic.webp',
+    'peanut balls': '/hero-images/peanut-balls-cinematic.webp', // Fallback
 }
 
 // Map of millet product names to their new dedicated image folders

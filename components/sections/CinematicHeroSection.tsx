@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 const SLIDES = [
     {
         id: 1,
-        image: '/hero-images/red-banana-v2.png',
+        image: '/hero-images/red-banana-v2.webp',
         title: 'Red Banana Malt',
         subtitle: 'Nature\'s Sweetness, Pure Energy',
         description: 'Experience the unique nutritional benefits of red banana in a delicious, energizing malt.',
@@ -19,7 +19,7 @@ const SLIDES = [
     },
     {
         id: 2,
-        image: '/hero-images/choco-ragi-v2.png',
+        image: '/hero-images/choco-ragi-v2.webp',
         title: 'Choco Ragi Millet',
         subtitle: 'Healthy Meets Delicious',
         description: 'The perfect blend of nutritious finger millet and rich cocoa. Kids love it, moms trust it.',
@@ -28,7 +28,7 @@ const SLIDES = [
     },
     {
         id: 3,
-        image: '/hero-images/abc-mix-v2.png',
+        image: '/hero-images/abc-mix-v2.webp',
         title: 'ABC Nutri Mix',
         subtitle: 'Apple, Beetroot, Carrot',
         description: 'A powerhouse of vitamins and minerals in one convenient, tasty mix for the whole family.',
@@ -37,7 +37,7 @@ const SLIDES = [
     },
     {
         id: 4,
-        image: '/hero-images/chilli-chatag-v2.png',
+        image: '/hero-images/chilli-chatag-v2.webp',
         title: 'Chilli Chatag',
         subtitle: 'Spicy Millet Crackle',
         description: 'Spice up your day with the fiery crunch of millet and chili. The perfect guilt-free snack.',
@@ -46,7 +46,7 @@ const SLIDES = [
     },
     {
         id: 5,
-        image: '/hero-images/masala-stick-v2.png',
+        image: '/hero-images/masala-stick-v2.webp',
         title: 'Masala Stick',
         subtitle: 'Savory Spice Burst',
         description: 'Authentic Indian spices blended with wholesome millets. A savory treat for every palate.',
@@ -55,7 +55,7 @@ const SLIDES = [
     },
     {
         id: 6,
-        image: '/hero-images/tangy-tomato-v2.png',
+        image: '/hero-images/tangy-tomato-v2.webp',
         title: 'Tangy Tomato',
         subtitle: 'Zesty Garden Fresh',
         description: 'Bursting with the fresh taste of ripe tomatoes and herbs. A tangy twist on healthy snacking.',

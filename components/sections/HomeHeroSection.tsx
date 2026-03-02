@@ -31,7 +31,7 @@ export default function HomeHeroSection() {
                             {/* Image — fills full height of right 45% on mobile */}
                             <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                                 <Image
-                                    src="/Common_Images/DSS_8532-removebg-preview.png"
+                                    src="/Common_Images/DSS_8532-removebg-preview.webp"
                                     alt="Millet snack products"
                                     fill
                                     className="object-contain object-bottom"
@@ -43,7 +43,7 @@ export default function HomeHeroSection() {
                         {/* Desktop-only image */}
                         <div className="hidden sm:block absolute right-0 bottom-0 h-[75%] w-[60%] pointer-events-none">
                             <Image
-                                src="/Common_Images/DSS_8532-removebg-preview.png"
+                                src="/Common_Images/DSS_8532-removebg-preview.webp"
                                 alt="Millet snack products"
                                 fill
                                 className="object-contain object-bottom object-right"
@@ -77,7 +77,7 @@ export default function HomeHeroSection() {
                             {/* Image — fills full height of right 45% on mobile */}
                             <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
                                 <Image
-                                    src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.png"
+                                    src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.webp"
                                     alt="Achari Masala Stick"
                                     fill
                                     className="object-contain object-bottom"
@@ -89,7 +89,7 @@ export default function HomeHeroSection() {
                         {/* Desktop-only image */}
                         <div className="hidden sm:block absolute right-0 bottom-0 h-[75%] w-[55%] pointer-events-none">
                             <Image
-                                src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.png"
+                                src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.webp"
                                 alt="Achari Masala Stick"
                                 fill
                                 className="object-contain object-bottom object-right"
