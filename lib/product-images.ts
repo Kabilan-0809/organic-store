@@ -51,11 +51,11 @@ export function getMilletImages(productName: string): { primary: string; gallery
     for (const [key, data] of Object.entries(milletImagesMap)) {
         if (normalizedName.includes(key)) {
             return {
-                primary: `${data.basePath}_1.${data.primaryExt}`,
+                primary: `${data.basePath}_1.webp`,
                 gallery: [
-                    `${data.basePath}_1.${data.primaryExt}`,
-                    `${data.basePath}_2.${data.primaryExt}`,
-                    `${data.basePath}_3.${data.primaryExt}`
+                    `${data.basePath}_1.webp`,
+                    `${data.basePath}_2.webp`,
+                    `${data.basePath}_3.webp`
                 ]
             }
         }
