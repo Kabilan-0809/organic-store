@@ -26,18 +26,18 @@ export const productImageMap: Record<string, string> = {
 // Map of millet product names to their new dedicated image folders
 type MilletImageData = { basePath: string, primaryExt: string }
 const milletImagesMap: Record<string, MilletImageData> = {
-    'achari masala stick': { basePath: '/New_Millet_Images/Achari_Masala_Stick', primaryExt: 'png' },
-    'masala stick': { basePath: '/New_Millet_Images/Achari_Masala_Stick', primaryExt: 'png' },
-    'almond elephant': { basePath: '/New_Millet_Images/Almond_Elaphant', primaryExt: 'jpg' },
-    'chilli chatag': { basePath: '/New_Millet_Images/Chili_Chatag', primaryExt: 'png' },
-    'choco coated monkey': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
-    'multi millet choco coated balls': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
-    'monkey': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
-    'choco monkey': { basePath: '/New_Millet_Images/Choco_Coated_Monkey', primaryExt: 'jpg' },
-    'coconut hearts': { basePath: '/New_Millet_Images/Coconut_Hearts', primaryExt: 'jpg' },
-    'premium peanut balls': { basePath: '/New_Millet_Images/Peanut_Balls', primaryExt: 'jpg' },
-    'peanut balls': { basePath: '/New_Millet_Images/Peanut_Balls', primaryExt: 'jpg' },
-    'tangy tomato': { basePath: '/New_Millet_Images/Tangy_Tomato', primaryExt: 'jpg' }
+    'achari masala stick': { basePath: '/BG_Removed/Achari_Masala_Stick', primaryExt: 'png' },
+    'masala stick': { basePath: '/BG_Removed/Achari_Masala_Stick', primaryExt: 'png' },
+    'almond elephant': { basePath: '/BG_Removed/Almond_Elaphant', primaryExt: 'png' },
+    'chilli chatag': { basePath: '/BG_Removed/Chili_Chatag', primaryExt: 'png' },
+    'choco coated monkey': { basePath: '/BG_Removed/Choco_Coated_Monkey', primaryExt: 'png' },
+    'multi millet choco coated balls': { basePath: '/BG_Removed/Choco_Coated_Monkey', primaryExt: 'png' },
+    'monkey': { basePath: '/BG_Removed/Choco_Coated_Monkey', primaryExt: 'png' },
+    'choco monkey': { basePath: '/BG_Removed/Choco_Coated_Monkey', primaryExt: 'png' },
+    'coconut hearts': { basePath: '/BG_Removed/Coconut_Hearts', primaryExt: 'png' },
+    'premium peanut balls': { basePath: '/BG_Removed/Peanut_Balls', primaryExt: 'png' },
+    'peanut balls': { basePath: '/BG_Removed/Peanut_Balls', primaryExt: 'png' },
+    'tangy tomato': { basePath: '/BG_Removed/Tangy_Tomato', primaryExt: 'png' }
 }
 
 /**
@@ -54,8 +54,8 @@ export function getMilletImages(productName: string): { primary: string; gallery
                 primary: `${data.basePath}_1.${data.primaryExt}`,
                 gallery: [
                     `${data.basePath}_1.${data.primaryExt}`,
-                    `${data.basePath}_2.jpg`,
-                    `${data.basePath}_3.jpg`
+                    `${data.basePath}_2.${data.primaryExt}`,
+                    `${data.basePath}_3.${data.primaryExt}`
                 ]
             }
         }
