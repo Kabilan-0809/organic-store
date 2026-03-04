@@ -110,3 +110,12 @@ export interface OrderItem {
   quantity: number
   createdAt: string
 }
+
+export interface ProductReview {
+  id: string
+  productId: string
+  name: string
+  rating: number
+  review: string
+  createdAt: string
+}

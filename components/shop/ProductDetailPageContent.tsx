@@ -3,13 +3,364 @@
 import AnimatedPage from '@/components/AnimatedPage'
 import { useCart } from '@/components/cart/CartContext'
 import type { Product } from '@/types'
+import type { ProductReview } from '@/lib/supabase'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { calculateDiscountedPrice } from '@/lib/pricing'
 import { getCinematicImage, getMilletImages } from '@/lib/product-images'
 import { hasVariants } from '@/lib/products'
 
+// ─── Star renderer ─────────────────────────────────────────────────────────────
+function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg' }) {
+  const sz = size === 'lg' ? 'w-6 h-6' : 'w-4 h-4'
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <svg key={star} className={`${sz} ${star <= rating ? 'text-amber-400' : 'text-neutral-300'}`} fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  )
+}
+
+// ─── Interactive star picker ───────────────────────────────────────────────────
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0)
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHovered(star)}
+          onMouseLeave={() => setHovered(0)}
+          className="focus:outline-none"
+          aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+        >
+          <svg
+            className={`w-7 h-7 transition-colors ${star <= (hovered || value) ? 'text-amber-400' : 'text-neutral-300'}`}
+            fill="currentColor" viewBox="0 0 20 20"
+          >
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ─── Benefits tab content ──────────────────────────────────────────────────────
+function BenefitsTab({ product }: { product: Product }) {
+  const genericBenefits = [
+    '🌾 Made with premium multi-millet blend for natural goodness',
+    '💪 Rich in dietary fibre, plant-based protein and essential minerals',
+    '🚫 No artificial colours, flavours or preservatives',
+    '🔥 Baked or air-fried — not deep fried, keeping it light and crunchy',
+    '👨‍👩‍👧 Perfect for kids, adults, and health-conscious snack lovers',
+    '♻️ Sustainably sourced ingredients supporting local farmers',
+  ]
+
+  return (
+    <div className="py-6">
+      <p className="mb-6 text-sm leading-relaxed text-neutral-700 sm:text-base">
+        {product.description}
+      </p>
+      <h3 className="mb-4 text-base font-semibold text-neutral-900 sm:text-lg">Key Benefits</h3>
+      <ul className="space-y-3">
+        {genericBenefits.map((benefit, i) => (
+          <li key={i} className="flex items-start gap-3 rounded-xl bg-primary-50/60 px-4 py-3 text-sm text-neutral-800 sm:text-base">
+            <span className="mt-0.5 flex-shrink-0 text-base">{benefit.split(' ')[0]}</span>
+            <span>{benefit.split(' ').slice(1).join(' ')}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ─── Reviews tab ───────────────────────────────────────────────────────────────
+function ReviewsTab({ productId, productName }: { productId: string; productName: string }) {
+  const [reviews, setReviews] = useState<ProductReview[]>([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // Form state
+  const [name, setName] = useState('')
+  const [rating, setRating] = useState(0)
+  const [reviewText, setReviewText] = useState('')
+  const [formErrors, setFormErrors] = useState<{ name?: string; rating?: string; review?: string }>({})
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`)
+      const data = await res.json()
+      setReviews(data.reviews ?? [])
+    } catch {
+      // silently fail — show empty state
+    } finally {
+      setLoading(false)
+    }
+  }, [productId])
+
+  useEffect(() => {
+    fetchReviews()
+  }, [fetchReviews])
+
+  // ── Stats computed from real reviews ──
+  const totalReviews = reviews.length
+  const avgRating = totalReviews > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+    : 0
+  const roundedAvg = Math.round(avgRating * 10) / 10
+
+  const starCounts = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    pct: totalReviews > 0
+      ? Math.round((reviews.filter((r) => r.rating === star).length / totalReviews) * 100)
+      : 0,
+  }))
+
+  // ── Form submit ──
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const errors: typeof formErrors = {}
+    if (!name.trim()) errors.name = 'Name is required'
+    if (rating === 0) errors.rating = 'Please select a rating'
+    if (!reviewText.trim()) errors.review = 'Review text is required'
+    if (Object.keys(errors).length > 0) { setFormErrors(errors); return }
+
+    setFormErrors({})
+    setSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, name: name.trim(), rating, review: reviewText.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to submit')
+
+      // Prepend new review locally for instant feedback
+      setReviews((prev) => [data.review, ...prev])
+      setSubmitSuccess(true)
+      setName('')
+      setRating(0)
+      setReviewText('')
+      setTimeout(() => setSubmitSuccess(false), 4000)
+    } catch (err: any) {
+      setSubmitError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="py-6 space-y-8">
+
+      {/* Top section: Summary + Form side-by-side on desktop */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+
+        {/* ── Rating summary ── */}
+        <div className="w-full lg:w-72 flex-shrink-0 rounded-2xl border border-neutral-100 bg-neutral-50 p-5">
+          <p className="mb-3 text-sm font-semibold text-neutral-500 uppercase tracking-wide">Customer Reviews</p>
+
+          {totalReviews === 0 ? (
+            <p className="text-sm text-neutral-400">No reviews yet.</p>
+          ) : (
+            <>
+              <div className="flex items-end gap-3 mb-1">
+                <span className="text-5xl font-bold text-neutral-900">{roundedAvg.toFixed(1)}</span>
+                <div className="pb-1">
+                  <StarRating rating={Math.round(avgRating)} size="lg" />
+                  <p className="mt-1 text-xs text-neutral-500">({totalReviews} Review{totalReviews !== 1 ? 's' : ''})</p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                {starCounts.map(({ star, pct }) => (
+                  <div key={star} className="flex items-center gap-3 text-xs">
+                    <span className="w-10 text-right text-neutral-600">{star} Stars</span>
+                    <div className="flex-1 overflow-hidden rounded-full bg-neutral-200 h-2">
+                      <div
+                        className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-neutral-400">{pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Add review form ── */}
+        <div className="flex-1 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+          <h3 className="text-lg font-semibold text-neutral-900 mb-1">Add your review</h3>
+          <p className="text-xs text-neutral-500 mb-4">Required fields are marked <span className="text-red-500">*</span></p>
+
+          {submitSuccess && (
+            <div className="mb-4 rounded-xl bg-primary-50 border border-primary-200 px-4 py-3 text-sm text-primary-700 font-medium">
+              ✅ Review submitted successfully. Thank you!
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Star picker */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Your rating <span className="text-red-500">*</span>
+              </label>
+              <StarPicker value={rating} onChange={(v) => { setRating(v); setFormErrors(f => ({ ...f, rating: undefined })) }} />
+              {formErrors.rating && <p className="mt-1 text-xs text-red-500">{formErrors.rating}</p>}
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => { setName(e.target.value); setFormErrors(f => ({ ...f, name: undefined })) }}
+                placeholder="Your name"
+                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-200"
+              />
+              {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
+            </div>
+
+            {/* Review text */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Review <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={4}
+                value={reviewText}
+                onChange={(e) => { setReviewText(e.target.value); setFormErrors(f => ({ ...f, review: undefined })) }}
+                placeholder="Write your review here..."
+                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-200 resize-none"
+              />
+              {formErrors.review && <p className="mt-1 text-xs text-red-500">{formErrors.review}</p>}
+            </div>
+
+            {submitError && (
+              <p className="text-xs text-red-600">{submitError}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center gap-2 rounded-full bg-primary-700 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-800 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {submitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Submitting…
+                </>
+              ) : 'Submit'}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* ── Individual reviews list ── */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <svg className="w-6 h-6 animate-spin text-primary-600" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-neutral-200 py-10 text-center">
+            <p className="text-sm font-medium text-neutral-500">No reviews yet.</p>
+            <p className="mt-1 text-xs text-neutral-400">Be the first to review "{productName}"!</p>
+          </div>
+        ) : (
+          <>
+            <h3 className="text-sm font-semibold text-neutral-700">
+              {totalReviews} review{totalReviews !== 1 ? 's' : ''} for &ldquo;{productName}&rdquo;
+            </h3>
+            {reviews.map((review) => (
+              <div key={review.id} className="flex gap-4 rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+                <div className="flex-shrink-0">
+                  <Image
+                    src="/dummy-avatar.svg"
+                    alt={review.name}
+                    width={44}
+                    height={44}
+                    className="rounded-full bg-neutral-200"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-neutral-900 mb-1">{review.name}</p>
+                  <StarRating rating={review.rating} size="sm" />
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-700">{review.review}</p>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Tab bar ───────────────────────────────────────────────────────────────────
+function ProductTabs({ product }: { product: Product }) {
+  const [activeTab, setActiveTab] = useState<'benefits' | 'reviews'>('benefits')
+
+  return (
+    <div className="mt-10 sm:mt-14">
+      <div className="flex border-b border-neutral-200">
+        {(['benefits', 'reviews'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`relative px-5 py-3 text-sm font-semibold capitalize transition-colors duration-200 focus:outline-none ${activeTab === tab ? 'text-primary-700' : 'text-neutral-500 hover:text-neutral-800'
+              }`}
+          >
+            {tab === 'benefits' ? 'Benefits' : 'Reviews'}
+            {activeTab === tab && (
+              <motion.span
+                layoutId="tab-indicator"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-t-full"
+              />
+            )}
+          </button>
+        ))}
+      </div>
+
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {activeTab === 'benefits' ? (
+          <BenefitsTab product={product} />
+        ) : (
+          <ReviewsTab productId={product.id} productName={product.name} />
+        )}
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
 interface ProductDetailPageContentProps {
   product: Product
 }
@@ -340,9 +691,10 @@ export default function ProductDetailPageContent({
             </div>
           </div>
         </div>
+
+        {/* Benefits & Reviews Tabs */}
+        <ProductTabs product={product} />
       </section>
     </AnimatedPage>
   )
 }
-
-
