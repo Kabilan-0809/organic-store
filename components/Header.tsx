@@ -233,18 +233,30 @@ export default function Header() {
                 >
                   Blog
                 </Link>
-                {/* Orders link - only for authenticated users, not admins */}
+                {/* Profile & Orders links - only for authenticated users, not admins */}
                 {isAuthenticated && !isAdmin && (
-                  <Link
-                    href="/orders"
-                    aria-label="View my orders"
-                    className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${isActive('/orders')
-                      ? 'text-primary-600'
-                      : 'text-neutral-700 hover:text-primary-600'
-                      }`}
-                  >
-                    Orders
-                  </Link>
+                  <>
+                    <Link
+                      href="/profile"
+                      aria-label="Manage your profile"
+                      className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${isActive('/profile')
+                        ? 'text-primary-600'
+                        : 'text-neutral-700 hover:text-primary-600'
+                        }`}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href="/orders"
+                      aria-label="View my orders"
+                      className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${isActive('/orders')
+                        ? 'text-primary-600'
+                        : 'text-neutral-700 hover:text-primary-600'
+                        }`}
+                    >
+                      Orders
+                    </Link>
+                  </>
                 )}
               </>
             )}
@@ -435,144 +447,159 @@ export default function Header() {
             </button>
           </div>
         </nav>
-      </div>
+      </div >
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div
-          id="mobile-menu"
-          className="backdrop-blur-md md:hidden animate-fade-in"
-          style={{
-            border: 'none',
-            backgroundColor: 'rgba(246, 251, 247, 0.85)'
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile navigation menu"
-        >
-          <div className="px-4 py-4 space-y-1">
-            {/* Mobile Search Bar */}
-            {!isAdminPage && (
-              <div className="mb-4">
-                <SearchBar onSelectCallback={() => setIsMobileMenuOpen(false)} />
-              </div>
-            )}
+      {
+        isMobileMenuOpen && (
+          <div
+            id="mobile-menu"
+            className="backdrop-blur-md md:hidden animate-fade-in"
+            style={{
+              border: 'none',
+              backgroundColor: 'rgba(246, 251, 247, 0.85)'
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation menu"
+          >
+            <div className="px-4 py-4 space-y-1">
+              {/* Mobile Search Bar */}
+              {!isAdminPage && (
+                <div className="mb-4">
+                  <SearchBar onSelectCallback={() => setIsMobileMenuOpen(false)} />
+                </div>
+              )}
 
-            {/* Shop link - hidden on admin pages */}
-            {!isAdminPage && (
-              <>
-                <Link
-                  href="/shop"
-                  aria-label="Browse organic products"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/shop')
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
-                    }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Shop
-                </Link>
-                <Link
-                  href="/blog"
-                  aria-label="Read health and nutrition articles"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${pathname?.startsWith('/blog')
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
-                    }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Blog
-                </Link>
-                {/* Orders link - only for authenticated users, not admins */}
-                {isAuthenticated && !isAdmin && (
+              {/* Shop link - hidden on admin pages */}
+              {!isAdminPage && (
+                <>
                   <Link
-                    href="/orders"
-                    aria-label="View my orders"
-                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/orders')
+                    href="/shop"
+                    aria-label="Browse organic products"
+                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/shop')
                       ? 'bg-primary-50 text-primary-600'
                       : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
                       }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Orders
+                    Shop
                   </Link>
-                )}
-              </>
-            )}
-
-            {/* Auth-aware navigation */}
-            {isAuthenticated ? (
-              <>
-                {/* User email display */}
-                <div className="flex items-center gap-2 rounded-md px-3 py-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-xs font-medium text-primary-700">
-                    {userEmail ? (
-                      userEmail.charAt(0).toUpperCase()
-                    ) : (
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        aria-hidden="true"
+                  <Link
+                    href="/blog"
+                    aria-label="Read health and nutrition articles"
+                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${pathname?.startsWith('/blog')
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
+                      }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Blog
+                  </Link>
+                  {/* Profile & Orders links - only for authenticated users, not admins */}
+                  {isAuthenticated && !isAdmin && (
+                    <>
+                      <Link
+                        href="/profile"
+                        aria-label="Manage your profile"
+                        className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/profile')
+                          ? 'bg-primary-50 text-primary-600'
+                          : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
+                          }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
+                        Profile
+                      </Link>
+                      <Link
+                        href="/orders"
+                        aria-label="View my orders"
+                        className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/orders')
+                          ? 'bg-primary-50 text-primary-600'
+                          : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
+                          }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Orders
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Auth-aware navigation */}
+              {isAuthenticated ? (
+                <>
+                  {/* User email display */}
+                  <div className="flex items-center gap-2 rounded-md px-3 py-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-xs font-medium text-primary-700">
+                      {userEmail ? (
+                        userEmail.charAt(0).toUpperCase()
+                      ) : (
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    {userEmail && (
+                      <span className="text-sm font-medium text-neutral-700 truncate">
+                        {userEmail}
+                      </span>
                     )}
                   </div>
-                  {userEmail && (
-                    <span className="text-sm font-medium text-neutral-700 truncate">
-                      {userEmail}
-                    </span>
-                  )}
-                </div>
-                {/* Logout button */}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50 hover:text-primary-600 focus:outline-none"
-                  aria-label="Sign out"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                {/* Login link */}
-                <Link
-                  href="/auth/login"
-                  aria-label="Sign in to your account"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/auth/login')
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
-                    }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                {/* Register link */}
-                <Link
-                  href="/auth/register"
-                  aria-label="Create a new account"
-                  className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/auth/register')
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
-                    }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Register
-                </Link>
-              </>
-            )}
+                  {/* Logout button */}
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-50 hover:text-primary-600 focus:outline-none"
+                    aria-label="Sign out"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Login link */}
+                  <Link
+                    href="/auth/login"
+                    aria-label="Sign in to your account"
+                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/auth/login')
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
+                      }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  {/* Register link */}
+                  <Link
+                    href="/auth/register"
+                    aria-label="Create a new account"
+                    className={`block rounded-md px-3 py-2 text-base font-medium transition-colors duration-200 focus:outline-none ${isActive('/auth/register')
+                      ? 'bg-primary-50 text-primary-600'
+                      : 'text-neutral-700 hover:bg-neutral-50 hover:text-primary-600'
+                      }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </header>
+        )
+      }
+    </header >
   )
 }
 
