@@ -470,22 +470,22 @@ function ReviewsTab({ productId, productName }: { productId: string; productName
 
 // ─── Tab bar ───────────────────────────────────────────────────────────────────
 function ProductTabs({ product }: { product: Product }) {
-  const [activeTab, setActiveTab] = useState<'benefits' | 'reviews'>('benefits')
+  const [activeTab, setActiveTab] = useState<'benefits' | 'reviews'>('reviews')
 
   return (
     <div className="mt-10 sm:mt-14">
       {/* Pill-style tab buttons matching design */}
       <div className="flex gap-3 pb-6 border-b border-neutral-100">
-        {(['benefits', 'reviews'] as const).map((tab) => (
+        {(['reviews', 'benefits'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`relative px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 focus:outline-none border ${activeTab === tab
-                ? 'border-primary-600 text-primary-700 bg-white shadow-sm'
-                : 'border-neutral-200 text-neutral-500 bg-white hover:border-neutral-300 hover:text-neutral-700'
+              ? 'border-primary-600 text-primary-700 bg-white shadow-sm'
+              : 'border-neutral-200 text-neutral-500 bg-white hover:border-neutral-300 hover:text-neutral-700'
               }`}
           >
-            {tab === 'benefits' ? 'Benefits' : `Reviews`}
+            {tab === 'reviews' ? 'Reviews' : 'Benefits'}
           </button>
         ))}
       </div>
