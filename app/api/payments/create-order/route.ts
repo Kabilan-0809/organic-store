@@ -249,9 +249,11 @@ export async function POST(req: NextRequest) {
 
     // Calculate shipping fee (Dynamic based on state and subtotal)
     // subtotalInRupees = totalAmount / 100
+    // Currently totalAmount holds only the subtotal
     const shippingFeeInRupees = calculateShippingFee(totalAmount / 100, state)
     const shippingFee = shippingFeeInRupees * 100 // Convert to paise
 
+    // Add shipping to total before applying discount
     if (shippingFee > 0) {
       totalAmount += shippingFee
     }

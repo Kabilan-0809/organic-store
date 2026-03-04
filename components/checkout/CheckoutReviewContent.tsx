@@ -210,16 +210,16 @@ export default function CheckoutReviewContent() {
     return sum + discountedPriceInRupees * item.quantity
   }, 0)
 
-  // Women's Month 15% discount applied on subtotal
-  const womenDiscountAmount = isWomenDiscount ? Math.round(subtotal * WOMEN_DISCOUNT_PCT) / 100 : 0
-  const discountedSubtotal = subtotal - womenDiscountAmount
-
   // Calculate Shipping (Dynamic based on state and subtotal)
   const SHIPPING_THRESHOLD = 1000
-  const shippingFee = calculateShippingFee(discountedSubtotal, address.state)
-  const isFreeShipping = shippingFee === 0 && discountedSubtotal >= SHIPPING_THRESHOLD
+  const shippingFee = calculateShippingFee(subtotal, address.state)
+  const isFreeShipping = shippingFee === 0 && subtotal >= SHIPPING_THRESHOLD
 
-  const finalTotal = discountedSubtotal + shippingFee
+  const subtotalWithShipping = subtotal + shippingFee
+
+  // Women's Month 15% discount applied on final total (subtotal + shipping)
+  const womenDiscountAmount = isWomenDiscount ? Math.round(subtotalWithShipping * WOMEN_DISCOUNT_PCT) / 100 : 0
+  const finalTotal = subtotalWithShipping - womenDiscountAmount
 
   const handleCreateOrder = async () => {
     if (!accessToken) {
@@ -695,14 +695,6 @@ export default function CheckoutReviewContent() {
                     <span className="text-neutral-600">Subtotal</span>
                     <span className="font-medium text-neutral-900">₹{subtotal.toFixed(2)}</span>
                   </div>
-                  {isWomenDiscount && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-rose-600 font-medium flex items-center gap-1">
-                        <span>🌸</span> Women&apos;s Month Discount (−{WOMEN_DISCOUNT_PCT}%)
-                      </span>
-                      <span className="font-semibold text-rose-600">−₹{womenDiscountAmount.toFixed(2)}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Shipping</span>
                     {isFreeShipping ? (
@@ -711,6 +703,14 @@ export default function CheckoutReviewContent() {
                       <span className="font-medium text-neutral-900">₹{shippingFee.toFixed(2)}</span>
                     )}
                   </div>
+                  {isWomenDiscount && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-rose-600 font-medium flex items-center gap-1">
+                        <span>🌸</span> Women&apos;s Month Discount (−{WOMEN_DISCOUNT_PCT}%)
+                      </span>
+                      <span className="font-semibold text-rose-600">−₹{womenDiscountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 flex justify-between text-lg font-bold">
                   <span>Total</span>
