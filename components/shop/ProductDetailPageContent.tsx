@@ -80,7 +80,7 @@ function getBenefitsText(product: Product): string {
 function BenefitsTab({ product }: { product: Product }) {
   return (
     <div className="py-6">
-      <p className="text-sm leading-relaxed text-neutral-700 sm:text-base">
+      <p className="text-base leading-relaxed text-neutral-700 sm:text-lg sm:leading-loose">
         {getBenefitsText(product)}
       </p>
     </div>
