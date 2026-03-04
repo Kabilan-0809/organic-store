@@ -52,31 +52,37 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   )
 }
 
+// ─── Per-product unique benefits copy ─────────────────────────────────────────
+const PRODUCT_BENEFITS: Record<string, string> = {
+  'tangy tomato': 'Multi Millet Tangy Tomato packs the bold zing of ripe tomatoes into every bite, backed by the wholesome power of multi millets. Rich in dietary fibre and plant-based nutrients, it supports healthy digestion, boosts energy levels, and keeps you feeling full longer — all without a drop of refined oil or artificial flavouring. A guilt-free crunch that loves your body back.',
+  'peanut balls': 'Foxtail Peanut Balls bring together the protein-rich goodness of roasted peanuts and the light, digestible fibre of foxtail millet in one satisfying bite. They promote sustained energy, aid in muscle recovery, and provide healthy fats that support brain function. Free from artificial additives and deep-frying, these are the kind of snacks you can feel genuinely good about reaching for.',
+  'almond elephant': 'Barnyard Almond Elephant combines the crunch of real almonds with the earthy richness of barnyard millet — a grain traditionally known for its high iron and calcium content. This snack supports bone health, boosts immunity, and provides slow-release energy that keeps mid-day slumps at bay. Each handful is a small step toward smarter, more mindful snacking.',
+  'achari masala': 'Multi Millet Achari Masala Stick delivers the bold, tangy punch of traditional pickle spices wrapped around the nutritious core of multi millets. The millet base provides a steady supply of complex carbohydrates and micronutrients, while the achari spice blend — rich in antioxidants — supports gut health and stimulates digestion. Bold flavour, real benefits.',
+  'achari stick': 'Multi Millet Achari Masala Stick delivers the bold, tangy punch of traditional pickle spices wrapped around the nutritious core of multi millets. The millet base provides a steady supply of complex carbohydrates and micronutrients, while the achari spice blend — rich in antioxidants — supports gut health and stimulates digestion. Bold flavour, real benefits.',
+  'chilli chatag': 'Multi Millet Chilli Chatag turns up the heat with fiery chilli flavours and the wholesome crunch of multi millets. Chilli is naturally rich in capsaicin, known to boost metabolism and support cardiovascular health, while millets provide fibre and essential minerals. This snack satisfies cravings, fuels your metabolism, and keeps afternoon hunger firmly in check.',
+  'coconut hearts': 'Finger Millet Coconut Hearts pair the calcium-dense power of ragi with the natural sweetness and healthy fats of coconut. Finger millet is one of the richest plant-based sources of calcium, making this snack excellent for bone and dental health. The coconut adds medium-chain fatty acids that support energy metabolism. A snack that is as nourishing as it is delicious.',
+  'choco coated': 'Multi Millet Choco Coated Balls wrap the wholesome goodness of multi millets in a light chocolate coating that satisfies sweet cravings without the guilt. The millet base fuels steady energy and aids digestion, while cocoa brings mood-lifting antioxidants and a rich flavour that feels indulgent. Proof that healthy and delicious can always coexist.',
+  'choco monkey': 'Multi Millet Choco Coated Balls wrap the wholesome goodness of multi millets in a light chocolate coating that satisfies sweet cravings without the guilt. The millet base fuels steady energy and aids digestion, while cocoa brings mood-lifting antioxidants and a rich flavour that feels indulgent. Proof that healthy and delicious can always coexist.',
+  'red banana malt': 'Red Banana Malt harnesses the unique nutritional profile of red bananas — naturally higher in iron, beta-carotene, and Vitamin C than their yellow counterparts. Mixed as a warm or cold drink, it supports immunity, improves blood health, aids digestion, and provides calm sustained energy without caffeine jitters. A daily ritual your body will thank you for.',
+  'abc nutri mix': 'ABC Nutri Mix is a powerhouse blend of Almond, Banana, and Carrot — three ingredients celebrated in both Ayurvedic and modern nutrition. Together they deliver a rich spectrum of Vitamins A, B, C and E, healthy fats, natural sugars, and dietary fibre. Ideal for growing children and active adults, this mix nourishes deeply, supports brain development, and strengthens overall immunity.',
+  'mudavaattu': 'Mudavaattu Kizhangu Podi is a time-honoured South Indian ingredient known for its powerful anti-inflammatory and digestive properties. Rich in natural starches, fibre, and trace minerals, it supports joint health, boosts gut flora, and acts as a natural cooling agent for the body. A deeply rooted remedy that modern families can enjoy every day.',
+}
+
+function getBenefitsText(product: Product): string {
+  const name = product.name.toLowerCase()
+  for (const [key, text] of Object.entries(PRODUCT_BENEFITS)) {
+    if (name.includes(key)) return text
+  }
+  return product.description
+}
+
 // ─── Benefits tab content ──────────────────────────────────────────────────────
 function BenefitsTab({ product }: { product: Product }) {
-  const genericBenefits = [
-    '🌾 Made with premium multi-millet blend for natural goodness',
-    '💪 Rich in dietary fibre, plant-based protein and essential minerals',
-    '🚫 No artificial colours, flavours or preservatives',
-    '🔥 Baked or air-fried — not deep fried, keeping it light and crunchy',
-    '👨‍👩‍👧 Perfect for kids, adults, and health-conscious snack lovers',
-    '♻️ Sustainably sourced ingredients supporting local farmers',
-  ]
-
   return (
     <div className="py-6">
-      <p className="mb-6 text-sm leading-relaxed text-neutral-700 sm:text-base">
-        {product.description}
+      <p className="text-sm leading-relaxed text-neutral-700 sm:text-base">
+        {getBenefitsText(product)}
       </p>
-      <h3 className="mb-4 text-base font-semibold text-neutral-900 sm:text-lg">Key Benefits</h3>
-      <ul className="space-y-3">
-        {genericBenefits.map((benefit, i) => (
-          <li key={i} className="flex items-start gap-3 rounded-xl bg-primary-50/60 px-4 py-3 text-sm text-neutral-800 sm:text-base">
-            <span className="mt-0.5 flex-shrink-0 text-base">{benefit.split(' ')[0]}</span>
-            <span>{benefit.split(' ').slice(1).join(' ')}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
