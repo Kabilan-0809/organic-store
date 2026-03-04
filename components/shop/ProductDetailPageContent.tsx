@@ -53,36 +53,179 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
 }
 
 // ─── Per-product unique benefits copy ─────────────────────────────────────────
-const PRODUCT_BENEFITS: Record<string, string> = {
-  'tangy tomato': 'Multi Millet Tangy Tomato packs the bold zing of ripe tomatoes into every bite, backed by the wholesome power of multi millets. Rich in dietary fibre and plant-based nutrients, it supports healthy digestion, boosts energy levels, and keeps you feeling full longer — all without a drop of refined oil or artificial flavouring. A guilt-free crunch that loves your body back.',
-  'peanut balls': 'Foxtail Peanut Balls bring together the protein-rich goodness of roasted peanuts and the light, digestible fibre of foxtail millet in one satisfying bite. They promote sustained energy, aid in muscle recovery, and provide healthy fats that support brain function. Free from artificial additives and deep-frying, these are the kind of snacks you can feel genuinely good about reaching for.',
-  'almond elephant': 'Barnyard Almond Elephant combines the crunch of real almonds with the earthy richness of barnyard millet — a grain traditionally known for its high iron and calcium content. This snack supports bone health, boosts immunity, and provides slow-release energy that keeps mid-day slumps at bay. Each handful is a small step toward smarter, more mindful snacking.',
-  'achari masala': 'Multi Millet Achari Masala Stick delivers the bold, tangy punch of traditional pickle spices wrapped around the nutritious core of multi millets. The millet base provides a steady supply of complex carbohydrates and micronutrients, while the achari spice blend — rich in antioxidants — supports gut health and stimulates digestion. Bold flavour, real benefits.',
-  'achari stick': 'Multi Millet Achari Masala Stick delivers the bold, tangy punch of traditional pickle spices wrapped around the nutritious core of multi millets. The millet base provides a steady supply of complex carbohydrates and micronutrients, while the achari spice blend — rich in antioxidants — supports gut health and stimulates digestion. Bold flavour, real benefits.',
-  'chilli chatag': 'Multi Millet Chilli Chatag turns up the heat with fiery chilli flavours and the wholesome crunch of multi millets. Chilli is naturally rich in capsaicin, known to boost metabolism and support cardiovascular health, while millets provide fibre and essential minerals. This snack satisfies cravings, fuels your metabolism, and keeps afternoon hunger firmly in check.',
-  'coconut hearts': 'Finger Millet Coconut Hearts pair the calcium-dense power of ragi with the natural sweetness and healthy fats of coconut. Finger millet is one of the richest plant-based sources of calcium, making this snack excellent for bone and dental health. The coconut adds medium-chain fatty acids that support energy metabolism. A snack that is as nourishing as it is delicious.',
-  'choco coated': 'Multi Millet Choco Coated Balls wrap the wholesome goodness of multi millets in a light chocolate coating that satisfies sweet cravings without the guilt. The millet base fuels steady energy and aids digestion, while cocoa brings mood-lifting antioxidants and a rich flavour that feels indulgent. Proof that healthy and delicious can always coexist.',
-  'choco monkey': 'Multi Millet Choco Coated Balls wrap the wholesome goodness of multi millets in a light chocolate coating that satisfies sweet cravings without the guilt. The millet base fuels steady energy and aids digestion, while cocoa brings mood-lifting antioxidants and a rich flavour that feels indulgent. Proof that healthy and delicious can always coexist.',
-  'red banana malt': 'Red Banana Malt harnesses the unique nutritional profile of red bananas — naturally higher in iron, beta-carotene, and Vitamin C than their yellow counterparts. Mixed as a warm or cold drink, it supports immunity, improves blood health, aids digestion, and provides calm sustained energy without caffeine jitters. A daily ritual your body will thank you for.',
-  'abc nutri mix': 'ABC Nutri Mix is a powerhouse blend of Almond, Banana, and Carrot — three ingredients celebrated in both Ayurvedic and modern nutrition. Together they deliver a rich spectrum of Vitamins A, B, C and E, healthy fats, natural sugars, and dietary fibre. Ideal for growing children and active adults, this mix nourishes deeply, supports brain development, and strengthens overall immunity.',
-  'mudavaattu': 'Mudavaattu Kizhangu Podi is a time-honoured South Indian ingredient known for its powerful anti-inflammatory and digestive properties. Rich in natural starches, fibre, and trace minerals, it supports joint health, boosts gut flora, and acts as a natural cooling agent for the body. A deeply rooted remedy that modern families can enjoy every day.',
+interface BenefitEntry {
+  intro: string
+  points: string[]
 }
 
-function getBenefitsText(product: Product): string {
+const PRODUCT_BENEFITS: Record<string, BenefitEntry> = {
+  'tangy tomato': {
+    intro: 'Multi Millet Tangy Tomato packs the bold zing of sun-ripened tomatoes into every bite, backed by the wholesome power of multi millets. Crafted without refined oil or artificial flavouring, it is a snack that works as hard for your body as it does for your taste buds.',
+    points: [
+      'Rich in dietary fibre — aids smooth digestion and keeps you comfortably full',
+      'Multi millet base provides complex carbohydrates for steady, lasting energy',
+      'No deep-frying — gently baked to preserve natural nutrients',
+      'Free from artificial colours, flavours, and MSG',
+      'Tomato-derived lycopene supports antioxidant intake naturally',
+      'Ideal between-meal snack that curbs cravings without empty calories',
+    ],
+  },
+  'peanut balls': {
+    intro: 'Foxtail Peanut Balls bring together the protein-rich goodness of roasted peanuts and the light, digestible fibre of foxtail millet in one satisfying mouthful. Crafted without deep-frying or artificial additives, every piece is honest wholesome food the way snacking was meant to be.',
+    points: [
+      'Roasted peanuts deliver plant-based protein and healthy mono-unsaturated fats',
+      'Foxtail millet is a low-glycaemic grain that supports steady blood sugar levels',
+      'Naturally high in dietary fibre to support gut health and satiety',
+      'Contains magnesium and phosphorus supporting muscle and nerve function',
+      'No added preservatives, artificial colours, or trans fats',
+      'Suitable as a post-workout snack or a mindful mid-day energy boost',
+    ],
+  },
+  'almond elephant': {
+    intro: 'Barnyard Almond Elephant combines the satisfying crunch of real almonds with the earthy, mild richness of barnyard millet — a grain known for its impressive iron and mineral profile. Each piece is a small, deliberate step toward smarter, more mindful snacking.',
+    points: [
+      'Almonds provide Vitamin E, healthy fats, and a natural crunch',
+      'Barnyard millet is a gluten-free grain with notable iron content',
+      'Supports bone density through calcium and phosphorus from millet',
+      'Slow-releasing carbohydrates from barnyard millet reduce mid-day energy crashes',
+      'No artificial additives — just real ingredients baked to perfection',
+      'Kid-friendly shape and flavour encouraging healthier snack habits from early on',
+    ],
+  },
+  'achari masala': {
+    intro: 'Multi Millet Achari Masala Stick delivers the bold, tangy punch of traditional pickle spices wrapped around the wholesome core of multi millets. Both a flavour adventure and a genuinely nourishing choice for your afternoon snack slot.',
+    points: [
+      'Achari spice blend — including mustard, fennel, and fenugreek — stimulates healthy digestion',
+      'Multi millet base provides complex carbohydrates that fuel without spiking energy',
+      'Spices traditionally used in Indian kitchens for centuries for a reason',
+      'Fibre-rich millet core keeps you full and supports a healthy gut environment',
+      'Baked, not fried — significantly lower in saturated fat than conventional sticks',
+      'Free from artificial flavour enhancers and synthetic preservatives',
+    ],
+  },
+  'achari stick': {
+    intro: 'Multi Millet Achari Masala Stick delivers the bold, tangy punch of traditional pickle spices wrapped around the wholesome core of multi millets. Both a flavour adventure and a genuinely nourishing choice for your afternoon snack slot.',
+    points: [
+      'Achari spice blend — including mustard, fennel, and fenugreek — stimulates healthy digestion',
+      'Multi millet base provides complex carbohydrates that fuel without spiking energy',
+      'Spices traditionally used in Indian kitchens for centuries for a reason',
+      'Fibre-rich millet core keeps you full and supports a healthy gut environment',
+      'Baked, not fried — significantly lower in saturated fat than conventional sticks',
+      'Free from artificial flavour enhancers and synthetic preservatives',
+    ],
+  },
+  'chilli chatag': {
+    intro: 'Multi Millet Chilli Chatag turns up the heat with fiery chilli warmth and the wholesome crunch of multi millets. This snack satisfies the craving for something bold and spicy while still being something you can feel sensible about eating.',
+    points: [
+      'Capsaicin from chilli is known to support a faster metabolic rate',
+      'Multi millet base supplies dietary fibre, B vitamins, and trace minerals',
+      'Spicy flavour profile helps satisfy strong cravings with smaller portions',
+      'No artificial heat enhancers — the warmth comes from real chilli',
+      'Contains essential minerals like magnesium that support cardiovascular health',
+      'Perfect for those who love bold flavour without compromising on nutrition',
+    ],
+  },
+  'coconut hearts': {
+    intro: 'Finger Millet Coconut Hearts marry the calcium-rich goodness of ragi with the natural sweetness and healthy fats of real coconut. A snack that genuinely nourishes while tasting like a treat.',
+    points: [
+      'Finger millet (ragi) is one of the richest plant sources of calcium',
+      'Coconut provides medium-chain fatty acids for clean, efficient energy metabolism',
+      'Natural sweetness from coconut — no refined sugar coating required',
+      'Excellent calcium-to-phosphorus ratio supports strong teeth and bones',
+      'Gluten-free and suitable for those with wheat sensitivities',
+      'Kid-friendly heart shape makes it a fun, healthy alternative to packaged biscuits',
+    ],
+  },
+  'choco coated': {
+    intro: 'Multi Millet Choco Coated Balls wrap the wholesome goodness of multi millets in a light cocoa coating that satisfies sweet cravings without tipping into indulgence guilt. Proof that smart snacking and real flavour are not mutually exclusive.',
+    points: [
+      'Cocoa contains flavonoids that support mood and antioxidant intake',
+      'Multi millet base provides slow-release energy — no sugar crash after snacking',
+      'Dietary fibre from millets aids digestion and prolongs satiety',
+      'Light coating means all the enjoyment with a fraction of the sugar in conventional chocolate snacks',
+      'No artificial chocolate flavouring — real cocoa used throughout',
+      'A manageable portion of joy that works within a balanced daily diet',
+    ],
+  },
+  'choco monkey': {
+    intro: 'Multi Millet Choco Coated Balls wrap the wholesome goodness of multi millets in a light cocoa coating that satisfies sweet cravings without tipping into indulgence guilt. Proof that smart snacking and real flavour are not mutually exclusive.',
+    points: [
+      'Cocoa contains flavonoids that support mood and antioxidant intake',
+      'Multi millet base provides slow-release energy — no sugar crash after snacking',
+      'Dietary fibre from millets aids digestion and prolongs satiety',
+      'Light coating means all the enjoyment with a fraction of the sugar in conventional chocolate snacks',
+      'No artificial chocolate flavouring — real cocoa used throughout',
+      'A manageable portion of joy that works within a balanced daily diet',
+    ],
+  },
+  'red banana malt': {
+    intro: 'Red Banana Malt draws on the unique nutritional profile of red bananas — a variety naturally higher in beta-carotene, iron, and Vitamin C than common yellow bananas. A warm or chilled daily drink ritual your body will genuinely appreciate.',
+    points: [
+      'Red bananas are richer in beta-carotene, supporting eye and skin health',
+      'Higher iron content compared to yellow bananas — supports healthy haemoglobin levels',
+      'Vitamin C in red banana supports immune function and iron absorption',
+      'Mixed as a malt provides sustained energy without caffeine dependency',
+      'Natural soluble fibre aids digestion and gut microbiome balance',
+      'Versatile preparation — hot, cold, or blended into smoothies',
+    ],
+  },
+  'abc nutri mix': {
+    intro: 'ABC Nutri Mix is a thoughtfully crafted blend of Almond, Banana, and Carrot — three ingredients celebrated across both Ayurvedic tradition and modern nutrition science for the range of vitamins and minerals they bring together.',
+    points: [
+      'Almonds contribute Vitamin E, healthy fats, and protein for brain and heart health',
+      'Banana provides natural energy, potassium, and B6 for nerve and muscle support',
+      'Carrot supplies beta-carotene — essential for eye health and immune function',
+      'Together they span Vitamins A, B, C, and E in a single serving',
+      'Suitable for growing children as a nutritious daily supplement',
+      'No artificial sweeteners — the mix is naturally pleasant to taste',
+    ],
+  },
+  'mudavaattu': {
+    intro: 'Mudavaattu Kizhangu Podi is a time-honoured South Indian ingredient rooted in traditional kitchen wisdom. Known for its gentle yet effective properties, this podi brings a quietly powerful nutritional profile to everyday meals.',
+    points: [
+      'Traditionally valued for natural anti-inflammatory properties',
+      'Rich in dietary fibre that promotes a comfortable, healthy digestive rhythm',
+      'Acts as a natural cooling agent — particularly helpful during warmer months',
+      'Trace minerals support joint comfort and overall wellness',
+      'A versatile addition to rice, soups, or as a seasoning across South Indian cuisine',
+      'No fillers or preservatives — just the root, dried and ground traditionally',
+    ],
+  },
+}
+
+function getBenefits(product: Product): BenefitEntry | null {
   const name = product.name.toLowerCase()
-  for (const [key, text] of Object.entries(PRODUCT_BENEFITS)) {
-    if (name.includes(key)) return text
+  for (const [key, entry] of Object.entries(PRODUCT_BENEFITS)) {
+    if (name.includes(key)) return entry
   }
-  return product.description
+  return null
 }
 
 // ─── Benefits tab content ──────────────────────────────────────────────────────
 function BenefitsTab({ product }: { product: Product }) {
+  const entry = getBenefits(product)
+  if (!entry) {
+    return (
+      <div className="py-6">
+        <p className="text-base leading-relaxed text-neutral-700 sm:text-lg sm:leading-loose">
+          {product.description}
+        </p>
+      </div>
+    )
+  }
   return (
-    <div className="py-6">
+    <div className="py-6 space-y-5">
       <p className="text-base leading-relaxed text-neutral-700 sm:text-lg sm:leading-loose">
-        {getBenefitsText(product)}
+        {entry.intro}
       </p>
+      <ul className="space-y-3">
+        {entry.points.map((point, i) => (
+          <li key={i} className="flex items-start gap-3">
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary-500" />
+            <span className="text-sm leading-relaxed text-neutral-700 sm:text-base">{point}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -331,21 +474,18 @@ function ProductTabs({ product }: { product: Product }) {
 
   return (
     <div className="mt-10 sm:mt-14">
-      <div className="flex border-b border-neutral-200">
+      {/* Pill-style tab buttons matching design */}
+      <div className="flex gap-3 pb-6 border-b border-neutral-100">
         {(['benefits', 'reviews'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`relative px-5 py-3 text-sm font-semibold capitalize transition-colors duration-200 focus:outline-none ${activeTab === tab ? 'text-primary-700' : 'text-neutral-500 hover:text-neutral-800'
+            className={`relative px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 focus:outline-none border ${activeTab === tab
+                ? 'border-primary-600 text-primary-700 bg-white shadow-sm'
+                : 'border-neutral-200 text-neutral-500 bg-white hover:border-neutral-300 hover:text-neutral-700'
               }`}
           >
-            {tab === 'benefits' ? 'Benefits' : 'Reviews'}
-            {activeTab === tab && (
-              <motion.span
-                layoutId="tab-indicator"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-t-full"
-              />
-            )}
+            {tab === 'benefits' ? 'Benefits' : `Reviews`}
           </button>
         ))}
       </div>
@@ -596,7 +736,7 @@ export default function ProductDetailPageContent({
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex flex-wrap items-baseline gap-3">
                 {product.discountPercent && product.discountPercent > 0 ? (
                   <>
@@ -618,17 +758,20 @@ export default function ProductDetailPageContent({
                   </span>
                 )}
               </div>
-              {availableStock > 0 ? (
-                isLowStock ? (
-                  <span className="block text-xs font-medium text-primary-700">
-                    Only {availableStock} left in stock
+
+              {/* Availability row matching design */}
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-medium text-neutral-600">Availability:</span>
+                {availableStock > 0 ? (
+                  <span className="font-semibold text-primary-600">
+                    {isLowStock
+                      ? `Only ${availableStock} left — order soon!`
+                      : `${availableStock} products available`}
                   </span>
-                ) : null
-              ) : (
-                <span className="block text-xs font-medium text-neutral-500">
-                  Currently unavailable
-                </span>
-              )}
+                ) : (
+                  <span className="font-semibold text-neutral-500">Currently unavailable</span>
+                )}
+              </div>
             </div>
 
             {/* Stock error message */}
