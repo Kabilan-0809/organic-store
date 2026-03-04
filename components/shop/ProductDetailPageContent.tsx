@@ -287,7 +287,7 @@ function ReviewsTab({ productId, productName }: { productId: string; productName
         ) : reviews.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-200 py-10 text-center">
             <p className="text-sm font-medium text-neutral-500">No reviews yet.</p>
-            <p className="mt-1 text-xs text-neutral-400">Be the first to review "{productName}"!</p>
+            <p className="mt-1 text-xs text-neutral-400">Be the first to review &ldquo;{productName}&rdquo;!</p>
           </div>
         ) : (
           <>
