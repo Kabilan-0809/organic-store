@@ -65,8 +65,13 @@ export default function CheckoutReviewContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreatingOrder, setIsCreatingOrder] = useState(false)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
-  const [isProcessingPaymentState, setIsProcessingPaymentState] = useState(false) // Track if payment is being processed
-  // const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay') // Removed COD
+  const [isProcessingPaymentState, setIsProcessingPaymentState] = useState(false)
+
+  // Women's Month discount
+  const WOMEN_DISCOUNT_PCT = 15
+  const [userGender, setUserGender] = useState<string | null>(null)
+  const isMarch = new Date().getMonth() === 2 // 0-indexed, 2 = March
+  const isWomenDiscount = userGender === 'female' && isMarch
 
   // Address form state
   const [address, setAddress] = useState({
@@ -180,11 +185,23 @@ export default function CheckoutReviewContent() {
     setIsLoading(false)
   }, [isAuthenticated, items, router])
 
+  // Fetch user gender for Women's Month discount
+  useEffect(() => {
+    if (!isAuthenticated || !accessToken) return
+    fetch('/api/profile', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.profile?.gender) setUserGender(data.profile.gender)
+      })
+      .catch(() => { })
+  }, [isAuthenticated, accessToken])
+
   // Use the same calculation logic as cart
   // item.product.price is in rupees (from cart API which converts product.price / 100)
   const subtotal = checkoutItems.reduce((sum, item) => {
-    // Calculate discounted price for each item
-    const originalPriceInPaise = item.product.price * 100 // Convert to paise
+    const originalPriceInPaise = item.product.price * 100
     const discountedPriceInPaise = calculateDiscountedPrice(
       originalPriceInPaise,
       item.product.discountPercent
@@ -193,12 +210,16 @@ export default function CheckoutReviewContent() {
     return sum + discountedPriceInRupees * item.quantity
   }, 0)
 
+  // Women's Month 15% discount applied on subtotal
+  const womenDiscountAmount = isWomenDiscount ? Math.round(subtotal * WOMEN_DISCOUNT_PCT) / 100 : 0
+  const discountedSubtotal = subtotal - womenDiscountAmount
+
   // Calculate Shipping (Dynamic based on state and subtotal)
   const SHIPPING_THRESHOLD = 1000
-  const shippingFee = calculateShippingFee(subtotal, address.state)
-  const isFreeShipping = shippingFee === 0 && subtotal >= SHIPPING_THRESHOLD
+  const shippingFee = calculateShippingFee(discountedSubtotal, address.state)
+  const isFreeShipping = shippingFee === 0 && discountedSubtotal >= SHIPPING_THRESHOLD
 
-  const finalTotal = subtotal + shippingFee
+  const finalTotal = discountedSubtotal + shippingFee
 
   const handleCreateOrder = async () => {
     if (!accessToken) {
@@ -232,6 +253,7 @@ export default function CheckoutReviewContent() {
         body: JSON.stringify({
           selectedCartItemIds,
           ...address,
+          womenDiscount: isWomenDiscount,
         }),
       })
 
@@ -432,6 +454,27 @@ export default function CheckoutReviewContent() {
       />
       <AnimatedPage>
         <div className="mx-auto max-w-4xl py-8 sm:py-12">
+
+          {/* Women's Month Banner — shown in March for all users */}
+          {isMarch && (
+            <div className="mb-6 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 px-5 py-4">
+              <span className="text-2xl">🌸</span>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-rose-700">March is Women&apos;s Month!</p>
+                <p className="text-xs text-rose-600 mt-0.5">
+                  {isWomenDiscount
+                    ? `A special 15% Women's Month discount has been applied to your order. 💐`
+                    : `Women customers enjoy 15% off this month. Set your gender in your profile to avail the offer.`}
+                </p>
+              </div>
+              {isWomenDiscount && (
+                <span className="flex-shrink-0 rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white">
+                  −15%
+                </span>
+              )}
+            </div>
+          )}
+
           <h1 className="mb-8 text-3xl font-bold tracking-tight text-neutral-900">Review Your Order</h1>
 
           <div className="grid gap-8 lg:grid-cols-3">
@@ -652,9 +695,16 @@ export default function CheckoutReviewContent() {
                     <span className="text-neutral-600">Subtotal</span>
                     <span className="font-medium text-neutral-900">₹{subtotal.toFixed(2)}</span>
                   </div>
+                  {isWomenDiscount && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-rose-600 font-medium flex items-center gap-1">
+                        <span>🌸</span> Women&apos;s Month Discount (−{WOMEN_DISCOUNT_PCT}%)
+                      </span>
+                      <span className="font-semibold text-rose-600">−₹{womenDiscountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Shipping</span>
-
                     {isFreeShipping ? (
                       <span className="font-medium text-green-600">Free</span>
                     ) : (

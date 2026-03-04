@@ -58,6 +58,7 @@ export interface User {
   email: string
   passwordHash: string
   role: 'USER' | 'ADMIN'
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
   createdAt: string
   updatedAt: string
 }

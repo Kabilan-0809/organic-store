@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       state: rawState,
       postalCode: rawPostalCode,
       country: rawCountry,
+      womenDiscount: rawWomenDiscount,
     } = body as Record<string, unknown>
 
     // Validate selectedCartItemIds
@@ -255,6 +256,24 @@ export async function POST(req: NextRequest) {
       totalAmount += shippingFee
     }
 
+    // ── Women's Month discount (server-side verification) ──────────────────────
+    // Gender is stored in Supabase auth user_metadata — no extra DB query needed
+    let womenDiscountApplied = false
+    const clientClaimsWomenDiscount = rawWomenDiscount === true
+    const currentMonth = new Date().getMonth() // 0-indexed, 2 = March
+
+    if (clientClaimsWomenDiscount && currentMonth === 2) {
+      const userGender = user.user_metadata?.gender as string | undefined
+
+      if (userGender === 'female') {
+        // Apply 15% discount on total (after shipping)
+        const discountAmount = Math.round(totalAmount * 15 / 100)
+        totalAmount = totalAmount - discountAmount
+        womenDiscountApplied = true
+        console.log(`[Women Discount] Applied 15% discount for user ${user.id}. Saved: ${discountAmount} paise`)
+      }
+    }
+
     if (totalAmount <= 0) {
       return createErrorResponse('Invalid order amount', 400)
     }
@@ -309,6 +328,7 @@ export async function POST(req: NextRequest) {
         orderItemsData,
         totalAmount,
         shippingFee,
+        womenDiscountApplied,
         addressLine1,
         addressLine2,
         city,
