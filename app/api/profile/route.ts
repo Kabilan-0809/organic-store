@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase/server'
+import { supabase as supabaseAdmin } from '@/lib/supabase'
 import { createErrorResponse, unauthorizedResponse } from '@/lib/auth/api-auth'
 
 const ALLOWED_GENDERS = ['male', 'female', 'other', 'prefer_not_to_say']
@@ -49,7 +50,7 @@ export async function PATCH(req: NextRequest) {
         }
 
         // Store gender in user_metadata using the admin API
-        const { error } = await supabase.auth.admin.updateUserById(user.id, {
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
             user_metadata: {
                 ...user.user_metadata,
                 gender,
