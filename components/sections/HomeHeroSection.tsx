@@ -9,47 +9,28 @@ export default function HomeHeroSection() {
 
                     {/* Left Panel — Main hero */}
                     <div
-                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem]"
-                        style={{ backgroundColor: '#EBE5DF' }}
+                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] min-h-[220px] sm:min-h-[85vh]"
                     >
-                        <div className="relative flex flex-row sm:block min-h-[220px] sm:min-h-[85vh]">
-                            {/* Text — left 55% */}
-                            <div className="relative z-10 flex flex-col justify-center p-5 sm:p-10 lg:p-14 w-[55%] sm:w-full">
-                                <h1 className="mb-3 font-quicksand text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl">
-                                    Real Nutrition Your Family Will Love
-                                </h1>
-                                <p className="mb-4 font-lato text-xs leading-snug text-neutral-600 sm:text-base lg:text-lg font-semibold">
-                                    Premium millet &amp; malt products<br />for everyday wellness
-                                </p>
-                                <Link
-                                    href="/shop"
-                                    className="inline-flex w-fit items-center rounded-full bg-[#4CAF50] px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#43A047] hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
-                                >
-                                    Shop Now
-                                </Link>
-                            </div>
-                            {/* Image — fills full height of right 45% on mobile */}
-                            <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
-                                <Image
-                                    src="/Common_Images/DSS_8532-removebg-preview.webp"
-                                    alt="Millet snack products"
-                                    fill
-                                    className="object-contain object-bottom"
-                                    sizes="45vw"
-                                    priority
-                                />
-                            </div>
-                        </div>
-                        {/* Desktop-only image */}
-                        <div className="hidden sm:block absolute right-0 bottom-0 h-[75%] w-[60%] pointer-events-none">
-                            <Image
-                                src="/Common_Images/DSS_8532-removebg-preview.webp"
-                                alt="Millet snack products"
-                                fill
-                                className="object-contain object-bottom object-right"
-                                sizes="55vw"
-                                priority
-                            />
+                        {/* Background Image */}
+                        <Image
+                            src="/Common_Images/image.png"
+                            alt="Nutrition Your Family Will Love"
+                            fill
+                            className="object-cover object-center"
+                            priority
+                        />
+
+                        {/* Gradient overlay to ensure button contrasts well against the bottom of the image */}
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+
+                        {/* Shop Now Button Overlay */}
+                        <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-10 lg:p-14">
+                            <Link
+                                href="/shop"
+                                className="inline-flex w-fit items-center rounded-full bg-[#4CAF50] px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#43A047] hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
+                            >
+                                Shop Now
+                            </Link>
                         </div>
                     </div>
 
