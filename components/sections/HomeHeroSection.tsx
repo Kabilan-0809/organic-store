@@ -27,7 +27,7 @@ export default function HomeHeroSection() {
                         <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-10 lg:p-14">
                             <Link
                                 href="/shop"
-                                className="inline-flex w-fit items-center rounded-full bg-[#4CAF50] px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#43A047] hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
+                                className="inline-flex w-fit items-center rounded-full bg-primary-500 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-primary-600 hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
                             >
                                 Shop Now
                             </Link>
@@ -50,7 +50,7 @@ export default function HomeHeroSection() {
                                 </p>
                                 <Link
                                     href="/shop"
-                                    className="inline-flex w-fit items-center rounded-full bg-[#4CAF50] px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#43A047] hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
+                                    className="inline-flex w-fit items-center rounded-full bg-primary-500 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-primary-600 hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
                                 >
                                     Shop Now
                                 </Link>

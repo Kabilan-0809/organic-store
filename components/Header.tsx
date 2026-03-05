@@ -214,6 +214,16 @@ export default function Header() {
             {!isAdminPage && (
               <>
                 <Link
+                  href="/"
+                  aria-label="Home"
+                  className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${isActive('/')
+                    ? 'text-primary-600'
+                    : 'text-neutral-700 hover:text-primary-600'
+                    }`}
+                >
+                  Home
+                </Link>
+                <Link
                   href="/shop"
                   aria-label="Browse organic products"
                   className={`text-sm font-medium transition-colors duration-200 focus:outline-none rounded ${isActive('/shop')

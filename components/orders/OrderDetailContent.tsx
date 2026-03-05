@@ -278,7 +278,7 @@ export default function OrderDetailContent({ orderId }: OrderDetailContentProps)
           email: '',
         },
         theme: {
-          color: '#4CAF50',
+          color: '#EC4899',
         },
         modal: {
           ondismiss: async function () {

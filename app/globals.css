@@ -58,29 +58,29 @@
     --color-text-muted: 120 130 125;
     /* #78827D */
 
-    /* Primary Brand - Organic Green */
-    --color-primary: 76 175 80;
-    /* #4CAF50 - Keeping the vibrant brand green */
-    --color-primary-soft: 232 245 233;
-    /* #E8F5E9 */
-    --color-primary-hover: 67 160 71;
-    /* #43A047 */
+    /* Primary Brand - Women's Month Pink */
+    --color-primary: 236 72 153;
+    /* #EC4899 - Pink 500 */
+    --color-primary-soft: 253 242 248;
+    /* #FDF2F8 - Pink 50 */
+    --color-primary-hover: 219 39 119;
+    /* #DB2777 - Pink 600 */
     --color-primary-foreground: 255 255 255;
 
     /* Secondary/Accent */
-    --color-accent: 240 253 244;
-    /* #F0FDF4 */
+    --color-accent: 253 242 248;
+    /* #FDF2F8 - Pink 50 */
 
     /* UI Elements */
     --color-border: 226 232 226;
     /* #E2E8E2 */
     --color-input: 226 232 226;
     /* #E2E8E2 */
-    --color-ring: 76 175 80;
-    /* #4CAF50 */
+    --color-ring: 236 72 153;
+    /* #EC4899 */
 
     /* Effects */
-    --color-shadow: 76 175 80;
+    --color-shadow: 236 72 153;
     /* Primary-tinted shadow */
   }
 
