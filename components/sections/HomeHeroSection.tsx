@@ -57,18 +57,18 @@ export default async function HomeHeroSection() {
 
     return (
         <section className="px-2 pt-4 pb-2 sm:px-2 sm:pt-8 sm:pb-2">
-            <div className="mx-auto w-full">
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-[1.75fr_1fr]">
+            <div className="mx-auto w-full max-w-5xl">
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-[1.24fr_1fr]">
 
                     {/* Left Panel — Millet Offer */}
-                    <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-pink-50/50 flex">
+                    <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-pink-50/50">
                         {/* Background Image */}
                         <Image
                             src="/Common_Images/MilletOffer.jpeg"
                             alt="Millet Products Offer: 7 Snacks for 475"
-                            width={1600}
-                            height={1200}
-                            className="w-full h-auto object-cover"
+                            width={1024}
+                            height={1024}
+                            className="w-full h-auto object-contain"
                             priority
                         />
 
@@ -82,14 +82,14 @@ export default async function HomeHeroSection() {
                     </div>
 
                     {/* Right Panel — Malt Offer */}
-                    <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-pink-50/50 flex">
+                    <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-pink-50/50">
                         {/* Background Image */}
                         <Image
                             src="/Common_Images/MaltOffer.jpeg"
                             alt="Malt Products Offer: 3 Malts for 300"
-                            width={1200}
-                            height={1200}
-                            className="w-full h-auto object-cover"
+                            width={928}
+                            height={1152}
+                            className="w-full h-auto object-contain"
                             priority
                         />
 
