@@ -8,6 +8,7 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { calculateDiscountedPrice } from '@/lib/pricing'
 import { getCinematicImage } from '@/lib/product-images'
+import { calculateCartTotals } from '@/lib/combo-logic'
 
 export default function CartDrawer() {
   const { items, comboItems, isOpen, close, setQuantity, removeItem, removeCombo, subtotal } = useCart()
@@ -75,20 +76,31 @@ export default function CartDrawer() {
     router.push('/checkout')
   }
 
-  // Calculate subtotal for selected items only (using discounted prices)
-  // Exclude unavailable items from subtotal
-  const selectedSubtotal = items
-    .filter((item) => item.cartItemId && selectedCartItemIds.includes(item.cartItemId) && item.product.inStock)
-    .reduce((sum, item) => {
-      // Calculate discounted price for each item
-      const originalPriceInPaise = item.product.price * 100 // Convert to paise
-      const discountedPriceInPaise = calculateDiscountedPrice(
-        originalPriceInPaise,
-        item.product.discountPercent
-      )
-      const discountedPriceInRupees = discountedPriceInPaise / 100
-      return sum + discountedPriceInRupees * item.quantity
-    }, 0)
+  // Calculate subtotal for selected items only (using combo logic)
+  const selectedItems = items.filter(
+    (item) => item.cartItemId && selectedCartItemIds.includes(item.cartItemId) && item.product.inStock
+  )
+
+  // Also include comboItems if any logic dictates they are selected. 
+  // Wait, `comboItems` are currently fetched separately from DB in CartDrawer?
+  // Let me check if CartDrawer has native comboItems object... Ah, yes it does! 
+  // But wait, we refactored the Add to Cart to just add native items!
+  // If native `comboItems` are still rendered, we should leave them for legacy. Next line.
+
+  const mappedSelectedItems = selectedItems.map(item => ({
+    product: {
+      id: item.product.id,
+      name: item.product.name,
+      price: item.product.price,
+      discountPercent: item.product.discountPercent,
+      inStock: item.product.inStock
+    },
+    quantity: item.quantity
+  }))
+
+  const { subtotal: selectedSubtotal, originalSubtotal: selectedOriginalSubtotal } = calculateCartTotals(mappedSelectedItems)
+
+  // Wait, I need to import calculateCartTotals at the top. 
 
   // Calculate shipping fee logic
   const SHIPPING_THRESHOLD = 1000
@@ -392,12 +404,19 @@ export default function CartDrawer() {
                 ? `Subtotal (${selectedCartItemIds.length} selected)`
                 : 'Subtotal'}
             </span>
-            <span className="text-base font-semibold text-neutral-900">
-              ₹
-              {isAuthenticated && selectedCartItemIds.length > 0
-                ? selectedSubtotal.toFixed(2)
-                : subtotal.toFixed(2)}
-            </span>
+            <div className="flex items-baseline gap-2">
+              {selectedOriginalSubtotal > selectedSubtotal && (
+                <span className="text-xs text-neutral-400 line-through">
+                  ₹{selectedOriginalSubtotal.toFixed(2)}
+                </span>
+              )}
+              <span className="text-base font-semibold text-neutral-900">
+                ₹
+                {isAuthenticated && selectedCartItemIds.length > 0
+                  ? selectedSubtotal.toFixed(2)
+                  : subtotal.toFixed(2)}
+              </span>
+            </div>
           </div>
 
           {/* Shipping Fee Line */}

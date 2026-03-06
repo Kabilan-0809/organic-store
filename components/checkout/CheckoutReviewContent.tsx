@@ -201,7 +201,7 @@ export default function CheckoutReviewContent() {
   }, [isAuthenticated, accessToken])
 
   // Use the exact same combo logic as the cart
-  const { subtotal, nonComboSubtotal } = calculateCartTotals(checkoutItems)
+  const { subtotal, originalSubtotal, nonComboSubtotal } = calculateCartTotals(checkoutItems)
 
   // Calculate Shipping (Dynamic based on state and subtotal)
   const SHIPPING_THRESHOLD = 1000
@@ -690,7 +690,14 @@ export default function CheckoutReviewContent() {
                 <div className="space-y-3 border-b border-neutral-200 pb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Subtotal</span>
-                    <span className="font-medium text-neutral-900">₹{subtotal.toFixed(2)}</span>
+                    <div className="flex items-baseline gap-2">
+                      {originalSubtotal > subtotal && (
+                        <span className="text-xs text-neutral-400 line-through">
+                          ₹{originalSubtotal.toFixed(2)}
+                        </span>
+                      )}
+                      <span className="font-medium text-neutral-900">₹{subtotal.toFixed(2)}</span>
+                    </div>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Shipping</span>

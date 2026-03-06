@@ -64,11 +64,24 @@ export function calculateCartTotals(items: CartItemBase[]) {
 
     // 4. Calculate prices
     let subtotal = 0
+    let originalSubtotal = 0
     let nonComboSubtotal = 0 // Used for 15% discount calculation
 
     // Add Combos
     subtotal += numMilletCombos * MILLET_COMBO_PRICE
+    if (numMilletCombos > 0) {
+        // Because the user could have gathered this from various variants/prices,
+        // We'll calculate a standard typical Millet combo original price just by summing standard ones, 
+        // or if they are in the cart we use their original price.
+        // Wait, different millet products might have different prices, but usually they are 80Rs each. 80 * 7 = 560
+        // We know standard M.R.P is 560 for Millet, 360 for Malt.
+        originalSubtotal += numMilletCombos * 560
+    }
+
     subtotal += numMaltCombos * MALT_COMBO_PRICE
+    if (numMaltCombos > 0) {
+        originalSubtotal += numMaltCombos * 360
+    }
 
     // Add Remaining Items
     items.forEach(item => {
@@ -96,6 +109,8 @@ export function calculateCartTotals(items: CartItemBase[]) {
             subtotal += itemSubtotal
             nonComboSubtotal += itemSubtotal
 
+            originalSubtotal += (item.product.price * qtyToChargeNormally)
+
             // Reduce the remaining count for the next iteration if there are multiple cart items with same name
             quantities[name] = (quantities[name] || 0) - qtyToChargeNormally
         }
@@ -105,6 +120,7 @@ export function calculateCartTotals(items: CartItemBase[]) {
         numMilletCombos,
         numMaltCombos,
         subtotal,
+        originalSubtotal,
         nonComboSubtotal
     }
 }
