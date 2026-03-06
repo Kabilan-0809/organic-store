@@ -690,14 +690,9 @@ export default function CheckoutReviewContent() {
                 <div className="space-y-3 border-b border-neutral-200 pb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Subtotal</span>
-                    <div className="flex items-baseline gap-2">
-                      {originalSubtotal > subtotal && (
-                        <span className="text-xs text-neutral-400 line-through">
-                          ₹{originalSubtotal.toFixed(2)}
-                        </span>
-                      )}
-                      <span className="font-medium text-neutral-900">₹{subtotal.toFixed(2)}</span>
-                    </div>
+                    <span className="font-medium text-neutral-900">
+                      ₹{(originalSubtotal > subtotal ? originalSubtotal : subtotal).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">Shipping</span>
@@ -710,15 +705,22 @@ export default function CheckoutReviewContent() {
                   {isWomenDiscount && (
                     <div className="flex justify-between text-sm">
                       <span className="text-rose-600 font-medium flex items-center gap-1">
-                        <span>🌸</span> Women&apos;s Month Discount (−{WOMEN_DISCOUNT_PCT}%)
+                        <span>🌸</span> Women&apos;s Month Discount (−{WOMEN_DISCOUNT_PCT * 100}%)
                       </span>
                       <span className="font-semibold text-rose-600">−₹{womenDiscountAmount.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-4 flex justify-between text-lg font-bold">
+                <div className="mt-4 flex justify-between items-baseline text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-primary-600">₹{finalTotal.toFixed(2)}</span>
+                  <div className="flex items-baseline gap-2">
+                    {((originalSubtotal > subtotal ? originalSubtotal : subtotal) + shippingFee) > finalTotal && (
+                      <span className="text-sm text-neutral-400 line-through">
+                        ₹{((originalSubtotal > subtotal ? originalSubtotal : subtotal) + shippingFee).toFixed(2)}
+                      </span>
+                    )}
+                    <span className="text-primary-600">₹{finalTotal.toFixed(2)}</span>
+                  </div>
                 </div>
                 <button
                   onClick={handleCreateOrder}

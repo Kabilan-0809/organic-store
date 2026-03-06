@@ -59,6 +59,7 @@ interface CartContextValue {
   clear: () => void
   reload: () => Promise<void>
   subtotal: number
+  originalSubtotal: number
   isOpen: boolean
   open: () => void
   close: () => void
@@ -679,6 +680,10 @@ export function CartProvider({ children }: CartProviderProps) {
         // This automatically detects combinations of products to offer the bundled discount
         const totals = calculateCartTotals(state.items)
         return totals.subtotal
+      })(),
+      originalSubtotal: (() => {
+        const totals = calculateCartTotals(state.items)
+        return totals.originalSubtotal
       })(),
       isOpen,
       open: () => setIsOpen(true),

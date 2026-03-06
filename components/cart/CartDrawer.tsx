@@ -11,7 +11,7 @@ import { getCinematicImage } from '@/lib/product-images'
 import { calculateCartTotals } from '@/lib/combo-logic'
 
 export default function CartDrawer() {
-  const { items, comboItems, isOpen, close, setQuantity, removeItem, removeCombo, subtotal } = useCart()
+  const { items, comboItems, isOpen, close, setQuantity, removeItem, removeCombo, subtotal, originalSubtotal } = useCart()
   const { isAuthenticated, accessToken } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -405,19 +405,34 @@ export default function CartDrawer() {
                 : 'Subtotal'}
             </span>
             <div className="flex items-baseline gap-2">
-              {selectedOriginalSubtotal > selectedSubtotal && (
-                <span className="text-xs text-neutral-400 line-through">
-                  ₹{selectedOriginalSubtotal.toFixed(2)}
-                </span>
-              )}
-              <span className="text-base font-semibold text-neutral-900">
+              <span className="text-base text-neutral-900">
                 ₹
                 {isAuthenticated && selectedCartItemIds.length > 0
-                  ? selectedSubtotal.toFixed(2)
-                  : subtotal.toFixed(2)}
+                  ? (selectedOriginalSubtotal > selectedSubtotal ? selectedOriginalSubtotal.toFixed(2) : selectedSubtotal.toFixed(2))
+                  : (originalSubtotal > subtotal ? originalSubtotal.toFixed(2) : subtotal.toFixed(2))}
               </span>
             </div>
           </div>
+
+          {(selectedOriginalSubtotal > selectedSubtotal || originalSubtotal > subtotal) && (
+            <div className="mb-3 flex items-center justify-between text-sm font-bold">
+              <span>Cart Total</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xs text-neutral-400 line-through">
+                  ₹
+                  {isAuthenticated && selectedCartItemIds.length > 0
+                    ? selectedOriginalSubtotal.toFixed(2)
+                    : originalSubtotal.toFixed(2)}
+                </span>
+                <span className="text-primary-600 text-base">
+                  ₹
+                  {isAuthenticated && selectedCartItemIds.length > 0
+                    ? selectedSubtotal.toFixed(2)
+                    : subtotal.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Shipping Fee Line */}
           {isAuthenticated && selectedCartItemIds.length > 0 && (
