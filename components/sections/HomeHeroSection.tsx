@@ -22,22 +22,36 @@ const MALT_NAMES = [
 export default async function HomeHeroSection() {
     const { data: allOfferProducts } = await supabase
         .from('Product')
-        .select('id, name, slug, description, price, discountPercent, category, imageUrl, stock, isActive')
+        .select('id, name, slug, description, price, discountPercent, category, imageUrl, stock, isActive, ProductVariant(id, sizeGrams)')
         .in('name', [...MILLET_NAMES, ...MALT_NAMES])
         .eq('isActive', true)
 
-    const mapToProduct = (p: any): Product => ({
-        id: p.id,
-        slug: p.slug,
-        name: p.name,
-        description: p.description,
-        price: p.price / 100, // Convert from paise to rupees
-        discountPercent: p.discountPercent,
-        category: p.category,
-        image: p.imageUrl,
-        inStock: p.stock > 0,
-        stock: p.stock,
-    })
+    const mapToProduct = (p: any): Product & { selectedVariantId?: string } => {
+        let selectedVariantId = undefined
+        if (p.ProductVariant && p.ProductVariant.length > 0) {
+            // Find 80g variant, or default to the first one available
+            const variant80g = p.ProductVariant.find((v: any) => v.sizeGrams === 80)
+            if (variant80g) {
+                selectedVariantId = variant80g.id
+            } else {
+                selectedVariantId = p.ProductVariant[0].id
+            }
+        }
+
+        return {
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            description: p.description,
+            price: p.price / 100, // Convert from paise to rupees
+            discountPercent: p.discountPercent,
+            category: p.category,
+            image: p.imageUrl,
+            inStock: p.stock > 0,
+            stock: p.stock,
+            selectedVariantId
+        }
+    }
 
     const fetchProducts = allOfferProducts || []
 

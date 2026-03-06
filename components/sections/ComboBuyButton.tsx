@@ -17,7 +17,7 @@ export default function ComboBuyButton({ products, children }: ComboBuyButtonPro
         try {
             // Blast the server with parallel requests instead of sequential loops
             // This drops the Cart Add lag by an order of magnitude (from ~30s to ~2s)
-            await Promise.all(products.map(product => addItem(product, 1)))
+            await Promise.all(products.map(product => addItem(product, 1, product.selectedVariantId)))
 
             // Open the cart to show the newly added items
             open()
