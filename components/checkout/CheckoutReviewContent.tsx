@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useCart } from '@/components/cart/CartContext'
 import AnimatedPage from '@/components/AnimatedPage'
 import { calculateDiscountedPrice, calculateShippingFee } from '@/lib/pricing'
+import { calculateCartTotals } from '@/lib/combo-logic'
 import { getCinematicImage } from '@/lib/product-images'
 import Image from 'next/image'
 import Script from 'next/script'
@@ -53,6 +54,7 @@ interface CheckoutItem {
     discountPercent?: number | null
     image: string
     category: string
+    inStock: boolean
   }
   quantity: number
 }
@@ -198,17 +200,8 @@ export default function CheckoutReviewContent() {
       .catch(() => { })
   }, [isAuthenticated, accessToken])
 
-  // Use the same calculation logic as cart
-  // item.product.price is in rupees (from cart API which converts product.price / 100)
-  const subtotal = checkoutItems.reduce((sum, item) => {
-    const originalPriceInPaise = item.product.price * 100
-    const discountedPriceInPaise = calculateDiscountedPrice(
-      originalPriceInPaise,
-      item.product.discountPercent
-    )
-    const discountedPriceInRupees = discountedPriceInPaise / 100
-    return sum + discountedPriceInRupees * item.quantity
-  }, 0)
+  // Use the exact same combo logic as the cart
+  const { subtotal, nonComboSubtotal } = calculateCartTotals(checkoutItems)
 
   // Calculate Shipping (Dynamic based on state and subtotal)
   const SHIPPING_THRESHOLD = 1000
@@ -217,8 +210,12 @@ export default function CheckoutReviewContent() {
 
   const subtotalWithShipping = subtotal + shippingFee
 
-  // Women's Month 15% discount applied on final total (subtotal + shipping)
-  const womenDiscountAmount = isWomenDiscount ? Math.round(subtotalWithShipping * WOMEN_DISCOUNT_PCT) / 100 : 0
+  // Women's Month 15% discount applied ONLY to non-combo subtotal + proportional shipping
+  // Or rather, we just apply it to the non-combo items. 
+  // Wait, the previous logic applied 15% to (subtotal + shipping).
+  // If we only apply to (nonComboSubtotal + shipping), we should do that.
+  const discountableAmount = nonComboSubtotal + shippingFee
+  const womenDiscountAmount = isWomenDiscount ? Math.round(discountableAmount * WOMEN_DISCOUNT_PCT) / 100 : 0
   const finalTotal = subtotalWithShipping - womenDiscountAmount
 
   const handleCreateOrder = async () => {

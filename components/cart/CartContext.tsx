@@ -19,8 +19,7 @@ import {
 } from '@/lib/cartStorage'
 import { hasVariants } from '@/lib/products'
 import { useAuth } from '@/components/auth/AuthContext'
-import { calculateDiscountedPrice } from '@/lib/pricing'
-
+import { calculateCartTotals } from '@/lib/combo-logic'
 export interface CartItem {
   cartItemId?: string // ID from database (only for authenticated users)
   product: Product
@@ -675,20 +674,12 @@ export function CartProvider({ children }: CartProviderProps) {
           await loadCart()
         }
       },
-      subtotal: state.items.reduce((sum, item) => {
-        // Exclude unavailable items from subtotal
-        if (!item.product.inStock) {
-          return sum
-        }
-        // Calculate discounted price for each item
-        const originalPriceInPaise = item.product.price * 100 // Convert to paise
-        const discountedPriceInPaise = calculateDiscountedPrice(
-          originalPriceInPaise,
-          item.product.discountPercent
-        )
-        const discountedPriceInRupees = discountedPriceInPaise / 100
-        return sum + discountedPriceInRupees * item.quantity
-      }, 0),
+      subtotal: (() => {
+        // Use the centralized combo logic helper to compute subtotal
+        // This automatically detects combinations of products to offer the bundled discount
+        const totals = calculateCartTotals(state.items)
+        return totals.subtotal
+      })(),
       isOpen,
       open: () => setIsOpen(true),
       close: () => setIsOpen(false),

@@ -5,6 +5,7 @@ import { validateArray, validateString, validateCartItemId } from '@/lib/auth/va
 import { createRazorpayOrder } from '@/lib/payments/razorpay'
 import { calculateDiscountedPrice, calculateShippingFee } from '@/lib/pricing'
 import { hasVariants } from '@/lib/products'
+import { calculateCartTotals } from '@/lib/combo-logic'
 
 export const runtime = 'nodejs'
 
@@ -234,6 +235,8 @@ export async function POST(req: NextRequest) {
 
       const productName = sizeGrams ? `${product.name} – ${sizeGrams}g` : product.name
 
+      // We push the standard calculated prices for records.
+      // Total amount will be recalculated properly with combo logic below.
       orderItemsData.push({
         productId: product.id,
         productName: productName,
@@ -243,14 +246,28 @@ export async function POST(req: NextRequest) {
         quantity: cartItem.quantity,
         ...(sizeGrams && { sizeGrams }),
       })
-
-      totalAmount += finalPriceInPaise
     }
 
+    // MAP cart items to CartItemBase for calculateCartTotals
+    const mappedItems = orderItemsData.map(item => ({
+      product: {
+        id: item.productId,
+        name: item.productName.split(' –')[0] ?? item.productName, // strip size suffix if exists
+        price: item.unitPrice / 100,
+        discountPercent: item.discountPercent,
+        inStock: true // already validated above
+      },
+      quantity: item.quantity
+    }))
+
+    const { subtotal, nonComboSubtotal } = calculateCartTotals(mappedItems)
+
+    // totalAmount is now in paise based on combo subtotal
+    totalAmount = Math.round(subtotal * 100)
+
     // Calculate shipping fee (Dynamic based on state and subtotal)
-    // subtotalInRupees = totalAmount / 100
-    // Currently totalAmount holds only the subtotal
-    const shippingFeeInRupees = calculateShippingFee(totalAmount / 100, state)
+    // subtotal is in Rupees
+    const shippingFeeInRupees = calculateShippingFee(subtotal, state)
     const shippingFee = shippingFeeInRupees * 100 // Convert to paise
 
     // Add shipping to total before applying discount
@@ -268,11 +285,14 @@ export async function POST(req: NextRequest) {
       const userGender = user.user_metadata?.gender as string | undefined
 
       if (userGender === 'female') {
-        // Apply 15% discount on total (after shipping)
-        const discountAmount = Math.round(totalAmount * 15 / 100)
-        totalAmount = totalAmount - discountAmount
+        // Apply 15% discount ONLY on non-combo subtotal + proportional shipping (or full shipping)
+        const discountableAmount = nonComboSubtotal + shippingFeeInRupees
+        const discountAmountRupees = discountableAmount * 15 / 100
+        const discountAmountPaise = Math.round(discountAmountRupees * 100)
+
+        totalAmount = totalAmount - discountAmountPaise
         womenDiscountApplied = true
-        console.log(`[Women Discount] Applied 15% discount for user ${user.id}. Saved: ${discountAmount} paise`)
+        console.log(`[Women Discount] Applied 15% discount for user ${user.id}. Saved: ${discountAmountPaise} paise`)
       }
     }
 

@@ -1,20 +1,73 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import ComboBuyButton from './ComboBuyButton'
+import type { Product } from '@/types'
 
-export default function HomeHeroSection() {
+const MILLET_NAMES = [
+    'Barnyard Almond Elephant',
+    'Finger Millet Coconut Hearts',
+    'Multi Millet Choco Coated Balls',
+    'Foxtail Peanut Balls',
+    'Multi Millet Achari Masala Stick',
+    'Multi Millet Chilli Chatag',
+    'Multi Millet Tangy Tomato'
+]
+
+const MALT_NAMES = [
+    'Nuts Boost',
+    'Nutty Beets',
+    'Choco Ragi Malt'
+]
+
+export default async function HomeHeroSection() {
+    const { data: allOfferProducts } = await supabase
+        .from('Product')
+        .select('id, name, slug, description, price, discountPercent, category, imageUrl, stock, isActive')
+        .in('name', [...MILLET_NAMES, ...MALT_NAMES])
+        .eq('isActive', true)
+
+    const mapToProduct = (p: any): Product => ({
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        description: p.description,
+        price: p.price / 100, // Convert from paise to rupees
+        discountPercent: p.discountPercent,
+        category: p.category,
+        image: p.imageUrl,
+        inStock: p.stock > 0,
+        stock: p.stock,
+    })
+
+    const fetchProducts = allOfferProducts || []
+
+    // Millets have no variants, Malt has variants, but we will add the base product for malts.
+    // Actually, "Nuts Boost", "Nutty Beets", "Choco Ragi Malt" are base products, users can choose standard variant or we just add base product to cart? 
+    // The cart's `addItem` expects the product to be added. If it has variants, we might need a `variantId`.
+    // Wait, let's just add the first variant for malts or add the product without variant if that's allowed.
+    // Let's refine the fetched products.
+
+    const milletProducts = fetchProducts
+        .filter(p => MILLET_NAMES.includes(p.name))
+        .map(mapToProduct)
+
+    const maltProducts = fetchProducts
+        .filter(p => MALT_NAMES.includes(p.name))
+        .map(mapToProduct)
+
     return (
         <section className="px-2 pt-4 pb-2 sm:px-2 sm:pt-8 sm:pb-2">
             <div className="mx-auto w-full">
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-[3fr_2fr]">
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
 
-                    {/* Left Panel — Main hero */}
+                    {/* Left Panel — Millet Offer */}
                     <div
-                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] min-h-[220px] sm:min-h-[85vh]"
+                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] min-h-[250px] sm:min-h-[70vh]"
                     >
                         {/* Background Image */}
                         <Image
-                            src="/Common_Images/image.png"
-                            alt="Nutrition Your Family Will Love"
+                            src="/Common_Images/MilletOffer.jpeg"
+                            alt="Millet Products Offer: 7 Snacks for 475"
                             fill
                             className="object-cover object-center"
                             priority
@@ -25,58 +78,29 @@ export default function HomeHeroSection() {
 
                         {/* Shop Now Button Overlay */}
                         <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-10 lg:p-14">
-                            <Link
-                                href="/shop"
-                                className="inline-flex w-fit items-center rounded-full bg-primary-500 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-primary-600 hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
-                            >
-                                Shop Now
-                            </Link>
+                            <ComboBuyButton products={milletProducts} />
                         </div>
                     </div>
 
-                    {/* Right Panel — Feature product */}
+                    {/* Right Panel — Malt Offer */}
                     <div
-                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem]"
-                        style={{ backgroundColor: '#F3EEE7' }}
+                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] min-h-[250px] sm:min-h-[70vh]"
                     >
-                        <div className="relative flex flex-row sm:block min-h-[220px] sm:min-h-[85vh]">
-                            {/* Text — left 55% */}
-                            <div className="relative z-10 flex flex-col justify-center p-5 sm:p-10 lg:p-14 w-[55%] sm:w-full">
-                                <h2 className="mb-3 font-quicksand text-2xl font-black leading-[1.05] tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl">
-                                    The Tangy Twist Your Tastebuds Crave
-                                </h2>
-                                <p className="mb-4 font-lato text-xs text-neutral-600 sm:text-base lg:text-lg font-semibold">
-                                    Achari Masala meets crunchy<br />millet goodness.
-                                </p>
-                                <Link
-                                    href="/shop"
-                                    className="inline-flex w-fit items-center rounded-full bg-primary-500 px-4 py-2 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-primary-600 hover:scale-105 active:scale-95 sm:px-6 sm:py-3 sm:text-base"
-                                >
-                                    Shop Now
-                                </Link>
-                            </div>
-                            {/* Image — fills full height of right 45% on mobile */}
-                            <div className="absolute right-0 top-0 bottom-0 w-[45%] sm:hidden pointer-events-none">
-                                <Image
-                                    src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.webp"
-                                    alt="Achari Masala Stick"
-                                    fill
-                                    className="object-contain object-bottom"
-                                    sizes="45vw"
-                                    priority
-                                />
-                            </div>
-                        </div>
-                        {/* Desktop-only image */}
-                        <div className="hidden sm:block absolute right-0 bottom-0 h-[75%] w-[55%] pointer-events-none">
-                            <Image
-                                src="/New_Millet_Images/Achari_Masala_Stick_1-removebg-preview.webp"
-                                alt="Achari Masala Stick"
-                                fill
-                                className="object-contain object-bottom object-right"
-                                sizes="55vw"
-                                priority
-                            />
+                        {/* Background Image */}
+                        <Image
+                            src="/Common_Images/MaltOffer.jpeg"
+                            alt="Malt Products Offer: 3 Malts for 300"
+                            fill
+                            className="object-cover object-center"
+                            priority
+                        />
+
+                        {/* Gradient overlay to ensure button contrasts well against the bottom of the image */}
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+
+                        {/* Shop Now Button Overlay */}
+                        <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-10 lg:p-14">
+                            <ComboBuyButton products={maltProducts} />
                         </div>
                     </div>
 
@@ -85,4 +109,3 @@ export default function HomeHeroSection() {
         </section>
     )
 }
-
