@@ -61,45 +61,43 @@ export default async function HomeHeroSection() {
                 <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
 
                     {/* Left Panel — Millet Offer */}
-                    <div
-                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] min-h-[250px] sm:min-h-[70vh]"
-                    >
+                    <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-pink-50/50">
                         {/* Background Image */}
                         <Image
                             src="/Common_Images/MilletOffer.jpeg"
                             alt="Millet Products Offer: 7 Snacks for 475"
-                            fill
-                            className="object-cover object-center"
+                            width={1200}
+                            height={1200}
+                            className="w-full h-auto object-contain"
                             priority
                         />
 
                         {/* Gradient overlay to ensure button contrasts well against the bottom of the image */}
-                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
                         {/* Shop Now Button Overlay */}
-                        <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-10 lg:p-14">
+                        <div className="absolute inset-0 z-10 flex flex-col justify-end items-center sm:items-start p-5 sm:p-10 lg:p-14">
                             <ComboBuyButton products={milletProducts} />
                         </div>
                     </div>
 
                     {/* Right Panel — Malt Offer */}
-                    <div
-                        className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] min-h-[250px] sm:min-h-[70vh]"
-                    >
+                    <div className="relative overflow-hidden rounded-[1.5rem] sm:rounded-[3rem] bg-pink-50/50">
                         {/* Background Image */}
                         <Image
                             src="/Common_Images/MaltOffer.jpeg"
                             alt="Malt Products Offer: 3 Malts for 300"
-                            fill
-                            className="object-cover object-center"
+                            width={1200}
+                            height={1200}
+                            className="w-full h-auto object-contain"
                             priority
                         />
 
                         {/* Gradient overlay to ensure button contrasts well against the bottom of the image */}
-                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+                        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
                         {/* Shop Now Button Overlay */}
-                        <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-10 lg:p-14">
+                        <div className="absolute inset-0 z-10 flex flex-col justify-end items-center sm:items-start p-5 sm:p-10 lg:p-14">
                             <ComboBuyButton products={maltProducts} />
                         </div>
                     </div>
