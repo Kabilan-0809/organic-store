@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       postalCode: rawPostalCode,
       country: rawCountry,
       womenDiscount: rawWomenDiscount,
+      phone: rawPhone,
     } = body as Record<string, unknown>
 
     // Validate selectedCartItemIds
@@ -107,6 +108,12 @@ export async function POST(req: NextRequest) {
       required: false,
       trim: true,
     }) || 'IN'
+    const phone = validateString(rawPhone, {
+      minLength: 1,
+      maxLength: 20,
+      required: true,
+      trim: true,
+    })
     const addressLine2 = rawAddressLine2
       ? validateString(rawAddressLine2, {
         minLength: 1,
@@ -116,8 +123,8 @@ export async function POST(req: NextRequest) {
       })
       : null
 
-    if (!addressLine1 || !city || !state || !postalCode) {
-      return createErrorResponse('Invalid address', 400)
+    if (!addressLine1 || !city || !state || !postalCode || !phone) {
+      return createErrorResponse('Invalid address or phone number', 400)
     }
 
     // Find user's cart
@@ -357,6 +364,7 @@ export async function POST(req: NextRequest) {
         state,
         postalCode,
         country,
+        phone,
       },
     })
   } catch (error) {

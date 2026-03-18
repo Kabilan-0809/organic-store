@@ -6,6 +6,7 @@ import { verifyRazorpaySignature, getRazorpayPayment } from '@/lib/payments/razo
 import { hasVariants } from '@/lib/products'
 import { calculateShippingFee } from '@/lib/pricing'
 import { calculateCartTotals } from '@/lib/combo-logic'
+import { sendEmail } from '@/lib/mail'
 
 export const runtime = 'nodejs'
 
@@ -105,6 +106,7 @@ export async function POST(_req: NextRequest) {
             state: string
             postalCode: string
             country: string
+            phone: string
         }
 
         if (!orderData.orderItemsData || orderData.orderItemsData.length === 0) {
@@ -237,6 +239,11 @@ export async function POST(_req: NextRequest) {
             }
         }
 
+        // Combine phone into addressLine2 since there is no phone column in DB
+        const addressLine2WithPhone = orderData.addressLine2 
+            ? `${orderData.addressLine2} (Phone: ${orderData.phone})`
+            : `Phone: ${orderData.phone}`
+
         // Step 5: Create Order in database (ONLY after payment verified)
         const { data: newOrder, error: orderError } = await supabase
             .from('Order')
@@ -246,7 +253,7 @@ export async function POST(_req: NextRequest) {
                 totalAmount: orderData.totalAmount,
                 currency: 'INR',
                 addressLine1: orderData.addressLine1,
-                addressLine2: orderData.addressLine2 ?? undefined,
+                addressLine2: addressLine2WithPhone,
                 city: orderData.city,
                 state: orderData.state,
                 postalCode: orderData.postalCode,
@@ -447,6 +454,86 @@ export async function POST(_req: NextRequest) {
                     .eq('cartId', firstCart.id)
                     .in('productId', productIds)
             }
+        }
+
+        // Step 9: Send order notification email to info@milletsnjoy.com
+        try {
+            const orderItemsHtml = orderData.orderItemsData.map(item => `
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee;">
+                        ${item.productName}
+                    </td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">
+                        ${item.quantity}
+                    </td>
+                    <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">
+                        ₹${(item.finalPrice / 100).toFixed(2)}
+                    </td>
+                </tr>
+            `).join('')
+
+            const emailHtml = `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #EC4899; border-bottom: 2px solid #EC4899; padding-bottom: 10px;">New Order Received! 🛒</h2>
+                    
+                    <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0;">Customer Details</h3>
+                        <p style="margin: 5px 0;"><strong>Name:</strong> ${user.user_metadata?.full_name || user.email}</p>
+                        <p style="margin: 5px 0;"><strong>Email:</strong> ${user.email}</p>
+                        <p style="margin: 5px 0;"><strong>Phone:</strong> ${orderData.phone}</p>
+                        <p style="margin: 5px 0;"><strong>Order ID:</strong> #${newOrder.id.substring(0, 8)}</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h3>Shipping Address</h3>
+                        <p style="line-height: 1.5; color: #4b5563;">
+                            ${orderData.addressLine1}<br/>
+                            ${orderData.addressLine2 ? orderData.addressLine2 + '<br/>' : ''}
+                            ${orderData.city}, ${orderData.state} - ${orderData.postalCode}<br/>
+                            ${orderData.country}
+                        </p>
+                    </div>
+
+                    <h3>Order Summary</h3>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background-color: #f3f4f6;">
+                                <th style="padding: 10px 8px; text-align: left;">Item</th>
+                                <th style="padding: 10px 8px; text-align: center;">Qty</th>
+                                <th style="padding: 10px 8px; text-align: right;">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${orderItemsHtml}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" style="padding: 10px 8px; text-align: right; color: #6b7280;">Shipping:</td>
+                                <td style="padding: 10px 8px; text-align: right; color: #6b7280;">₹${(expectedShippingFee / 100).toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="padding: 12px 8px; text-align: right; font-weight: bold; border-top: 2px solid #eee;">Total Paid:</td>
+                                <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #EC4899; border-top: 2px solid #eee; font-size: 16px;">
+                                    ₹${(orderData.totalAmount / 100).toFixed(2)}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 30px;">
+                        This is an automated notification from Millets N Joy Store.
+                    </p>
+                </div>
+            `
+
+            await sendEmail({
+                to: 'info@milletsnjoy.com',
+                subject: `New Order Alert: #${newOrder.id.substring(0, 8)}`,
+                html: emailHtml
+            })
+            console.log(`[API Payments Verify] Order notification email sent to info@milletsnjoy.com for order ${newOrder.id}`)
+        } catch (emailError) {
+            console.error('[API Payments Verify] Failed to send order email:', emailError)
         }
 
         return NextResponse.json({

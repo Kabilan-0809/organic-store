@@ -83,6 +83,7 @@ export default function CheckoutReviewContent() {
     state: '',
     postalCode: '',
     country: 'IN',
+    phone: '',
   })
 
   // State dropdown autocomplete
@@ -225,8 +226,8 @@ export default function CheckoutReviewContent() {
     }
 
     // Validate address
-    if (!address.addressLine1 || !address.city || !address.state || !address.postalCode) {
-      alert('Please fill in all required address fields')
+    if (!address.addressLine1 || !address.city || !address.state || !address.postalCode || !address.phone) {
+      alert('Please fill in all required address fields, including phone number')
       return
     }
 
@@ -308,6 +309,7 @@ export default function CheckoutReviewContent() {
       state: string
       postalCode: string
       country: string
+      phone: string
     }
   ) => {
     if (!accessToken) {
@@ -662,6 +664,19 @@ export default function CheckoutReviewContent() {
                         disabled
                       />
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={address.phone}
+                      onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                      className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      placeholder="Enter 10-digit phone number"
+                    />
                   </div>
                   {/* Shipping Note */}
                   <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-3">
