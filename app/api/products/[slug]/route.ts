@@ -27,7 +27,7 @@ export async function GET(
       // Likely a composite ID: cuid (25 chars) + uuid (36 chars) or similar
       const parts = params.slug.split('-')
       // If it looks like a composite ID from the Meta feed (cuid-uuid)
-      if (parts.length >= 2) {
+      if (parts.length >= 2 && parts[0]) {
         productId = parts[0]
       }
     }
