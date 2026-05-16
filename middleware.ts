@@ -23,7 +23,7 @@ export async function middleware(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedPaths = ['/cart', '/checkout']
+  const protectedPaths = ['/checkout']
   const isProtected = protectedPaths.some(p =>
     req.nextUrl.pathname.startsWith(p)
   )
