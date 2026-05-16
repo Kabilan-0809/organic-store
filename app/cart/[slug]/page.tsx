@@ -38,13 +38,11 @@ export default function AddToCartPage({ params }: CartSlugPageProps) {
         }
 
         // Handle composite IDs (cuid-uuid)
-        let productId = fullId
         let variantId: string | undefined = undefined
 
         if (fullId.includes('-') && fullId.length > 25) {
           const idParts = fullId.split('-')
           if (idParts.length >= 2) {
-            productId = idParts[0]
             variantId = idParts.slice(1).join('-')
           }
         }

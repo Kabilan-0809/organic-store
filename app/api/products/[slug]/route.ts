@@ -22,17 +22,13 @@ export async function GET(
   try {
     // Check if the slug is a composite ID (ProductId-VariantId) or just a ProductId
     let productId = params.slug
-    let variantId: string | null = null
 
     if (params.slug.includes('-') && params.slug.length > 25) {
       // Likely a composite ID: cuid (25 chars) + uuid (36 chars) or similar
       const parts = params.slug.split('-')
       // If it looks like a composite ID from the Meta feed (cuid-uuid)
       if (parts.length >= 2) {
-        // In our format, the variant ID is usually the last part if it's a UUID
-        // cmjiujnln0005nbciw0iotni2-e220fa3e-0f85-420e-bb9e-0b45b2e080e5
         productId = parts[0]
-        variantId = parts.slice(1).join('-')
       }
     }
 
